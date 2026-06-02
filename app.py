@@ -295,7 +295,7 @@ if st.session_state.confirmed_owner_property is None:
         chosen_property = suggestions[labels.index(selected_label)]
         
         if st.button("⚡ Analyser mon Logement", type="primary", use_container_width=True):
-            # ⚡ THE WOW FACTOR: Dynamic Processing Stage Interactions
+            # ⚡ Dynamic Processing Stage Interactions
             status_box = st.empty()
             with status_box.container():
                 st.markdown('<div class="processing-step">🔗 Connexion sécurisée au registre d\'État ADEME...</div>', unsafe_allow_html=True)
@@ -336,7 +336,6 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col_right_metrics:
-        # Luxury layout distribution for structural metrics
         m_col1, m_col2, m_col3 = st.columns(3)
         with m_col1:
             st.markdown(f'<span class="metric-value-huge">{prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">Surface Réelle</span>', unsafe_allow_html=True)
@@ -351,12 +350,12 @@ else:
             else:
                 st.markdown('<span class="metric-value-huge" style="color:#94a3b8;">Optimal</span><br><span class="metric-label-sub">Valeur marché sécurisée</span>', unsafe_allow_html=True)
 
-        # 🎯 WOW FEATURE 2: Real-time Interactive Visual Energy Transition Path Graph
+        # 🎯 Real-time Interactive Visual Energy Transition Path Graph
         st.markdown('<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">Progression Énergétique Visuelle</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
         if prop["dpe"] in dpe_sequence:
             current_idx = dpe_sequence.index(prop["dpe"])
-            target_idx = max(current_idx - 3, 3) # Target dynamic jump to standard D or C
+            target_idx = max(current_idx - 3, 3)
             
             fig_progress = go.Figure()
             # Background track
@@ -365,20 +364,21 @@ else:
             if current_idx < 6 and current_idx != target_idx:
                 fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1, ax=dpe_sequence[current_idx], ay=1, xref="x", yref="y", axref="x", ayref="y", text="", showarrow=True, arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor="#fff")
                 fig_progress.add_annotation(x=dpe_sequence[current_idx], y=0.85, text="Votre Bien 🏠", showarrow=False, font=dict(color="#fff", size=11))
-                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text="Objectif Optimal ✅", showarrow=False, font=dict(color="#22c55e", size=11, weight="bold"))
+                
+                # 🎯 FIXED TRUNCATION: Plotly bold weight validation error fixed here
+                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text="<b>Objectif Optimal ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
                 
             fig_progress.update_layout(height=110, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(visible=False), yaxis=dict(visible=False))
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
             
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 🎯 WOW FEATURE 3: Smart French Subsidies Engine (MaPrimeRénov')
+    # 🎯 Smart French Subsidies Engine (MaPrimeRénov')
     if prop["cost"] > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<p class="section-label">Calculateur d\'Aides Publiques</p><p class="section-title">Subventions d\'État Disponibles Éligibles</p>', unsafe_allow_html=True)
         
-        # Calculate dynamic estimated aids based on investment brackets
-        estimated_subsidy = round(prop["cost"] * 0.45, 0) # Baseline 45% coverage approximation for target audit
+        estimated_subsidy = round(prop["cost"] * 0.45, 0)
         net_cost = prop["cost"] - estimated_subsidy
         
         sub1, sub2, sub3 = st.columns(3)
