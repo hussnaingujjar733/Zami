@@ -254,7 +254,6 @@ _FALLBACK_UPLIFT    = {"G": 0.24, "F": 0.20, "E": 0.13, "D": 0.07}
 _RENT_RISK = {"G": "🔴 Interdit", "F": "🟠 Critique", "E": "🟡 Surveillance", "D": "🟢 Conforme"}
 
 def calculate_reno_cost_ml(surface, dpe, zipcode):
-    # Agar aapki ml_engine ready hai toh use call karega, warna fallback mathematical formula chalayega
     if ML_BACKEND_READY and hasattr(ml, "predict_cost"):
         try: return ml.predict_cost(surface, dpe, zipcode)
         except Exception: pass
@@ -279,7 +278,6 @@ def fetch_ademe(query: str, limit: int = 50):
         dpe     = str(item.get("etiquette_dpe") or item.get("Etiquette_DPE") or "N/A").upper().strip()
         surface = float(item.get("surface_habitable_logement") or item.get("surface") or 30)
         
-        # Calling the newly linked ML Predictive wrappers
         cost    = calculate_reno_cost_ml(surface, dpe, zip_context)
         r       = calculate_roi_ml(cost, dpe, zip_context)
         
@@ -368,7 +366,7 @@ if not st.session_state.show_app:
     with col_hero_right:
         st.markdown('<div class="video-container">', unsafe_allow_html=True)
         st.markdown('<p class="section-label" style="text-align:center;">🎬 Demo Showcase & Digital Twin Scan</p>', unsafe_allow_html=True)
-        st.video("https://www.youtube.com/watch?v=mCmjNwjYfqw") 
+        st.video("https://www.youtube.com/watch?v=mCmjNwjYfqw")
         if lottie_scan:
             st_lottie(lottie_scan, height=120, key="radar_landing")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -533,7 +531,6 @@ if not st.session_state.raw_data.empty:
         ref = st.selectbox("Sélectionnez le bien", df_f["Address"].tolist())
         row = df_f[df_f["Address"] == ref].iloc[0]
         
-        # 🧠 ML INTEGRATION IN REAL-TIME SIMULATOR SCORING
         if ML_BACKEND_READY and hasattr(ml, "predict_cost"):
             st.info("💡 Calculs gérés par l'algorithme prédictif ZAMI AI")
             
@@ -552,4 +549,14 @@ if not st.session_state.raw_data.empty:
 
     elif section_choice == "Export":
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.download_button("⬇ dependency CSV", data=df_f.to_csv(index=False).encode("utf-
+        st.download_button("⬇ dependency CSV", data=df_f.to_csv(index=False).encode("utf-8"), file_name="ZAMI_export.csv", mime="text/csv", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <div class="card" style="text-align:center;padding:3rem 2rem;">
+        <p class="section-title">Prêt pour l'extraction</p>
+        <p style="color:#64748b;">Veuillez exécuter une recherche d'adresse ou de secteur géographique ci-dessus.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown('<div class="footer">ZAMI v2.5 — Données Officielles ADEME & API BAN France</div>', unsafe_allow_html=True)
