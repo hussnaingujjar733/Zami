@@ -8,6 +8,14 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from streamlit_lottie import st_lottie
 
+# ── 🧠 IMPORT YOUR NEW ML BACKEND MODULES ──
+try:
+    import data_pipeline as dp
+    import ml_engine as ml
+    ML_BACKEND_READY = True
+except ImportError:
+    ML_BACKEND_READY = False
+
 # ─────────────────────────────────────────────
 # PAGE CONFIG
 # ─────────────────────────────────────────────
@@ -19,7 +27,7 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES — Ultra Luxury Dark, Crimson & Visual Grid Theme
+# GLOBAL STYLES — Ultra Luxury Dark Theme
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -34,7 +42,6 @@ html, body, .stApp {
     font-family: 'DM Sans', sans-serif;
 }
 
-/* Animated grain overlay */
 .stApp::before {
     content: '';
     position: fixed;
@@ -45,7 +52,6 @@ html, body, .stApp {
     opacity: 0.5;
 }
 
-/* Radial luxury crimson glow */
 .stApp::after {
     content: '';
     position: fixed;
@@ -58,11 +64,10 @@ html, body, .stApp {
     z-index: 0;
 }
 
-/* ── 🎯 PERFECT ALIGNMENT & HIGH RESOLUTION LOGO CSS ── */
 .brand-header-flex {
     display: flex;
-    align-items: center; /* Vertically Centers everything perfectly */
-    justify-content: space-between; /* Pushes Logo to Left, Tag to Right */
+    align-items: center;
+    justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding-bottom: 1.2rem;
     margin-bottom: 2rem;
@@ -70,13 +75,9 @@ html, body, .stApp {
 }
 .logo-img-container img {
     height: auto;
-    width: 140px; /* Locked precise asset width */
-    max-width: 100%;
-    /* Anti-aliasing engine triggers to remove image noise and blur */
+    width: 140px;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
-    transform: translateZ(0);
-    backface-visibility: hidden;
 }
 .brand-status-tag {
     background: rgba(255,255,255,0.03);
@@ -87,13 +88,10 @@ html, body, .stApp {
     font-weight: 600;
     letter-spacing: 0.05em;
     color: #94a3b8;
-    display: inline-block;
 }
 
-/* ── Typography ── */
 h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 
-/* ── Section card ── */
 .card {
     background: linear-gradient(145deg, rgba(11,14,23,0.98), rgba(16,20,35,0.85));
     border: 1px solid rgba(148,163,184,0.06);
@@ -103,7 +101,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
     margin-bottom: 1.5rem;
 }
 
-/* ── Luxury Hero Frame ── */
 .landing-hero {
     background: linear-gradient(135deg, rgba(11,13,23,0.95), rgba(35,15,15,0.6));
     border: 1px solid rgba(220,38,38,0.15);
@@ -136,7 +133,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 }
 .landing-title em { color: #dc2626; font-style: italic; }
 
-/* ── Video Showcase Container ── */
 .video-container {
     background: #0f121d;
     border: 1px solid rgba(255,255,255,0.05);
@@ -149,7 +145,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
     height: 100%;
 }
 
-/* ── Premium News Feed Block ── */
 .news-card {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.05);
@@ -166,7 +161,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 .news-title { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 6px; line-height: 1.4; }
 .news-desc { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
 
-/* ── Buttons Overrides ── */
 .stButton > button {
     background: linear-gradient(135deg, #dc2626 0%, #a81a1a 100%) !important;
     color: white !important;
@@ -201,7 +195,6 @@ if "landing_target_section" not in st.session_state: st.session_state.landing_ta
 DEFAULT_CENTER = (48.8566, 2.3522)
 DATASET_ID     = "meg-83tjwtg8dyz4vv7h1dqe"
 
-# Lottie Animation Loader
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200: return None
@@ -210,7 +203,7 @@ def load_lottieurl(url: str):
 lottie_scan = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_5n8y9uob.json")
 
 # ─────────────────────────────────────────────
-# APIS AND DATA ENGINES
+# APIS AND DATA ENGINES (WITH ML FALLBACKS)
 # ─────────────────────────────────────────────
 def safe_get(url, params=None, timeout=10):
     try:
@@ -255,13 +248,23 @@ def geocode_address(address: str, fallback_lat: float, fallback_lon: float):
     except Exception:
         return (fallback_lat + random.uniform(-0.004, 0.004), fallback_lon + random.uniform(-0.004, 0.004))
 
-_RENO_COST = {"G": 1400, "F": 1150, "E": 650, "D": 300}
-_UPLIFT    = {"G": 0.24, "F": 0.20, "E": 0.13, "D": 0.07}
+# ── 🤖 ML PREDICTION WRAPPER FOR ADEME STREAMING ──
+_FALLBACK_RENO_COST = {"G": 1400, "F": 1150, "E": 650, "D": 300}
+_FALLBACK_UPLIFT    = {"G": 0.24, "F": 0.20, "E": 0.13, "D": 0.07}
 _RENT_RISK = {"G": "🔴 Interdit", "F": "🟠 Critique", "E": "🟡 Surveillance", "D": "🟢 Conforme"}
 
-def reno_cost(surface, dpe): return round(float(surface) * _RENO_COST.get(dpe, 0), 0)
-def roi(cost, dpe): return round(_UPLIFT.get(dpe, 0.03) * 100, 1) if cost > 0 else 0.0
-def rent_risk(dpe): return _RENT_RISK.get(dpe, "✅ Conforme")
+def calculate_reno_cost_ml(surface, dpe, zipcode):
+    # Agar aapki ml_engine ready hai toh use call karega, warna fallback mathematical formula chalayega
+    if ML_BACKEND_READY and hasattr(ml, "predict_cost"):
+        try: return ml.predict_cost(surface, dpe, zipcode)
+        except Exception: pass
+    return round(float(surface) * _FALLBACK_RENO_COST.get(dpe, 0), 0)
+
+def calculate_roi_ml(cost, dpe, zipcode):
+    if ML_BACKEND_READY and hasattr(ml, "predict_roi"):
+        try: return ml.predict_roi(cost, dpe, zipcode)
+        except Exception: pass
+    return round(_FALLBACK_UPLIFT.get(dpe, 0.03) * 100, 1) if cost > 0 else 0.0
 
 @st.cache_data(ttl=120)
 def fetch_ademe(query: str, limit: int = 50):
@@ -269,20 +272,25 @@ def fetch_ademe(query: str, limit: int = 50):
     params = {"page": 1, "size": limit, "q": query}
     data   = safe_get(url, params, timeout=14)
     rows   = []
+    zip_context = query if len(query) == 5 and query.isdigit() else st.session_state.last_zipcode
+    
     for item in (data.get("results", []) if data else []):
         addr    = item.get("Adresse_brute") or item.get("adresse_ban") or item.get("adresse") or "Inconnu"
         dpe     = str(item.get("etiquette_dpe") or item.get("Etiquette_DPE") or "N/A").upper().strip()
         surface = float(item.get("surface_habitable_logement") or item.get("surface") or 30)
-        cost    = reno_cost(surface, dpe)
-        r       = roi(cost, dpe)
+        
+        # Calling the newly linked ML Predictive wrappers
+        cost    = calculate_reno_cost_ml(surface, dpe, zip_context)
+        r       = calculate_roi_ml(cost, dpe, zip_context)
+        
         rows.append({
             "Address":           addr,
-            "Code Postal":       query if len(query) == 5 and query.isdigit() else "",
+            "Code Postal":       zip_context,
             "DPE":               dpe,
             "Surface (m²)":      surface,
             "Coût Rénov. (€)":   cost,
             "ROI Estimé (%)":    r,
-            "Statut Locatif":    rent_risk(dpe),
+            "Statut Locatif":    _RENT_RISK.get(dpe, "✅ Conforme"),
             "Status":            "CRITICAL" if dpe in ["F", "G"] else ("WARNING" if dpe == "E" else "OK"),
             "Priorité":          4 if dpe == "G" else 3 if dpe == "F" else 2 if dpe == "E" else 1,
             "Bulle":             max(cost, 4000),
@@ -307,33 +315,29 @@ def geolocate_df(df: pd.DataFrame, base_lat: float, base_lon: float):
 # ─────────────────────────────────────────────
 # 🏢 PURE-HTML ULTRA SHARP LOGO HEADER
 # ─────────────────────────────────────────────
-# Base64 mapping bypass to feed pure image context into the crisp layout engine
 import base64
 try:
     with open("assets/zami_logo.png", "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
     logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{encoded_string}"></div>'
 except Exception:
-    # Fail-safe text logic
     logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2rem; color:#fff;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
+status_label = "AI ENGINE ACTIVE" if ML_BACKEND_READY else "MVP LIVE • DYNAMIC"
 st.markdown(f"""
 <div class="brand-header-flex">
     {logo_html}
     <div>
-        <span class="brand-status-tag">MVP LIVE • SYSTEM INSIGHTS V2.5</span>
+        <span class="brand-status-tag">STATUS: {status_label}</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 # ─────────────────────────────────────────────
 # 🌟 SPLIT SCREEN LUXURY LANDING PAGE
 # ─────────────────────────────────────────────
 if not st.session_state.show_app:
-    
     col_hero_left, col_hero_right = st.columns([1.1, 0.9], gap="large")
-    
     with col_hero_left:
         st.markdown("""
             <div class="landing-hero">
@@ -346,7 +350,6 @@ if not st.session_state.show_app:
                 </p>
             </div>
         """, unsafe_allow_html=True)
-
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown('<p class="section-label">Accès Immédiat</p><p class="section-title">Explorez le Cockpit Analytique</p>', unsafe_allow_html=True)
         
@@ -365,18 +368,13 @@ if not st.session_state.show_app:
     with col_hero_right:
         st.markdown('<div class="video-container">', unsafe_allow_html=True)
         st.markdown('<p class="section-label" style="text-align:center;">🎬 Demo Showcase & Digital Twin Scan</p>', unsafe_allow_html=True)
-        
-        # Live YouTube Video Link[cite: 1]
         st.video("https://www.youtube.com/watch?v=mCmjNwjYfqw") 
-        
         if lottie_scan:
             st_lottie(lottie_scan, height=120, key="radar_landing")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 🌐 REAL-TIME FRENCH REGULATION NEWS
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown('<p class="section-label">Actualités En Direct</p><p class="section-title">Flash Réglementation & Loi Climat France</p>', unsafe_allow_html=True)
-    
     n_col1, n_col2, n_col3 = st.columns(3)
     with n_col1:
         st.markdown("""
@@ -403,7 +401,6 @@ if not st.session_state.show_app:
             </div>
         """, unsafe_allow_html=True)
 
-    # 📈 MARKET INSIGHTS SNAPSHOT
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<p class="section-label">Market Intelligence</p><p class="section-title">Indicateurs de Performance Nationaux</p>', unsafe_allow_html=True)
@@ -423,13 +420,8 @@ nav_options = ["Vue générale", "Carte", "Analyse", "Simulation", "Contact", "E
 nav_icons = ["grid", "map", "bar-chart-line", "sliders", "envelope", "download"]
 
 default_nav_idx = nav_options.index(st.session_state.landing_target_section)
-
 section_choice = option_menu(
-    menu_title=None,
-    options=nav_options,
-    icons=nav_icons,
-    default_index=default_nav_idx,
-    orientation="horizontal",
+    menu_title=None, options=nav_options, icons=nav_icons, default_index=default_nav_idx, orientation="horizontal",
     styles={
         "container": {"background-color": "rgba(11,14,23,0.95)", "border": "1px solid rgba(255,255,255,0.05)", "padding": "6px", "border-radius": "16px", "margin-bottom": "25px"},
         "icon": {"color": "#94a3b8", "font-size": "14px"}, 
@@ -465,11 +457,9 @@ if suggestions:
 
 if selected_addr:
     run_addr = st.button(f"📌 Confirmer l'analyse unitaire : {selected_addr['label']}", type="primary", use_container_width=True)
-else:
-    run_addr = False
+else: run_addr = False
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Filters Block
 st.markdown('<div class="card">', unsafe_allow_html=True)
 fc1, fc2, fc3 = st.columns(3)
 with fc1: min_surface = st.number_input("Surface minimum (m²)", min_value=0, value=15)
@@ -477,7 +467,6 @@ with fc2: selected_dpes = st.multiselect("Étiquettes DPE", ["A","B","C","D","E"
 with fc3: budget_cap = st.slider("Budget max rénovation (€)", 0, 100_000, 50_000, step=1000)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Data Fetch Core[cite: 1]
 if run_zip:
     with st.spinner("Extraction ADEME live..."):
         df = fetch_ademe(zipcode, 15)
@@ -501,7 +490,6 @@ if run_addr and selected_addr:
             st.session_state.raw_data = df
             st.session_state.last_zipcode = selected_addr["postcode"]
 
-# Render Interface Sections[cite: 1]
 if not st.session_state.raw_data.empty:
     df_f = st.session_state.raw_data.copy()
     df_f = df_f[df_f["Surface (m²)"] >= float(min_surface)]
@@ -544,6 +532,11 @@ if not st.session_state.raw_data.empty:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         ref = st.selectbox("Sélectionnez le bien", df_f["Address"].tolist())
         row = df_f[df_f["Address"] == ref].iloc[0]
+        
+        # 🧠 ML INTEGRATION IN REAL-TIME SIMULATOR SCORING
+        if ML_BACKEND_READY and hasattr(ml, "predict_cost"):
+            st.info("💡 Calculs gérés par l'algorithme prédictif ZAMI AI")
+            
         sim_budget = st.number_input("Budget Travaux (€)", value=int(row["Coût Rénov. (€)"]))
         uplift = st.slider("Revalorisation (%)", 0.0, 40.0, float(row["ROI Estimé (%)"]))
         st.metric("Gain Patrimonial", f"€{sim_budget * (uplift / 100):,.0f}")
@@ -559,14 +552,4 @@ if not st.session_state.raw_data.empty:
 
     elif section_choice == "Export":
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.download_button("⬇ dependency CSV", data=df_f.to_csv(index=False).encode("utf-8"), file_name="ZAMI_export.csv", mime="text/csv", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <div class="card" style="text-align:center;padding:3rem 2rem;">
-        <p class="section-title">Prêt pour l'extraction</p>
-        <p style="color:#64748b;">Veuillez exécuter une recherche d'adresse ou de secteur géographique ci-dessus.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('<div class="footer">ZAMI v2.5 — Données Officielles ADEME & API BAN France</div>', unsafe_allow_html=True)
+        st.download_button("⬇ dependency CSV", data=df_f.to_csv(index=False).encode("utf-
