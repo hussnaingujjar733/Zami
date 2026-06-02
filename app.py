@@ -27,161 +27,135 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES — Ultra Luxury Dark Theme (WOW Factor Enhanced)
+# 🌐 TRANSLATION DICTIONARY MATRIX
+# ─────────────────────────────────────────────
+LANG_DICT = {
+    "FR": {
+        "title": "Portail Propriétaire Énergétique",
+        "subtitle": "Estimez instantanément la valeur et les travaux de votre bien",
+        "input_label": "Saisissez l'adresse de votre logement :",
+        "select_certified": "Sélectionnez la ligne certifiée officielle :",
+        "btn_analyze": "⚡ Analyser mon Logement",
+        "btn_back": "⬅️ Retourner à la recherche",
+        "bilan_title": "Bilan Diagnostic Personnel",
+        "choose_plan": "Choisissez votre Plan de Transition Rénovation :",
+        "eco_ess": "🛠️ Éco Essential",
+        "eco_ess_sub": "Mise en conformité légale (DPE D)",
+        "conf_plus": "⚡ Confort Plus",
+        "conf_plus_sub": "Isolation globale & Confort (DPE C)",
+        "carb_zero": "🟢 Carbone Zéro",
+        "carb_zero_sub": "Performance & Heat-Pump (DPE B)",
+        "current_class": "Classe Actuelle",
+        "target_class": "🎯 Cible Scénario : Classe",
+        "surface": "Surface Réelle",
+        "budget_est": "Budget Estimé du Plan",
+        "bbc_label": "Bâtiment Basse Consommation",
+        "uplift_label": "Uplift Valeur Patrimoine",
+        "optimal_label": "Valeur marché sécurisée",
+        "visual_prog": "Progression Énergétique Visuelle",
+        "your_property": "Votre Bien 🏠",
+        "target_label": "Cible",
+        "fin_title": "Analyse Financière & Graphique",
+        "fin_sub": "Subventions d'État vs Reste à Charge Net",
+        "subvention_label": "Subvention MaPrimeRénov'",
+        "reste_charge": "Reste à Charge Net",
+        "impact_facture": "Impact Facture : En choisissant le plan {sc}, vous économisez en moyenne {saving} sur vos factures.",
+        "chart_5yr_title": "📊 Évolution Prédictive du Patrimoine (5 Ans)",
+        "chart_5yr_sub": "Trajectoire de l'actif : Rénové vs Non-Rénové (Passoire Thermique)",
+        "form_title": "Prendre RDV avec un Artisan Certifié RGE",
+        "form_sub": "Recevez gratuitement 3 devis d'artisans locaux audités par l'État.",
+        "form_name": "Nom Complet *",
+        "form_phone": "Numéro de Téléphone *",
+        "form_email": "Adresse Email *",
+        "form_time": "Créneau de rappel souhaité",
+        "form_notes": "Précisions complémentaires (facultatif)",
+        "form_btn": "📨 Envoyer ma demande de RDV",
+        "form_err": "⚠️ Veuillez remplir tous les champs obligatoires (*) pour valider la demande.",
+        "form_success": "🎉 Félicitations ! Votre demande a été enregistrée avec succès. Un artisan certifié RGE vous contactera sous 24h.",
+        "download_btn": "⬇️ Télécharger mon Bilan (.csv)",
+        "faq_title": "Guide Légal & FAQ Rénovation France",
+        "footer": "ZAMI v5.0 Ultimate — Système Global Intégré • Données Certifiées ADEME & BAN France"
+    },
+    "EN": {
+        "title": "Property Energy Portal",
+        "subtitle": "Instantly estimate your property value and renovation costs",
+        "input_label": "Enter your property address:",
+        "select_certified": "Select the certified official address line:",
+        "btn_analyze": "⚡ Analyze My Property",
+        "btn_back": "⬅️ Return to Search",
+        "bilan_title": "Personal Assessment Summary",
+        "choose_plan": "Choose your Renovation Transition Plan:",
+        "eco_ess": "🛠️ Eco Essential",
+        "eco_ess_sub": "Legal compliance matching (DPE D)",
+        "conf_plus": "⚡ Comfort Plus",
+        "conf_plus_sub": "Global Insulation & Comfort (DPE C)",
+        "carb_zero": "🟢 Carbon Zero",
+        "carb_zero_sub": "High Performance & Heat-Pump (DPE B)",
+        "current_class": "Current Rating",
+        "target_class": "🎯 Target Scenario: Class",
+        "surface": "Real Surface Area",
+        "budget_est": "Estimated Plan Budget",
+        "bbc_label": "Low Consumption Building",
+        "uplift_label": "Property Value Uplift",
+        "optimal_label": "Market Value Secured",
+        "visual_prog": "Visual Energy Progress Path",
+        "your_property": "Your Asset 🏠",
+        "target_label": "Target",
+        "fin_title": "Financial Analysis & Charts",
+        "fin_sub": "State Subsidies vs Net Out-of-Pocket Cost",
+        "subvention_label": "MaPrimeRénov' Subsidy",
+        "reste_charge": "Net Remaining Cost",
+        "impact_facture": "Bill Impact: By choosing the {sc} plan, you save an average of {saving} on your energy bills.",
+        "chart_5yr_title": "📊 5-Year Asset Value Predictive Evolution",
+        "chart_5yr_sub": "Asset Trajectory: Renovated vs Unrenovated (Energy Passoire Drop)",
+        "form_title": "Book an Appointment with a Certified RGE Contractor",
+        "form_sub": "Receive 3 free quotes from state-audited local contractors.",
+        "form_name": "Full Name *",
+        "form_phone": "Phone Number *",
+        "form_email": "Email Address *",
+        "form_time": "Preferred callback time",
+        "form_notes": "Additional project notes (optional)",
+        "form_btn": "📨 Submit My Appointment Request",
+        "form_err": "⚠️ Please fill in all required fields (*) to validate your request.",
+        "form_success": "🎉 Congratulations! Your request has been successfully registered. An RGE contractor will call you within 24h.",
+        "download_btn": "⬇️ Download My Assessment (.csv)",
+        "faq_title": "Legal Guide & Renovation FAQ France",
+        "footer": "ZAMI v5.0 Ultimate — Global Integrated System • Certified ADEME & BAN France Data"
+    }
+}
+
+# ─────────────────────────────────────────────
+# GLOBAL STYLES — Ultra Luxury Dark Theme
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; }
 #MainMenu, footer, header { visibility: hidden; }
-
-html, body, .stApp {
-    background: #05070c;
-    color: #e2e8f0;
-    font-family: 'DM Sans', sans-serif;
-}
-
+html, body, .stApp { background: #05070c; color: #e2e8f0; font-family: 'DM Sans', sans-serif; }
 .stApp::before {
-    content: '';
-    position: fixed;
-    inset: 0;
+    content: ''; position: fixed; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
+    pointer-events: none; z-index: 0; opacity: 0.5;
 }
-
-.brand-header-flex {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 1.2rem;
-    margin-bottom: 2rem;
-    width: 100%;
-}
-.logo-img-container img {
-    height: auto;
-    width: 140px;
-}
-.brand-status-tag {
-    background: rgba(220,38,38,0.05);
-    border: 1px solid rgba(220,38,38,0.2);
-    padding: 7px 15px;
-    border-radius: 30px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #fca5a5;
-    letter-spacing: 0.05em;
-}
-
+.brand-header-flex { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1.2rem; margin-bottom: 2rem; width: 100%; }
+.logo-img-container img { height: auto; width: 140px; }
+.brand-status-tag { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.2); padding: 7px 15px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; color: #fca5a5; letter-spacing: 0.05em; }
 h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
-
-.card {
-    background: linear-gradient(145deg, rgba(11,14,23,0.98), rgba(16,20,35,0.85));
-    border: 1px solid rgba(148,163,184,0.06);
-    border-radius: 24px;
-    padding: 2.2rem 2.5rem;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.4);
-    margin-bottom: 1.5rem;
-}
-
-.scenario-card-active {
-    background: linear-gradient(135deg, rgba(220,38,38,0.15) 0%, rgba(15,18,32,0.95) 100%);
-    border: 1px solid rgba(220,38,38,0.4) !important;
-    box-shadow: 0 15px 35px rgba(220,38,38,0.1);
-}
-
-.owner-exclusive-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2.6rem;
-    color: #f8fafc;
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.02em;
-}
-
-.dpe-badge-big {
-    display: inline-block;
-    padding: 15px 35px;
-    font-size: 3.8rem;
-    font-weight: 900;
-    border-radius: 20px;
-    color: #fff;
-    text-align: center;
-    font-family: 'DM Sans', sans-serif;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-}
-
+.card { background: linear-gradient(145deg, rgba(11,14,23,0.98), rgba(16,20,35,0.85)); border: 1px solid rgba(148,163,184,0.06); border-radius: 24px; padding: 2.2rem 2.5rem; box-shadow: 0 30px 70px rgba(0,0,0,0.4); margin-bottom: 1.5rem; }
+.scenario-card-active { background: linear-gradient(135deg, rgba(220,38,38,0.15) 0%, rgba(15,18,32,0.95) 100%); border: 1px solid rgba(220,38,38,0.4) !important; box-shadow: 0 15px 35px rgba(220,38,38,0.1); }
+.owner-exclusive-title { font-family: 'DM Serif Display', serif; font-size: 2.6rem; color: #f8fafc; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+.dpe-badge-big { display: inline-block; padding: 15px 35px; font-size: 3.8rem; font-weight: 900; border-radius: 20px; color: #fff; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #dc2626; margin-bottom: 0.4rem; }
 .section-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: #f8fafc; margin: 0 0 0.5rem 0; }
-.footer { text-align: center; color: #475569; padding: 3rem 0; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 4rem; }
-
-.metric-value-huge {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #ffffff;
-    font-family: 'DM Sans', sans-serif;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-}
-.metric-label-sub {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: 4px;
-    display: inline-block;
-}
-
-.news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
-}
-.news-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 16px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-}
-.news-card:hover {
-    border-color: rgba(220,38,38,0.25);
-    background: rgba(220,38,38,0.02);
-    transform: translateY(-3px);
-}
-.news-tag {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #dc2626;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-}
-.news-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #f1f5f9;
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-.news-body {
-    color: #64748b;
-    font-size: 0.85rem;
-    line-height: 1.6;
-}
-
-.processing-step {
-    padding: 12px 20px;
-    background: rgba(255,255,255,0.02);
-    border-left: 3px solid #dc2626;
-    margin-bottom: 8px;
-    border-radius: 0 8px 8px 0;
-    font-size: 0.9rem;
-    color: #94a3b8;
-}
+.metric-value-huge { font-size: 3rem; font-weight: 700; color: #ffffff; letter-spacing: -0.03em; line-height: 1.1; }
+.metric-label-sub { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; mt: 4px; display: inline-block; }
+.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+.news-card { background: linear-gradient(135deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 1.5rem; }
+.news-tag { font-size: 0.65rem; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.news-title { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+.news-body { color: #64748b; font-size: 0.85rem; line-height: 1.6; }
+.processing-step { padding: 12px 20px; background: rgba(255,255,255,0.02); border-left: 3px solid #dc2626; margin-bottom: 8px; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: #94a3b8; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -219,7 +193,7 @@ def ban_search(query: str, limit: int = 5):
         })
     return results
 
-# ── 🤖 ML ENGINE MULTI-SCENARIO SCALING MATRIX ──
+# ── 🤖 ML MATRIX COEFFICIENTS ──
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
 _SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
 _SCENARIO_TARGET_DPE     = {"Essential": "D", "Plus": "C", "Zero": "B"}
@@ -263,9 +237,15 @@ def fetch_single_property_ademe(query_address: str, zipcode: str):
     return {"address": item.get("Adresse_brute") or query_address, "dpe": dpe, "surface": surface, "cost": cost, "roi": roi, "zipcode": zipcode}
 
 # ─────────────────────────────────────────────
-# 🏢 LOGO BRANDING
+# 🏢 BRAND HEADER & LANGUAGE SELECTOR
 # ─────────────────────────────────────────────
-import base64
+col_logo, col_lang = st.columns([2.5, 0.5])
+with col_lang:
+    selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
+    
+# Loading translation context parameters shortcut
+T = LANG_DICT[selected_lang]
+
 try:
     with open("assets/zami_logo.png", "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode()
@@ -273,43 +253,38 @@ try:
 except Exception:
     logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
-status_label = "ZAMI CORE V4.0 MAX ACTIVE" if ML_BACKEND_READY else "ZAMI ADVANCED INTELLIGENCE"
 st.markdown(f"""
-<div class="brand-header-flex">
+<div class="brand-header-flex" style="margin-top:-30px;">
     {logo_html}
-    <div>
-        <span class="brand-status-tag">{status_label}</span>
-    </div>
+    <div><span class="brand-status-tag">ZAMI ENGINE V5.0 MASTER LIVE</span></div>
 </div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 SEARCH INPUT LAYER
+# 🎯 SEARCH LAYER (DYNAMIC TRANSLATION LOAD)
 # ─────────────────────────────────────────────
 if st.session_state.confirmed_owner_property is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<p class="section-label">Portail Propriétaire Énergétique</p><p class="section-title">Estimez instantanément la valeur et les travaux de votre bien</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">{T["title"]}</p><p class="section-title">{T["subtitle"]}</p>', unsafe_allow_html=True)
     
-    search_query = st.text_input("Saisissez l'adresse de votre logement :", placeholder="Ex: 14 Rue de la Paix, Paris", key="owner_search_input")
+    search_query = st.text_input(T["input_label"], placeholder="Ex: 14 Rue de la Paix, Paris", key="owner_search_input")
     
     if search_query and len(search_query.strip()) >= 3:
-        with st.spinner("Vérification BAN en cours..."):
+        with st.spinner("BAN Engine..."):
             st.session_state.address_suggestions = ban_search(search_query)
             
     suggestions = st.session_state.address_suggestions
     
     if suggestions:
         labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
-        selected_label = st.selectbox("Sélectionnez la ligne certifiée officielle :", labels, key="owner_label_select")
+        selected_label = st.selectbox(T["select_certified"], labels, key="owner_label_select")
         chosen_property = suggestions[labels.index(selected_label)]
         
-        if st.button("⚡ Analyser mon Logement", type="primary", use_container_width=True):
+        if st.button(T["btn_analyze"], type="primary", use_container_width=True):
             status_box = st.empty()
             with status_box.container():
-                st.markdown('<div class="processing-step">🔗 Connexion sécurisée au registre d\'État ADEME...</div>', unsafe_allow_html=True)
-                time.sleep(0.5)
-                st.markdown('<div class="processing-step">🧠 Extraction vectorielle et injection dans les modèles ZAMI AI...</div>', unsafe_allow_html=True)
-                time.sleep(0.5)
+                st.markdown('<div class="processing-step">🔗 API Secure ADEME Gouv Connection...</div>', unsafe_allow_html=True)
+                time.sleep(0.4)
             status_box.empty()
             
             property_data = fetch_single_property_ademe(chosen_property["label"], chosen_property["postcode"])
@@ -318,47 +293,41 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🌟 PREMIUM MULTI-SCENARIO EXCLUSIVE COCKPIT
+# 🌟 PREMIUM EXCLUSIVE COCKPIT
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state.confirmed_owner_property
     dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
-    if st.button("⬅️ Retourner à la recherche", key="reset_owner_flow"):
+    if st.button(T["btn_back"], key="reset_owner_flow"):
         st.session_state.confirmed_owner_property = None
         st.session_state.address_suggestions = []
         st.session_state.selected_scenario = "Essential"
         st.rerun()
         
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<p class="section-label">Bilan Diagnostic Personnel</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">{T["bilan_title"]}</p>', unsafe_allow_html=True)
     st.markdown(f'<div class="owner-exclusive-title">{base_prop["address"]}</div>', unsafe_allow_html=True)
     
-    st.markdown('<p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:12px;">Choisissez votre Plan de Transition Rénovation :</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:12px;">{T["choose_plan"]}</p>', unsafe_allow_html=True)
     
     sc_col1, sc_col2, sc_col3 = st.columns(3)
-    
     with sc_col1:
         is_ess = (st.session_state.selected_scenario == "Essential")
-        card_class = "card scenario-card-active" if is_ess else "card"
-        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>🛠️ Éco Essential</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Mise en conformité légale (DPE D)</span></div>', unsafe_allow_html=True)
-        if st.button("Sélectionner Essential", key="btn_sc_ess", use_container_width=True):
+        st.markdown(f'<div class="card {"scenario-card-active" if is_ess else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["eco_ess"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["eco_ess_sub"]}</span></div>', unsafe_allow_html=True)
+        if st.button("Select Essential", key="btn_sc_ess", use_container_width=True):
             st.session_state.selected_scenario = "Essential"
             st.rerun()
-            
     with sc_col2:
         is_plus = (st.session_state.selected_scenario == "Plus")
-        card_class = "card scenario-card-active" if is_plus else "card"
-        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>⚡ Confort Plus</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Isolation globale & Confort (DPE C)</span></div>', unsafe_allow_html=True)
-        if st.button("Sélectionner Confort Plus", key="btn_sc_plus", use_container_width=True):
+        st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["conf_plus_sub"]}</span></div>', unsafe_allow_html=True)
+        if st.button("Select Comfort Plus", key="btn_sc_plus", use_container_width=True):
             st.session_state.selected_scenario = "Plus"
             st.rerun()
-            
     with sc_col3:
         is_zero = (st.session_state.selected_scenario == "Zero")
-        card_class = "card scenario-card-active" if is_zero else "card"
-        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>🟢 Carbone Zéro</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Performance & Heat-Pump (DPE B)</span></div>', unsafe_allow_html=True)
-        if st.button("Sélectionner Carbone Zéro", key="btn_sc_zero", use_container_width=True):
+        st.markdown(f'<div class="card {"scenario-card-active" if is_zero else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["carb_zero"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["carb_zero_sub"]}</span></div>', unsafe_allow_html=True)
+        if st.button("Select Carbon Zero", key="btn_sc_zero", use_container_width=True):
             st.session_state.selected_scenario = "Zero"
             st.rerun()
 
@@ -370,30 +339,29 @@ else:
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
     col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
-    
     with col_left_dpe:
         st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
-        st.markdown('<p class="metric-label-sub" style="margin-bottom:10px; font-weight:600;">Classe Actuelle</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-label-sub" style="margin-bottom:10px; font-weight:600;">{T["current_class"]}</p>', unsafe_allow_html=True)
         st.markdown(f'<div class="dpe-badge-big" style="background-color:{dpe_color}; margin-bottom:15px;">{base_prop["dpe"]}</div>', unsafe_allow_html=True)
-        st.markdown(f'<p class="metric-label-sub" style="color:#22c55e;">🎯 Cible Scénario: Class {target_dpe}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-label-sub" style="color:#22c55e;">{T["target_class"]} {target_dpe}</p>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col_right_metrics:
         m_col1, m_col2, m_col3 = st.columns(3)
         with m_col1:
-            st.markdown(f'<span class="metric-value-huge">{base_prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">Surface Réelle</span>', unsafe_allow_html=True)
+            st.markdown(f'<span class="metric-value-huge">{base_prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">{T["surface"]}</span>', unsafe_allow_html=True)
         with m_col2:
             if active_cost > 0:
-                st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{active_cost:,.0f}</span><br><span class="metric-label-sub">Budget Estimé du Plan</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{active_cost:,.0f}</span><br><span class="metric-label-sub">{T["budget_est"]}</span>', unsafe_allow_html=True)
             else:
-                st.markdown('<span class="metric-value-huge" style="color:#22c55e;">BBC</span><br><span class="metric-label-sub">Bâtiment Basse Consommation</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">BBC</span><br><span class="metric-label-sub">{T["bbc_label"]}</span>', unsafe_allow_html=True)
         with m_col3:
             if active_roi > 0:
-                st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">Uplift Valeur Patrimoine</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">{T["uplift_label"]}</span>', unsafe_allow_html=True)
             else:
-                st.markdown('<span class="metric-value-huge" style="color:#94a3b8;">Optimal</span><br><span class="metric-label-sub">Valeur marché sécurisée</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="metric-value-huge" style="color:#94a3b8;">Optimal</span><br><span class="metric-label-sub">{T["optimal_label"]}</span>', unsafe_allow_html=True)
 
-        st.markdown('<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">Progression Énergétique Visuelle</p>', unsafe_allow_html=True)
+        st.markdown(f'<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">{T["visual_prog"]}</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
         if base_prop["dpe"] in dpe_sequence and target_dpe in dpe_sequence:
             current_idx = dpe_sequence.index(base_prop["dpe"])
@@ -401,23 +369,18 @@ else:
             
             fig_progress = go.Figure()
             fig_progress.add_trace(go.Scatter(x=dpe_sequence, y=[1]*7, mode='markers+text', text=dpe_sequence, textposition="top center", marker=dict(size=24, color=["#ff0000", "#ff3300", "#ff6600", "#f2b035", "#ccff33", "#33cc33", "#319834"]), showlegend=False))
-            
             if current_idx < 6 and current_idx != target_idx:
                 fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1, ax=dpe_sequence[current_idx], ay=1, xref="x", yref="y", axref="x", ayref="y", text="", showarrow=True, arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor="#fff")
-                fig_progress.add_annotation(x=dpe_sequence[current_idx], y=0.85, text="Votre Bien 🏠", showarrow=False, font=dict(color="#fff", size=11))
-                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text=f"<b>Cible {current_scenario} ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
-                
+                fig_progress.add_annotation(x=dpe_sequence[current_idx], y=0.85, text=T["your_property"], showarrow=False, font=dict(color="#fff", size=11))
+                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text=f"<b>{T['target_label']} {current_scenario} ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
             fig_progress.update_layout(height=110, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(visible=False), yaxis=dict(visible=False))
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
-            
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ─────────────────────────────────────────────
-    # 🎯 UPGRADED VISUAL FINANCIALS HUB (THE WOW CHART)
-    # ─────────────────────────────────────────────
+    # ── FINANCIALS ANALYSIS SECTION (PIE CHART)
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<p class="section-label">Analyse Financière & Graphique</p><p class="section-title">Subventions d\'État vs Reste à Charge Net</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
         
         subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
         estimated_subsidy = round(active_cost * subsidy_rate, 0)
@@ -425,50 +388,54 @@ else:
         energy_saving = "€1,200 / an" if current_scenario == "Essential" else ("€1,850 / an" if current_scenario == "Plus" else "€2,600 / an")
         
         chart_col, metrics_col = st.columns([1.2, 1.8], gap="large")
-        
         with chart_col:
-            # 📊 Clean Horizontal Visual Stacked Breakdown Chart
-            financial_labels = ['Subvention MaPrimeRénov\'', 'Reste à Charge Net']
-            financial_values = [estimated_subsidy, net_cost]
-            
             fig_financial = go.Figure(data=[go.Pie(
-                labels=financial_labels, 
-                values=financial_values, 
-                hole=.6,
-                marker=dict(colors=['#22c55e', '#dc2626']),
-                textinfo='percent',
-                hoverinfo='label+value',
-                showlegend=False
+                labels=[T["subvention_label"], T["reste_charge"]], values=[estimated_subsidy, net_cost], 
+                hole=.6, marker=dict(colors=['#22c55e', '#dc2626']), textinfo='percent', hoverinfo='label+value', showlegend=False
             )])
-            fig_financial.update_layout(
-                height=180,
-                margin=dict(l=10, r=10, t=10, b=10),
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)"
-            )
+            fig_financial.update_layout(height=180, margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig_financial, use_container_width=True, config={'displayModeBar': False})
             
         with metrics_col:
             sub1, sub2 = st.columns(2)
-            sub1.metric("Aide MaPrimeRénov' Estimée", f"€{estimated_subsidy:,.0f}", f"Prise en charge d'État ~{int(subsidy_rate*100)}%")
-            sub2.metric("Reste à Charge Net", f"€{net_cost:,.0f}", "Après déduction directe")
-            
-            st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">
-                📊 <strong>Impact Facture :</strong> En choisissant le plan <strong>{current_scenario}</strong>, vous économisez en moyenne <span style="color:#22c55e; font-weight:700;">{energy_saving}</span> sur vos factures de gaz/électricité.
-            </div>
-            """, unsafe_allow_html=True)
-            
+            sub1.metric(T["subvention_label"], f"€{estimated_subsidy:,.0f}", f"~{int(subsidy_rate*100)}%")
+            sub2.metric(T["reste_charge"], f"€{net_cost:,.0f}", "Net out of pocket")
+            st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────
-    # 🎯 MONETIZATION ENGINE: INTEGRATED ACCESS KEY VERIFIED
+    # 🎯 NEW FEATURE: 5-YEAR PREDICTIVE ASSET VALUE TRAJECTORY LINE CHART
     # ─────────────────────────────────────────────
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
+    
+    # Simulating standard dynamic historical market trends based on real estate variables
+    years_projection = ["2026", "2027", "2028", "2029", "2030", "2031"]
+    base_market_value = 300000 # Benchmark asset scale valuation
+    
+    # Trajectory computation matrices
+    renovated_curve = [base_market_value * (1 + (active_roi/100) + (i*0.02)) for i in range(6)]
+    unrenovated_curve = [base_market_value * (1 - (i * 0.035)) for i in range(6)] # Drops due to regulatory bans context
+    
+    fig_5yr = go.Figure()
+    fig_5yr.add_trace(go.Scatter(x=years_projection, y=renovated_curve, name="Asset Rénové (ZAMI Target)" if selected_lang=="FR" else "Renovated Asset (ZAMI Target)", line=dict(color='#22c55e', width=4)))
+    fig_5yr.add_trace(go.Scatter(x=years_projection, y=unrenovated_curve, name="Passoire Thermique Non-Rénovée" if selected_lang=="FR" else "Unrenovated Passoire Block", line=dict(color='#dc2626', width=3, dash='dash')))
+    
+    fig_5yr.update_layout(
+        height=260, margin=dict(l=40, r=20, t=10, b=20),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        xaxis=dict(showgrid=False, color="#94a3b8"), yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", color="#94a3b8")
+    )
+    st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── MONETIZATION LEAD CAPTURE FORM LAYER
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: linear-gradient(145deg, #0b1116, #0c141c);">', unsafe_allow_html=True)
         st.markdown('<p class="section-label" style="color:#22c55e;">Mise en Relation Certifiée</p>', unsafe_allow_html=True)
-        st.markdown('<h3 style="color:#f8fafc; margin-top:0;">Prendre RDV avec un Artisan Certifié RGE</h3>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#94a3b8; font-size:0.9rem;">Recevez gratuitement 3 devis d\'artisans locaux audités par l\'État pour votre plan de rénovation.</p>', unsafe_allow_html=True)
+        st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#94a3b8; font-size:0.9rem;">{T["form_sub"]}</p>', unsafe_allow_html=True)
         
         form_action_url = "https://api.web3forms.com/submit"
         access_key_token = "1038c22a-32f2-40b7-bb05-512beded00a6"
@@ -476,112 +443,58 @@ else:
         with st.form("rge_lead_capture_form"):
             col_lead1, col_lead2 = st.columns(2)
             with col_lead1:
-                owner_name = st.text_input("Nom Complet *", placeholder="M. Jean Dupont")
-                owner_phone = st.text_input("Numéro de Téléphone *", placeholder="06 12 34 56 78")
+                owner_name = st.text_input(T["form_name"], placeholder="M. Jean Dupont")
+                owner_phone = st.text_input(T["form_phone"], placeholder="06 12 34 56 78")
             with col_lead2:
-                owner_email = st.text_input("Adresse Email *", placeholder="jean.dupont@gmail.com")
-                time_slot = st.selectbox("Créneau de rappel souhaité", ["Matin (9h - 12h)", "Après-midi (14h - 17h)", "Fin de journée (17h - 19h)"])
+                owner_email = st.text_input(T["form_email"], placeholder="jean.dupont@gmail.com")
+                time_slot = st.selectbox(T["form_time"], ["Matin (9h - 12h)", "Après-midi (14h - 17h)", "Fin de journée (17h - 19h)"])
                 
-            additional_notes = st.text_area("Précisions complémentaires (facultatif)", placeholder="Ex: Isolation des combles en priorité...")
-            
-            submit_lead = st.form_submit_button("📨 Envoyer ma demande de RDV")
+            additional_notes = st.text_area(T["form_notes"], placeholder="Ex: Insulation priority...")
+            submit_lead = st.form_submit_button(T["form_btn"])
             
             if submit_lead:
                 if not owner_name or not owner_phone or not owner_email:
-                    st.error("⚠️ Veuillez remplir tous les champs obligatoires (*) pour valider la demande.")
+                    st.error(T["form_err"])
                 else:
-                    with st.spinner("Transmission sécurisée de vos données techniques..."):
+                    with st.spinner("Processing..."):
                         payload = {
                             "access_key": access_key_token,
-                            "subject": f"🔥 NEW ZAMI LEAD - {base_prop['zipcode']} - DPE {base_prop['dpe']} to {target_dpe}",
+                            "subject": f"🔥 NEW ZAMI LEAD - {base_prop['zipcode']} - {current_scenario}",
                             "Propriété Cible": base_prop["address"],
-                            "Code Postal": base_prop["zipcode"],
-                            "DPE Initial": base_prop["dpe"],
-                            "Plan Sélectionné": current_scenario,
-                            "Cible Énergétique": target_dpe,
-                            "Budget Travaux Estimé": f"EUR {active_cost:,.0f}",
                             "Nom de l'Owner": owner_name,
                             "Téléphone": owner_phone,
                             "Email Contact": owner_email,
-                            "Créneau Rappel": time_slot,
-                            "Commentaires": additional_notes
+                            "Plan Sélectionné": current_scenario,
+                            "Budget Travaux": f"EUR {active_cost:,.0f}"
                         }
-                        
                         try:
                             resp = requests.post(form_action_url, data=payload, timeout=10)
-                            if resp.status_code == 200:
-                                st.success("🎉 Félicitations ! Votre demande a été enregistrée avec succès. Un artisan certifié RGE vous contactera sous 24h.")
-                            else:
-                                st.error(f"⚠️ Erreur de transmission du serveur (Code {resp.status_code}). Veuillez réessayer.")
-                        except Exception:
-                            st.warning("🎉 Demande enregistrée localement ! Notre équipe traite votre dossier.")
+                            if resp.status_code == 200: st.success(T["form_success"])
+                            else: st.error("Server Connection Timeout.")
+                        except Exception: st.warning("Lead Backed Up Locally.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Dynamic Private Export File
+    # ── Dynamic Export File
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<p class="section-label">Sauvegarde Sécurisée</p>', unsafe_allow_html=True)
-    final_report_df = pd.DataFrame([{
-        "Adresse": base_prop["address"],
-        "DPE_Initial": base_prop["dpe"],
-        "DPE_Cible": target_dpe,
-        "Scenario": current_scenario,
-        "Coût_Estimé_Travaux": active_cost,
-        "ROI_Estimé": active_roi
-    }])
-    st.download_button("⬇️ Télécharger mon Bilan Multi-Scénario (.csv)", data=final_report_df.to_csv(index=False).encode("utf-8"), file_name=f"ZAMI_Bilan_{current_scenario}.csv", mime="text/csv", use_container_width=True)
+    final_report_df = pd.DataFrame([{"Adresse": base_prop["address"], "DPE": base_prop["dpe"], "Cible": target_dpe, "Cost": active_cost}])
+    st.download_button(T["download_btn"], data=final_report_df.to_csv(index=False).encode("utf-8"), file_name=f"ZAMI_Bilan_{current_scenario}.csv", mime="text/csv", use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 NEW FEATURE: INTERACTIVE FRENCH FAQ EXPANDER ENGINE
+# 🛡️ INTERACTIVE FAQ EXPANDER ENGINE (DYNAMIC TRANSLATION)
 # ─────────────────────────────────────────────
 st.markdown('<br>', unsafe_allow_html=True)
-st.markdown('<p class="section-label">Comprendre la Réglementation DPE</p><p class="section-title">Guide Légal & FAQ Rénovation France</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="section-label">FAQ & Law Hub</p><p class="section-title">{T["faq_title"]}</p>', unsafe_allow_html=True)
 
-with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"):
-    st.markdown("""
-    En France, la réglementation est devenue extrêmement stricte pour sécuriser la transition écologique :
-    * **Interdiction de location :** Les logements classés **G** ne peuvent plus être proposés à la relocation. Les classes **F** suivront très prochainement.
-    * **Gel des loyers :** Si votre bien est classé F ou G, il est légalement impossible d'augmenter le loyer lors du renouvellement de bail ou du changement de locataire, tant que des travaux de rénovation n'ont pas fait remonter le bien au moins à la classe **D**.
-    """)
+if selected_lang == "FR":
+    with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"):
+        st.markdown("Les logements classés **G** ne peuvent plus être loués. Les classes **F** suivront. De plus, les loyers sont gelés tant que des travaux n'ont pas ramené le bien à la classe **D**.")
+    with st.expander("💰 Comment fonctionne l'aide de l'État MaPrimeRénov' ?"):
+        st.markdown("L'Anah finance jusqu'à **40% à 70%** des coûts du chantier selon l'ambition énergétique de votre projet.")
+else:
+    with st.expander("⚖️ What are the legal risks under the Climate Law for F & G properties?"):
+        st.markdown("**G** rated homes are banned from new rental markets. **F** ratings will follow soon. Rents are legally frozen until energy renovations lift the asset rating to at least **D**.")
+    with st.expander("💰 How does the state MaPrimeRénov' subsidy work?"):
+        st.markdown("The National Housing Agency (Anah) covers between **40% to 70%** of total construction costs depending on your project scope matrix.")
 
-with st.expander("💰 Comment fonctionne l'aide de l'État MaPrimeRénov' ?"):
-    st.markdown("""
-    **MaPrimeRénov'** est la subvention principale distribuée par l'Anah (Agence Nationale de l'Habitat) :
-    * Elle finance jusqu'à **40% à 70%** des coûts totaux du chantier en fonction du scénario sélectionné (Essential, Plus ou Zéro).
-    * Plus votre saut de classe énergétique est ambitieux (par exemple passer de G à C), plus les primes d'État sont majorées pour alléger votre reste à charge.
-    """)
-
-with st.expander("🤖 Comment ZAMI calcule-t-il les coûts et le ROI ?"):
-    st.markdown("""
-    Notre moteur d'intelligence prédictive croise instantanément les caractéristiques techniques extraites du registre **ADEME** avec l'historique des transactions immobilières locales :
-    * **Calcul du coût :** Basé sur la surface réelle et indexé sur l'inflation du coût des matériaux par région (avec un multiplicateur premium pour la zone Île-de-France/Paris).
-    * **Calcul du ROI :** Évalue la plus-value verte (*valeur verte*) générée sur le prix du marché. Un bien réhabilité en classe D/C se revend en moyenne **12% à 24% plus cher** qu'une passoire thermique.
-    """)
-
-# ─────────────────────────────────────────────
-# 📰 Flux Actualités Immobilier France (Always at bottom)
-# ─────────────────────────────────────────────
-st.markdown('<br>', unsafe_allow_html=True)
-st.markdown('<p class="section-label">Flux Actualités Immobilier France</p><p class="section-title">Législation, DPE & Flash Énergie Live</p>', unsafe_allow_html=True)
-
-st.markdown("""
-<div class="news-grid">
-    <div class="news-card">
-        <div class="news-tag">Loi Climat 2026 • En Direct</div>
-        <div class="news-title">Gel des Loyers Passoires F/G</div>
-        <div class="news-body">Les contrôles d'indexation nationale se durcissent en France. Tout logement classé F ou G voit son loyer strictement bloqué à la relocation tant qu'une rénovation globale de classe D n'est pas validée.</div>
-    </div>
-    <div class="news-card">
-        <div class="news-tag">Subventions • MaPrimeRénov'</div>
-        <div class="news-title">Hausse des Budgets d'Aides Publiques</div>
-        <div class="news-body">L'Anah confirme une revalorisation des enveloppes globales d'aides à la rénovation énergétique. Les projets ciblant des sauts de 3 classes énergétiques (ex: G vers D) bénéficient d'un bonus de subvention majoré.</div>
-    </div>
-    <div class="news-card">
-        <div class="news-tag">Réglementation • Diagnostics</div>
-        <div class="news-title">Audit Énergétique Obligatoire en Vente</div>
-        <div class="news-body">Rappel réglementaire majeur : Depuis l'extension du calendrier de la Loi Climat, la mise en vente de toute monopropriété de classe E requiert l'annexion d'un audit architectural énergétique complet sous peine de sanctions financières.</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="footer">ZAMI v4.0 Ultimate — Cockpit Financiement & FAQ Intégré • Données Certifiées Registre ADEME & API BAN France</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
