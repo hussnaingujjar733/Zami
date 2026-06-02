@@ -273,7 +273,7 @@ try:
 except Exception:
     logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
-status_label = "PREDICTIVE SCENARIO ENGINE LIVE" if ML_BACKEND_READY else "ZAMI COCKPIT INTERACTIVE"
+status_label = "ZAMI CORE V4.0 MAX ACTIVE" if ML_BACKEND_READY else "ZAMI ADVANCED INTELLIGENCE"
 st.markdown(f"""
 <div class="brand-header-flex">
     {logo_html}
@@ -412,23 +412,57 @@ else:
             
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # ─────────────────────────────────────────────
+    # 🎯 UPGRADED VISUAL FINANCIALS HUB (THE WOW CHART)
+    # ─────────────────────────────────────────────
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<p class="section-label">Calculateur d\'Aides Publiques</p><p class="section-title">Subventions d\'État Disponibles Éligibles</p>', unsafe_allow_html=True)
+        st.markdown('<p class="section-label">Analyse Financière & Graphique</p><p class="section-title">Subventions d\'État vs Reste à Charge Net</p>', unsafe_allow_html=True)
         
         subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
         estimated_subsidy = round(active_cost * subsidy_rate, 0)
         net_cost = active_cost - estimated_subsidy
         energy_saving = "€1,200 / an" if current_scenario == "Essential" else ("€1,850 / an" if current_scenario == "Plus" else "€2,600 / an")
         
-        sub1, sub2, sub3 = st.columns(3)
-        sub1.metric("Aide MaPrimeRénov' Estimée", f"€{estimated_subsidy:,.0f}", f"Prise en charge d'État ~{int(subsidy_rate*100)}%")
-        sub2.metric("Reste à Charge Net", f"€{net_cost:,.0f}", "Après déduction directe")
-        sub3.metric("Gain Énergie Annuel Moyen", f"-{energy_saving}", "Réduction facture estimée")
+        chart_col, metrics_col = st.columns([1.2, 1.8], gap="large")
+        
+        with chart_col:
+            # 📊 Clean Horizontal Visual Stacked Breakdown Chart
+            financial_labels = ['Subvention MaPrimeRénov\'', 'Reste à Charge Net']
+            financial_values = [estimated_subsidy, net_cost]
+            
+            fig_financial = go.Figure(data=[go.Pie(
+                labels=financial_labels, 
+                values=financial_values, 
+                hole=.6,
+                marker=dict(colors=['#22c55e', '#dc2626']),
+                textinfo='percent',
+                hoverinfo='label+value',
+                showlegend=False
+            )])
+            fig_financial.update_layout(
+                height=180,
+                margin=dict(l=10, r=10, t=10, b=10),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)"
+            )
+            st.plotly_chart(fig_financial, use_container_width=True, config={'displayModeBar': False})
+            
+        with metrics_col:
+            sub1, sub2 = st.columns(2)
+            sub1.metric("Aide MaPrimeRénov' Estimée", f"€{estimated_subsidy:,.0f}", f"Prise en charge d'État ~{int(subsidy_rate*100)}%")
+            sub2.metric("Reste à Charge Net", f"€{net_cost:,.0f}", "Après déduction directe")
+            
+            st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                📊 <strong>Impact Facture :</strong> En choisissant le plan <strong>{current_scenario}</strong>, vous économisez en moyenne <span style="color:#22c55e; font-weight:700;">{energy_saving}</span> sur vos factures de gaz/électricité.
+            </div>
+            """, unsafe_allow_html=True)
+            
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────
-    # 🎯 MONETIZATION ENGINE: INTEGRATED ACCESS KEY VERIFIED (MULTIPART FORM)
+    # 🎯 MONETIZATION ENGINE: INTEGRATED ACCESS KEY VERIFIED
     # ─────────────────────────────────────────────
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: linear-gradient(145deg, #0b1116, #0c141c);">', unsafe_allow_html=True)
@@ -474,7 +508,6 @@ else:
                         }
                         
                         try:
-                            # Using data=payload instead of json=payload to safely trigger Web3Forms gateway
                             resp = requests.post(form_action_url, data=payload, timeout=10)
                             if resp.status_code == 200:
                                 st.success("🎉 Félicitations ! Votre demande a été enregistrée avec succès. Un artisan certifié RGE vous contactera sous 24h.")
@@ -497,6 +530,33 @@ else:
     }])
     st.download_button("⬇️ Télécharger mon Bilan Multi-Scénario (.csv)", data=final_report_df.to_csv(index=False).encode("utf-8"), file_name=f"ZAMI_Bilan_{current_scenario}.csv", mime="text/csv", use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# 🎯 NEW FEATURE: INTERACTIVE FRENCH FAQ EXPANDER ENGINE
+# ─────────────────────────────────────────────
+st.markdown('<br>', unsafe_allow_html=True)
+st.markdown('<p class="section-label">Comprendre la Réglementation DPE</p><p class="section-title">Guide Légal & FAQ Rénovation France</p>', unsafe_allow_html=True)
+
+with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"):
+    st.markdown("""
+    En France, la réglementation est devenue extrêmement stricte pour sécuriser la transition écologique :
+    * **Interdiction de location :** Les logements classés **G** ne peuvent plus être proposés à la relocation. Les classes **F** suivront très prochainement.
+    * **Gel des loyers :** Si votre bien est classé F ou G, il est légalement impossible d'augmenter le loyer lors du renouvellement de bail ou du changement de locataire, tant que des travaux de rénovation n'ont pas fait remonter le bien au moins à la classe **D**.
+    """)
+
+with st.expander("💰 Comment fonctionne l'aide de l'État MaPrimeRénov' ?"):
+    st.markdown("""
+    **MaPrimeRénov'** est la subvention principale distribuée par l'Anah (Agence Nationale de l'Habitat) :
+    * Elle finance jusqu'à **40% à 70%** des coûts totaux du chantier en fonction du scénario sélectionné (Essential, Plus ou Zéro).
+    * Plus votre saut de classe énergétique est ambitieux (par exemple passer de G à C), plus les primes d'État sont majorées pour alléger votre reste à charge.
+    """)
+
+with st.expander("🤖 Comment ZAMI calcule-t-il les coûts et le ROI ?"):
+    st.markdown("""
+    Notre moteur d'intelligence prédictive croise instantanément les caractéristiques techniques extraites du registre **ADEME** avec l'historique des transactions immobilières locales :
+    * **Calcul du coût :** Basé sur la surface réelle et indexé sur l'inflation du coût des matériaux par région (avec un multiplicateur premium pour la zone Île-de-France/Paris).
+    * **Calcul du ROI :** Évalue la plus-value verte (*valeur verte*) générée sur le prix du marché. Un bien réhabilité en classe D/C se revend en moyenne **12% à 24% plus cher** qu'une passoire thermique.
+    """)
 
 # ─────────────────────────────────────────────
 # 📰 Flux Actualités Immobilier France (Always at bottom)
@@ -524,4 +584,4 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="footer">ZAMI v3.8 — Système Monétisé En Production • Données Certifiées Registre ADEME & API BAN France</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">ZAMI v4.0 Ultimate — Cockpit Financiement & FAQ Intégré • Données Certifiées Registre ADEME & API BAN France</div>', unsafe_allow_html=True)
