@@ -87,6 +87,12 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
     margin-bottom: 1.5rem;
 }
 
+.scenario-card-active {
+    background: linear-gradient(135deg, rgba(220,38,38,0.15) 0%, rgba(15,18,32,0.95) 100%);
+    border: 1px solid rgba(220,38,38,0.4) !important;
+    box-shadow: 0 15px 35px rgba(220,38,38,0.1);
+}
+
 .owner-exclusive-title {
     font-family: 'DM Serif Display', serif;
     font-size: 2.6rem;
@@ -128,7 +134,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
     display: inline-block;
 }
 
-/* Luxury News Cards */
 .news-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -168,7 +173,6 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
     line-height: 1.6;
 }
 
-/* Visual Processing Steps Layout */
 .processing-step {
     padding: 12px 20px;
     background: rgba(255,255,255,0.02);
@@ -186,6 +190,7 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 # ─────────────────────────────────────────────
 if "confirmed_owner_property" not in st.session_state: st.session_state.confirmed_owner_property = None
 if "address_suggestions" not in st.session_state: st.session_state.address_suggestions = []
+if "selected_scenario" not in st.session_state: st.session_state.selected_scenario = "Essential"
 
 DEFAULT_CENTER = (48.8566, 2.3522)
 DATASET_ID     = "meg-83tjwtg8dyz4vv7h1dqe"
@@ -214,7 +219,11 @@ def ban_search(query: str, limit: int = 5):
         })
     return results
 
-# ── 🤖 ML ENGINE COUPLING ──
+# ── 🤖 ML ENGINE MULTI-SCENARIO SCALING MATRIX ──
+_SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
+_SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
+_SCENARIO_TARGET_DPE     = {"Essential": "D", "Plus": "C", "Zero": "B"}
+
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
 _FALLBACK_UPLIFT    = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0, "A": 0}
 _DPE_COLORS         = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "E": "#ff6600", "F": "#ff3300", "G": "#ff0000", "N/A": "#475569"}
@@ -243,7 +252,7 @@ def fetch_single_property_ademe(query_address: str, zipcode: str):
         mock_surface = random.randint(30, 95)
         cost = calculate_reno_cost_ml(mock_surface, mock_dpe, zipcode)
         roi = calculate_roi_ml(cost, mock_dpe, zipcode)
-        return {"address": query_address, "dpe": mock_dpe, "surface": mock_surface, "cost": cost, "roi": roi}
+        return {"address": query_address, "dpe": mock_dpe, "surface": mock_surface, "cost": cost, "roi": roi, "zipcode": zipcode}
         
     item = results[0]
     dpe = str(item.get("etiquette_dpe") or item.get("Etiquette_DPE") or "E").upper().strip()
@@ -251,7 +260,7 @@ def fetch_single_property_ademe(query_address: str, zipcode: str):
     cost = calculate_reno_cost_ml(surface, dpe, zipcode)
     roi = calculate_roi_ml(cost, dpe, zipcode)
     
-    return {"address": item.get("Adresse_brute") or query_address, "dpe": dpe, "surface": surface, "cost": cost, "roi": roi}
+    return {"address": item.get("Adresse_brute") or query_address, "dpe": dpe, "surface": surface, "cost": cost, "roi": roi, "zipcode": zipcode}
 
 # ─────────────────────────────────────────────
 # 🏢 LOGO BRANDING
@@ -264,7 +273,7 @@ try:
 except Exception:
     logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
-status_label = "PREDICTIVE REAL estate CORE LIVE" if ML_BACKEND_READY else "ZAMI INTELLIGENCE GATEWAY"
+status_label = "PREDICTIVE SCENARIO ENGINE LIVE" if ML_BACKEND_READY else "ZAMI COCKPIT INTERACTIVE"
 st.markdown(f"""
 <div class="brand-header-flex">
     {logo_html}
@@ -295,14 +304,11 @@ if st.session_state.confirmed_owner_property is None:
         chosen_property = suggestions[labels.index(selected_label)]
         
         if st.button("⚡ Analyser mon Logement", type="primary", use_container_width=True):
-            # ⚡ Dynamic Processing Stage Interactions
             status_box = st.empty()
             with status_box.container():
                 st.markdown('<div class="processing-step">🔗 Connexion sécurisée au registre d\'État ADEME...</div>', unsafe_allow_html=True)
-                time.sleep(0.6)
+                time.sleep(0.5)
                 st.markdown('<div class="processing-step">🧠 Extraction vectorielle et injection dans les modèles ZAMI AI...</div>', unsafe_allow_html=True)
-                time.sleep(0.7)
-                st.markdown('<div class="processing-step">📐 Alignement géospatial et indexation MaPrimeRénov\'...</div>', unsafe_allow_html=True)
                 time.sleep(0.5)
             status_box.empty()
             
@@ -312,90 +318,136 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🌟 PREMIUM EXCLUSIVE COCKPIT (THE WOW INTERFACE)
+# 🌟 PREMIUM MULTI-SCENARIO EXCLUSIVE COCKPIT
 # ─────────────────────────────────────────────
 else:
-    prop = st.session_state.confirmed_owner_property
-    dpe_color = _DPE_COLORS.get(prop["dpe"], "#475569")
+    base_prop = st.session_state.confirmed_owner_property
+    dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
     if st.button("⬅️ Retourner à la recherche", key="reset_owner_flow"):
         st.session_state.confirmed_owner_property = None
         st.session_state.address_suggestions = []
+        st.session_state.selected_scenario = "Essential"
         st.rerun()
         
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<p class="section-label">Bilan Diagnostic Personnel</p>', unsafe_allow_html=True)
-    st.markdown(f'<div class="owner-exclusive-title">{prop["address"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="owner-exclusive-title">{base_prop["address"]}</div>', unsafe_allow_html=True)
     
+    # ── 🎯 NEW FEATURE 1: INTERACTIVE SMART SCENARIO SELECTION BUTTONS ──
+    st.markdown('<p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:12px;">Choisissez votre Plan de Transition Rénovation :</p>', unsafe_allow_html=True)
+    
+    sc_col1, sc_col2, sc_col3 = st.columns(3)
+    
+    with sc_col1:
+        is_ess = (st.session_state.selected_scenario == "Essential")
+        card_class = "card scenario-card-active" if is_ess else "card"
+        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>🛠️ Éco Essential</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Mise en conformité légale (DPE D)</span></div>', unsafe_allow_html=True)
+        if st.button("Sélectionner Essential", key="btn_sc_ess", use_container_width=True):
+            st.session_state.selected_scenario = "Essential"
+            st.rerun()
+            
+    with sc_col2:
+        is_plus = (st.session_state.selected_scenario == "Plus")
+        card_class = "card scenario-card-active" if is_plus else "card"
+        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>⚡ Confort Plus</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Isolation globale & Confort (DPE C)</span></div>', unsafe_allow_html=True)
+        if st.button("Sélectionner Confort Plus", key="btn_sc_plus", use_container_width=True):
+            st.session_state.selected_scenario = "Plus"
+            st.rerun()
+            
+    with sc_col3:
+        is_zero = (st.session_state.selected_scenario == "Zero")
+        card_class = "card scenario-card-active" if is_zero else "card"
+        st.markdown(f'<div class="{card_class}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>🟢 Carbone Zéro</strong><br><span style="font-size:0.8rem;color:#94a3b8;">Performance & Heat-Pump (DPE B)</span></div>', unsafe_allow_html=True)
+        if st.button("Sélectionner Carbone Zéro", key="btn_sc_zero", use_container_width=True):
+            st.session_state.selected_scenario = "Zero"
+            st.rerun()
+
+    st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 1.5rem 0;">', unsafe_allow_html=True)
+
+    # ── Calculate dynamic numbers depending on selected scenario multiplier matrix
+    current_scenario = st.session_state.selected_scenario
+    active_cost = round(base_prop["cost"] * _SCENARIO_COST_MULTIPLIER[current_scenario], 0)
+    active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
+    target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
+
     col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
     
     with col_left_dpe:
-        st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 25px; border-radius:20px;">', unsafe_allow_html=True)
-        st.markdown('<p class="metric-label-sub" style="margin-bottom:15px; font-weight:600;">Diagnostic Actuel</p>', unsafe_allow_html=True)
-        st.markdown(f'<div class="dpe-badge-big" style="background-color:{dpe_color};">{prop["dpe"]}</div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
+        st.markdown('<p class="metric-label-sub" style="margin-bottom:10px; font-weight:600;">Classe Actuelle</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dpe-badge-big" style="background-color:{dpe_color}; margin-bottom:15px;">{base_prop["dpe"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-label-sub" style="color:#22c55e;">🎯 Cible Scénario: Class {target_dpe}</p>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
     with col_right_metrics:
         m_col1, m_col2, m_col3 = st.columns(3)
         with m_col1:
-            st.markdown(f'<span class="metric-value-huge">{prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">Surface Réelle</span>', unsafe_allow_html=True)
+            st.markdown(f'<span class="metric-value-huge">{base_prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">Surface Réelle</span>', unsafe_allow_html=True)
         with m_col2:
-            if prop["cost"] > 0:
-                st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{prop["cost"]:,.0f}</span><br><span class="metric-label-sub">Budget Rénovation (Cible D)</span>', unsafe_allow_html=True)
+            if active_cost > 0:
+                st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{active_cost:,.0f}</span><br><span class="metric-label-sub">Budget Estimé du Plan</span>', unsafe_allow_html=True)
             else:
-                st.markdown('<span class="metric-value-huge" style="color:#22c55e;">A/B/C</span><br><span class="metric-label-sub">Bâtiment Basse Consommation</span>', unsafe_allow_html=True)
+                st.markdown('<span class="metric-value-huge" style="color:#22c55e;">BBC</span><br><span class="metric-label-sub">Bâtiment Basse Consommation</span>', unsafe_allow_html=True)
         with m_col3:
-            if prop["roi"] > 0:
-                st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{prop["roi"]}%</span><br><span class="metric-label-sub">Valorisation du Patrimoine</span>', unsafe_allow_html=True)
+            if active_roi > 0:
+                st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">Uplift Valeur Patrimoine</span>', unsafe_allow_html=True)
             else:
                 st.markdown('<span class="metric-value-huge" style="color:#94a3b8;">Optimal</span><br><span class="metric-label-sub">Valeur marché sécurisée</span>', unsafe_allow_html=True)
 
-        # 🎯 Real-time Interactive Visual Energy Transition Path Graph
+        # 🎯 Dynamic Interactive Visual Energy Transition Path Graph
         st.markdown('<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">Progression Énergétique Visuelle</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
-        if prop["dpe"] in dpe_sequence:
-            current_idx = dpe_sequence.index(prop["dpe"])
-            target_idx = max(current_idx - 3, 3)
+        if base_prop["dpe"] in dpe_sequence and target_dpe in dpe_sequence:
+            current_idx = dpe_sequence.index(base_prop["dpe"])
+            target_idx = dpe_sequence.index(target_dpe)
             
             fig_progress = go.Figure()
-            # Background track
             fig_progress.add_trace(go.Scatter(x=dpe_sequence, y=[1]*7, mode='markers+text', text=dpe_sequence, textposition="top center", marker=dict(size=24, color=["#ff0000", "#ff3300", "#ff6600", "#f2b035", "#ccff33", "#33cc33", "#319834"]), showlegend=False))
-            # Dynamic connection lines arrow
+            
             if current_idx < 6 and current_idx != target_idx:
                 fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1, ax=dpe_sequence[current_idx], ay=1, xref="x", yref="y", axref="x", ayref="y", text="", showarrow=True, arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor="#fff")
                 fig_progress.add_annotation(x=dpe_sequence[current_idx], y=0.85, text="Votre Bien 🏠", showarrow=False, font=dict(color="#fff", size=11))
-                
-                # 🎯 FIXED TRUNCATION: Plotly bold weight validation error fixed here
-                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text="<b>Objectif Optimal ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
+                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text=f"<b>Cible {current_scenario} ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
                 
             fig_progress.update_layout(height=110, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(visible=False), yaxis=dict(visible=False))
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
             
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 🎯 Smart French Subsidies Engine (MaPrimeRénov')
-    if prop["cost"] > 0:
+    # 🎯 Smart French Subsidies Engine (MaPrimeRénov') — Linked to current scenario cost
+    if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<p class="section-label">Calculateur d\'Aides Publiques</p><p class="section-title">Subventions d\'État Disponibles Éligibles</p>', unsafe_allow_html=True)
         
-        estimated_subsidy = round(prop["cost"] * 0.45, 0)
-        net_cost = prop["cost"] - estimated_subsidy
+        # Scenario dynamic subsidy brackets
+        subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
+        estimated_subsidy = round(active_cost * subsidy_rate, 0)
+        net_cost = active_cost - estimated_subsidy
+        energy_saving = "€1,200 / an" if current_scenario == "Essential" else ("€1,850 / an" if current_scenario == "Plus" else "€2,600 / an")
         
         sub1, sub2, sub3 = st.columns(3)
-        sub1.metric("Aide MaPrimeRénov' Estimée", f"€{estimated_subsidy:,.0f}", "Prise en charge d'État ~45%")
+        sub1.metric("Aide MaPrimeRénov' Estimée", f"€{estimated_subsidy:,.0f}", f"Prise en charge d'État ~{int(subsidy_rate*100)}%")
         sub2.metric("Reste à Charge Net", f"€{net_cost:,.0f}", "Après déduction directe")
-        sub3.metric("Gain Énergie Annuel Moyen", "-€1,450 / an", "Réduction facture estimée")
+        sub3.metric("Gain Énergie Annuel Moyen", f"-{energy_saving}", "Réduction facture estimée")
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Dynamic Private Export File
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<p class="section-label">Sauvegarde Sécurisée</p>', unsafe_allow_html=True)
-    export_data = pd.DataFrame([prop])
-    st.download_button("⬇️ Télécharger mon Diagnostic Certifié (.csv)", data=export_data.to_csv(index=False).encode("utf-8"), file_name=f"ZAMI_Rapport_Prive_{prop['dpe']}.csv", mime="text/csv", use_container_width=True)
+    final_report_df = pd.DataFrame([{
+        "Adresse": base_prop["address"],
+        "DPE_Initial": base_prop["dpe"],
+        "DPE_Cible": target_dpe,
+        "Scenario": current_scenario,
+        "Coût_Estimé_Travaux": active_cost,
+        "ROI_Estimé": active_roi
+    }])
+    st.download_button("⬇️ Télécharger mon Bilan Multi-Scénario (.csv)", data=final_report_df.to_csv(index=False).encode("utf-8"), file_name=f"ZAMI_Bilan_{current_scenario}.csv", mime="text/csv", use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 📰 NEW HIGH-LEVEL LIVE FRENCH NEWS MODULE (Always at bottom)
+# 📰 Flux Actualités Immobilier France (Always at bottom)
 # ─────────────────────────────────────────────
 st.markdown('<br>', unsafe_allow_html=True)
 st.markdown('<p class="section-label">Flux Actualités Immobilier France</p><p class="section-title">Législation, DPE & Flash Énergie Live</p>', unsafe_allow_html=True)
@@ -420,4 +472,4 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="footer">ZAMI v3.0 — Système d\'Information Privé Unitaire • Données Certifiées Registre ADEME & API BAN France</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">ZAMI v3.5 — Cockpit Multi-Scénario Intelligent • Données Certifiées Registre ADEME & API BAN France</div>', unsafe_allow_html=True)
