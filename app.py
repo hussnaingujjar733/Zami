@@ -1,3 +1,5 @@
+import os
+import base64
 import random
 import time
 import pandas as pd
@@ -243,14 +245,20 @@ col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang:
     selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
     
-# Loading translation context parameters shortcut
 T = LANG_DICT[selected_lang]
 
-try:
-    with open("assets/zami_logo.png", "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-    logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{encoded_string}"></div>'
-except Exception:
+# 🚨 FIXED DYNAMIC ABSOLUTE PATH LOGIC FOR STREAMLIT CLOUD
+base_dir = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(base_dir, "assets", "zami_logo.png")
+
+if os.path.exists(logo_path):
+    try:
+        with open(logo_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+        logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{encoded_string}"></div>'
+    except Exception:
+        logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
+else:
     logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
 st.markdown(f"""
@@ -261,7 +269,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 SEARCH LAYER (DYNAMIC TRANSLATION LOAD)
+# 🎯 SEARCH LAYER
 # ─────────────────────────────────────────────
 if st.session_state.confirmed_owner_property is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -293,7 +301,7 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🌟 PREMIUM EXCLUSIVE COCKPIT
+# 🌟 PREMIUM MULTI-SCENARIO EXCLUSIVE COCKPIT
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state.confirmed_owner_property
@@ -403,19 +411,15 @@ else:
             st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ─────────────────────────────────────────────
-    # 🎯 NEW FEATURE: 5-YEAR PREDICTIVE ASSET VALUE TRAJECTORY LINE CHART
-    # ─────────────────────────────────────────────
+    # ── 5-YEAR PREDICTIVE LINE CHART
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
     
-    # Simulating standard dynamic historical market trends based on real estate variables
     years_projection = ["2026", "2027", "2028", "2029", "2030", "2031"]
-    base_market_value = 300000 # Benchmark asset scale valuation
+    base_market_value = 300000
     
-    # Trajectory computation matrices
     renovated_curve = [base_market_value * (1 + (active_roi/100) + (i*0.02)) for i in range(6)]
-    unrenovated_curve = [base_market_value * (1 - (i * 0.035)) for i in range(6)] # Drops due to regulatory bans context
+    unrenovated_curve = [base_market_value * (1 - (i * 0.035)) for i in range(6)]
     
     fig_5yr = go.Figure()
     fig_5yr.add_trace(go.Scatter(x=years_projection, y=renovated_curve, name="Asset Rénové (ZAMI Target)" if selected_lang=="FR" else "Renovated Asset (ZAMI Target)", line=dict(color='#22c55e', width=4)))
@@ -430,7 +434,7 @@ else:
     st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── MONETIZATION LEAD CAPTURE FORM LAYER
+    # ── LEAD GENERATION CAPTURE FORM
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: linear-gradient(145deg, #0b1116, #0c141c);">', unsafe_allow_html=True)
         st.markdown('<p class="section-label" style="color:#22c55e;">Mise en Relation Certifiée</p>', unsafe_allow_html=True)
@@ -481,7 +485,7 @@ else:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🛡️ INTERACTIVE FAQ EXPANDER ENGINE (DYNAMIC TRANSLATION)
+# 🛡️ INTERACTIVE FAQ EXPANDER ENGINE
 # ─────────────────────────────────────────────
 st.markdown('<br>', unsafe_allow_html=True)
 st.markdown(f'<p class="section-label">FAQ & Law Hub</p><p class="section-title">{T["faq_title"]}</p>', unsafe_allow_html=True)
