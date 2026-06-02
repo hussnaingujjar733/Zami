@@ -428,7 +428,7 @@ else:
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────
-    # 🎯 MONETIZATION ENGINE: INTEGRATED ACCESS KEY VERIFIED
+    # 🎯 MONETIZATION ENGINE: INTEGRATED ACCESS KEY VERIFIED (MULTIPART FORM)
     # ─────────────────────────────────────────────
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: linear-gradient(145deg, #0b1116, #0c141c);">', unsafe_allow_html=True)
@@ -437,7 +437,7 @@ else:
         st.markdown('<p style="color:#94a3b8; font-size:0.9rem;">Recevez gratuitement 3 devis d\'artisans locaux audités par l\'État pour votre plan de rénovation.</p>', unsafe_allow_html=True)
         
         form_action_url = "https://api.web3forms.com/submit"
-        access_key_token = "1038c22a-32f2-40b7-bb05-512beded00a6"  # <── 🚨 REGISTERED AND LOCKED KEY
+        access_key_token = "1038c22a-32f2-40b7-bb05-512beded00a6"
         
         with st.form("rge_lead_capture_form"):
             col_lead1, col_lead2 = st.columns(2)
@@ -474,11 +474,12 @@ else:
                         }
                         
                         try:
-                            resp = requests.post(form_action_url, json=payload, timeout=10)
+                            # Using data=payload instead of json=payload to safely trigger Web3Forms gateway
+                            resp = requests.post(form_action_url, data=payload, timeout=10)
                             if resp.status_code == 200:
                                 st.success("🎉 Félicitations ! Votre demande a été enregistrée avec succès. Un artisan certifié RGE vous contactera sous 24h.")
                             else:
-                                st.error("⚠️ Erreur de transmission du serveur de mail. Veuillez réessayer.")
+                                st.error(f"⚠️ Erreur de transmission du serveur (Code {resp.status_code}). Veuillez réessayer.")
                         except Exception:
                             st.warning("🎉 Demande enregistrée localement ! Notre équipe traite votre dossier.")
         st.markdown('</div>', unsafe_allow_html=True)
