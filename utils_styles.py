@@ -2,9 +2,8 @@ import streamlit as st
 
 def inject_premium_styles():
     """
-    Injects a trillion-dollar company grade UI/UX framework into the application workspace.
-    Features: Glassmorphism design elements, Neon gradient glowing tracking lines, 
-    Premium Apple-inspired typography, and dynamic micro-interactions.
+    Injects an adaptive trillion-dollar grade UI/UX framework.
+    Includes automated CSS Media Queries for fluid layout scaling between Desktop & Mobile.
     """
     st.markdown("""
     <style>
@@ -13,7 +12,7 @@ def inject_premium_styles():
     
     *, *::before, *::after { 
         box-sizing: border-box; 
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     #MainMenu, footer, header { visibility: hidden; }
@@ -26,7 +25,6 @@ def inject_premium_styles():
         letter-spacing: -0.01em;
     }
     
-    /* Cybernetic grid ambient layout pattern texture fallback */
     .stApp::before {
         content: ''; position: fixed; inset: 0;
         background-image: 
@@ -36,7 +34,7 @@ def inject_premium_styles():
         pointer-events: none; z-index: 0; opacity: 0.7;
     }
     
-    /* ── 🏔️ APPLE-INSPIRED PREMIUM FLOATING NAVBAR ── */
+    /* ── 🏔️ PREMIUM FLOATING NAVBAR ── */
     .brand-header-flex { 
         display: flex; 
         align-items: center; 
@@ -85,10 +83,8 @@ def inject_premium_styles():
     .card:hover {
         border-color: rgba(34, 197, 94, 0.25);
         box-shadow: 0 45px 100px rgba(34, 197, 94, 0.05), 0 40px 90px rgba(0, 0, 0, 0.7);
-        transform: translateY(-2px);
     }
     
-    /* Active selection luxury layout accent override */
     .scenario-card-active { 
         background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(8, 12, 24, 0.98) 100%) !important; 
         border: 1px solid rgba(34, 197, 94, 0.45) !important; 
@@ -121,7 +117,6 @@ def inject_premium_styles():
         text-transform: uppercase; 
         color: #22c55e; 
         margin-bottom: 0.4rem; 
-        font-family: 'SF Pro Display', sans-serif;
     }
     
     .section-title { 
@@ -132,26 +127,20 @@ def inject_premium_styles():
         margin: 0 0 0.8rem 0; 
     }
     
-    /* ── 🟢 PREMIUM GLOWING DPE BADGE (OFFICIAL DESIGN MATRICES) ── */
     .dpe-badge-big { 
         display: inline-block; 
         padding: 16px 40px; 
         font-size: 4rem; 
         font-weight: 900; 
-        font-family: 'SF Pro Display', sans-serif;
         border-radius: 22px; 
         color: #ffffff !important; 
         text-align: center; 
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-        position: relative;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     
-    /* ── 📊 METRIC VALUE COMPRESSION ── */
     .metric-value-huge { 
         font-size: 3.2rem; 
         font-weight: 900; 
-        font-family: 'SF Pro Display', sans-serif;
         color: #ffffff; 
         letter-spacing: -0.04em; 
         line-height: 1; 
@@ -167,63 +156,66 @@ def inject_premium_styles():
         display: inline-block; 
     }
     
-    /* ── 🎛️ SYSTEM COMPONENT OVERRIDES (STREAMLIT NATIVE MODIFICATIONS) ── */
-    /* Input field optimization */
-    .stTextInput div div input {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 14px !important;
-        padding: 12px 18px !important;
-        color: #fff !important;
-        font-size: 1rem !important;
-    }
-    .stTextInput div div input:focus {
-        border-color: #22c55e !important;
-        box-shadow: 0 0 15px rgba(34, 197, 94, 0.2) !important;
-    }
+    /* Input & Button UI elements defaults */
+    .stTextInput div div input { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 14px !important; padding: 12px 18px !important; color: #fff !important; }
+    .stButton button { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; border: none !important; border-radius: 14px !important; padding: 14px 28px !important; color: white !important; font-weight: 700 !important; box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25) !important; width: 100%; }
+    .stSelectbox div div div { background: rgba(15, 23, 42, 0.6) !important; border-radius: 14px !important; color: white !important; }
+    .stSlider div div div div { background-color: #22c55e !important; }
     
-    /* Premium button parameters configuration */
-    .stButton button {
-        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
-        border: none !important;
-        border-radius: 14px !important;
-        padding: 14px 28px !important;
-        color: white !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        letter-spacing: -0.01em !important;
-        box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25) !important;
-        cursor: pointer;
-    }
-    .stButton button:hover {
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-        box-shadow: 0 12px 30px rgba(34, 197, 94, 0.4) !important;
-        transform: translateY(-1px);
-    }
-    
-    /* Dropdown selection lists optimization */
-    .stSelectbox div div div {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border-radius: 14px !important;
-        color: white !important;
-    }
-    
-    /* Slider architecture improvements */
-    .stSlider div div div div {
-        background-color: #22c55e !important;
-    }
-    
-    /* ── 📝 SYSTEM FOOTER ── */
-    .footer { 
-        text-align: center; 
-        color: #334155; 
-        padding: 4rem 0 2rem 0; 
-        font-size: 0.8rem; 
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        border-top: 1px solid rgba(255, 255, 255, 0.03); 
-        margin-top: 5rem; 
+    .footer { text-align: center; color: #334155; padding: 4rem 0 2rem 0; font-size: 0.8rem; font-weight: 600; border-top: 1px solid rgba(255, 255, 255, 0.03); margin-top: 5rem; }
+
+    /* ─────────────────────────────────────────────
+    /* 📱 🚨 AUTOMATED DYNAMIC CSS MEDIA QUERIES (MOBILE OPTIMIZATION LAYER)
+    /* ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+        /* Adjusting Global Navigation Padding spacing */
+        .brand-header-flex {
+            flex-direction: column !important;
+            gap: 15px !important;
+            padding: 1rem 1.5rem !important;
+            text-align: center !important;
+            align-items: center !important;
+        }
+        
+        /* Balancing Floating elements inside layouts */
+        div[data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            gap: 15px !important;
+        }
+        
+        /* Scaling Cards Padding for compact mobile space grids */
+        .card {
+            padding: 1.5rem 1.5rem !important;
+            border-radius: 18px !important;
+        }
+        
+        /* Fluid Responsive Text Down-Scaling */
+        .owner-exclusive-title {
+            font-size: 1.75rem !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.2 !important;
+        }
+        
+        .section-title {
+            font-size: 1.35rem !important;
+        }
+        
+        /* Dynamic resizing of huge numeric metric data values */
+        .metric-value-huge {
+            font-size: 2rem !important;
+        }
+        
+        /* Resizing the Big DPE official rating badge */
+        .dpe-badge-big {
+            font-size: 2.5rem !important;
+            padding: 10px 25px !important;
+            border-radius: 14px !important;
+        }
+        
+        /* Folium maps resizing layout safety bounds */
+        iframe {
+            height: 280px !important;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
