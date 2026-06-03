@@ -37,6 +37,110 @@ if "confirmed_owner_property" not in st.session_state: st.session_state["confirm
 if "address_suggestions" not in st.session_state: st.session_state["address_suggestions"] = []
 if "selected_scenario" not in st.session_state: st.session_state["selected_scenario"] = "Essential"
 
+# ─────────────────────────────────────────────
+# 🌐 CRITICAL FIX: DICTIONARIES MATRICES MOVED TO ABSOLUTE TOP
+# ─────────────────────────────────────────────
+LANG_DICT = {
+    "FR": {
+        "title": "Portail Propriétaire Énergétique",
+        "subtitle": "Estimez instantanément la valeur et les travaux de votre bien",
+        "input_label": "Saisissez l'adresse de votre logement :",
+        "select_certified": "Sélectionnez la ligne certifiée officielle :",
+        "btn_analyze": "⚡ Analyser mon Logement",
+        "btn_back": "⬅️ Retourner à la recherche",
+        "bilan_title": "Bilan Diagnostic Personnel",
+        "choose_plan": "Choisissez votre Plan de Transition Rénovation :",
+        "eco_ess": "🛠️ Éco Essential",
+        "eco_ess_sub": "Mise en conformité légale (DPE D)",
+        "conf_plus": "⚡ Confort Plus",
+        "conf_plus_sub": "Isolation globale & Confort (DPE C)",
+        "carb_zero": "🟢 Carbone Zéro",
+        "carb_zero_sub": "Performance & Heat-Pump (DPE B)",
+        "current_class": "Classe Initiale",
+        "target_class": "🎯 Cible",
+        "surface": "Surface",
+        "budget_est": "Budget Estimé",
+        "uplift_label": "Uplift Patrimoine",
+        "visual_prog": "Progression Énergétique Visuelle",
+        "your_property": "Votre Bien 🏠",
+        "target_label": "Cible",
+        "fin_title": "Cockpit Financier & Graphiques",
+        "fin_sub": "Aides d'État Proportional Base",
+        "subvention_label": "Subvention MaPrimeRénov'",
+        "reste_charge": "Reste à charge",
+        "impact_facture": "Impact Facture: En choisissant le plan {sc}, vous économisez {saving} en moyenne.",
+        "chart_5yr_title": "📊 Évolution Prédictive du Patrimoine (5 Ans)",
+        "chart_5yr_sub": "Rénové vs Non-Rénové Asset Value Curves",
+        "form_title": "Prendre RDV avec un Artisan Certifié RGE",
+        "form_sub": "Recevez gratuitement 3 devis d'artisans locaux audités par l'État.",
+        "form_name": "Nom Complet *",
+        "form_phone": "Numéro de Téléphone *",
+        "form_email": "Adresse Email *",
+        "form_time": "Créneau de rappel souhaité",
+        "form_notes": "Précisions complémentaires (facultatif)",
+        "form_btn": "📨 Envoyer ma demande de RDV",
+        "form_err": "⚠️ Veuillez remplir tous les champs obligatoires (*).",
+        "form_success": "🎉 Félicitations ! Votre demande a été enregistrée.",
+        "download_btn": "⬇️ Télécharger mon Rapport PDF Officiel",
+        "map_title": "🗺️ Cartographie Spatiale & Cadastre Registre",
+        "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées",
+        "income_label": "💰 Sélectionnez votre Profil de Revenu (Anah) :",
+        "loan_title": "💶 Simulateur Financement : Eco-Prêt à Taux Zéro (Eco-PTZ)",
+        "loan_duration": "Durée du Prêt (Années)",
+        "monthly_pay": "Mensualité Estimée",
+        "footer": "ZAMI v8.3 Supreme Freemium — Runtime Sequence Fixed • Données ADEME"
+    },
+    "EN": {
+        "title": "Energy Portal Platform",
+        "subtitle": "Track, simulate and view certified real-estate properties free",
+        "input_label": "Enter your property address:",
+        "select_certified": "Select the certified official address line:",
+        "btn_analyze": "⚡ Analyze My Property",
+        "btn_back": "⬅️ Return to Search",
+        "bilan_title": "Personal Assessment Summary",
+        "choose_plan": "Choose your Renovation Transition Plan:",
+        "eco_ess": "🛠️ Eco Essential",
+        "eco_ess_sub": "Legal compliance matching (DPE D)",
+        "conf_plus": "⚡ Comfort Plus",
+        "conf_plus_sub": "Global Insulation & Comfort (DPE C)",
+        "carb_zero": "🟢 Carbon Zero",
+        "carb_zero_sub": "High Performance & Heat-Pump (DPE B)",
+        "current_class": "Initial Class",
+        "target_class": "🎯 Target Scenario",
+        "surface": "Surface Area",
+        "budget_est": "Budget Estimate",
+        "uplift_label": "Asset Value Growth",
+        "visual_prog": "Energy Progression Flow Chart View",
+        "your_property": "Your Asset 🏠",
+        "target_label": "Target",
+        "fin_title": "Capital Deployment Analysis Charting",
+        "fin_sub": "State Financing Allocations vs Net Capital Out",
+        "subvention_label": "State Grants Matrix",
+        "reste_charge": "Net remaining",
+        "impact_facture": "Energy Invoices Vector: Choosing plan {sc} yields ~{saving} annual savings.",
+        "chart_5yr_title": "📊 5-Year Asset Value Predictive Evolution",
+        "chart_5yr_sub": "Asset Trajectory Mapping Layout",
+        "form_title": "Book an Appointment with a Certified RGE Contractor",
+        "form_sub": "Receive 3 free quotes from state-audited local contractors.",
+        "form_name": "Full Name *",
+        "form_phone": "Phone Number *",
+        "form_email": "Email Address *",
+        "form_time": "Callback window preference",
+        "form_notes": "Project notes (optional)",
+        "form_btn": "📨 Submit Request to Local RGE",
+        "form_err": "⚠️ Required fields missing.",
+        "form_success": "🎉 Request recorded into core databases.",
+        "download_btn": "⬇️ Download Official PDF Analytical Summary",
+        "map_title": "🗺️ Geospatial Location & Registry Mapping",
+        "loss_title": "🌡️ AI Estimation of Structural Heat Losses",
+        "income_label": "💰 Select your Anah Income Profile :",
+        "loan_title": "💶 Financing Simulator: Eco-Prêt à Taux Zéro (Eco-PTZ)",
+        "loan_duration": "Amortization Matrix (Years)",
+        "monthly_pay": "Estimated Monthly Payment",
+        "footer": "ZAMI v8.3 Supreme Freemium — Runtime Sequence Fixed • ADEME Core"
+    }
+}
+
 # Global Variables setup
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
 _SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
@@ -74,15 +178,22 @@ def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, l
     roi = round(_FALLBACK_UPLIFT.get(mock_dpe, 0.0), 1)
     return {"address": query_address, "dpe": mock_dpe, "surface": mock_surface, "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon}
 
-# Language translations matrix
-LANG_DICT = {"FR": {"title": "Portail Propriétaire Énergétique", "subtitle": "Estimez instantanément la valeur et les travaux de votre bien", "form_name": "Nom Complet *", "form_phone": "Numéro de Téléphone *", "form_email": "Adresse Email *", "form_time": "Créneau de rappel souhaité", "form_notes": "Précisions complémentaires (facultatif)", "form_btn": "📨 Envoyer ma demande de RDV", "form_err": "⚠️ Veuillez remplir tous les champs obligatoires (*).", "form_success": "🎉 Félicitations ! Votre demande a été enregistrée.", "download_btn": "⬇️ Télécharger mon Rapport PDF Officiel", "map_title": "🗺️ Cartographie Spatiale & Cadastre Registre", "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées", "income_label": "💰 Sélectionnez votre Profil de Revenu (Anah) :", "loan_title": "💶 Simulateur Financement : Eco-Prêt à Taux Zéro (Eco-PTZ)", "loan_duration": "Durée du Prêt (Années)", "monthly_pay": "Mensualité Estimée", "footer": "ZAMI v8.3 Supreme Freemium — Real Branding & Clean Layout Operational • Données ADEME", "budget_est": "Budget Estimé", "surface": "Surface", "uplift_label": "Uplift Patrimoine", "current_class": "Classe Initiale", "target_class": "🎯 Cible", "visual_prog": "Progression Énergétique Visuelle", "fin_title": "Cockpit Financier & Graphiques", "fin_sub": "Aides d'État Proportional Base", "subvention_label": "Subvention MaPrimeRénov'", "reste_charge": "Reste à charge", "chart_5yr_title": "📊 Évolution Prédictive du Patrimoine (5 Ans)", "chart_5yr_sub": "Rénové vs Non-Rénové Asset Value Curves", "impact_facture": "Impact Facture: En choisissant le plan {sc}, vous économisez {saving} en moyenne."}, "EN": {"title": "Energy Portal Platform", "subtitle": "Track, simulate and view certified real-estate properties free", "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Email Address *", "form_time": "Callback window preference", "form_notes": "Project notes (optional)", "form_btn": "📨 Submit Request to Local RGE", "form_err": "⚠️ Required fields missing.", "form_success": "🎉 Request recorded into core databases.", "download_btn": "⬇️ Download Official PDF Analytical Summary", "map_title": "🗺️ Geospatial Location & Registry Mapping", "loss_title": "🌡️ AI Estimation of Structural Heat Losses", "income_label": "💰 Select your Anah Income Profile :", "loan_title": "💶 Financing Simulator: Eco-Prêt à Taux Zéro (Eco-PTZ)", "loan_duration": "Amortization Matrix (Years)", "monthly_pay": "Estimated Monthly Payment", "footer": "ZAMI v8.3 Supreme Freemium — Real Branding & Clean Layout Operational • ADEME Core", "budget_est": "Budget Estimate", "surface": "Surface Area", "uplift_label": "Asset Value Growth", "current_class": "Initial Class", "target_class": "🎯 Target Scenario", "visual_prog": "Energy Progression Flow Chart View", "fin_title": "Capital Deployment Analysis Charting", "fin_sub": "State Financing Allocations vs Net Capital Out", "subvention_label": "State Grants Matrix", "reste_charge": "Net remaining", "chart_5yr_title": "📊 5-Year Asset Value Predictive Evolution", "chart_5yr_sub": "Asset Trajectory Mapping Layout", "impact_facture": "Energy Invoices Vector: Choosing plan {sc} yields ~{saving} annual savings."}}
+def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, net):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_fill_color(5, 7, 12)
+    pdf.rect(0, 0, 210, 45, 'F')
+    pdf.set_font("Helvetica", "B", 24)
+    pdf.set_text_color(255, 255, 255)
+    pdf.text(15, 28, "ZAMI | COCKPIT REPORT V8.3")
+    return pdf.output()
 
-# Base Layouts Headers Config
+# Base Layouts Headers Language Selector Initialization
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang: selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
 T = LANG_DICT[selected_lang]
 
-# ── 🏢 FIXED: RESTORED REAL ORIGINAL PNG LOGO STREAM SYSTEM ──
+# Logo Path Rendering
 base_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(base_dir, "assets", "zami_logo.png")
 
@@ -96,7 +207,7 @@ else:
     logo_html = '<div style="font-family:\'DM Serif Display\', sans-serif; font-size:2.4rem; color:#fff; font-weight:700;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
 
 # ─────────────────────────────────────────────
-# 🔐 NEW FEATURE: PREMIUM MAIN SCREEN FLOATING NAVBAR LOGIN GATE
+# 🔐 FLOATING NAVBAR HEADER CONTROL WIDGET
 # ─────────────────────────────────────────────
 col_brand_area, col_auth_widget = st.columns([2.0, 1.0])
 
@@ -106,7 +217,6 @@ with col_brand_area:
 with col_auth_widget:
     st.markdown('<div style="text-align:right; margin-top:-15px;">', unsafe_allow_html=True)
     if st.session_state["logged_in_user_id"] is None:
-        # Elegant hidden expansion module right inside the main landing header grid
         with st.expander("👤 Connection Member Space", expanded=False):
             auth_mode = st.radio("Gate Mode", ["Login", "Sign Up"], horizontal=True, label_visibility="collapsed")
             u_input = st.text_input("Username", key="main_user_input")
@@ -117,8 +227,7 @@ with col_auth_widget:
                 if u_input and p_input:
                     if auth_mode == "Sign Up":
                         if utils_db.create_user(u_input, e_input if e_input else "", p_input):
-                            st.success("Account Ready! Shifting dashboard context...")
-                            st.rerun()
+                            st.success("Account Ready! Log in now.")
                         else: st.error("Credentials conflict.")
                     else:
                         user_check = utils_db.authenticate_user(u_input, p_input)
@@ -129,7 +238,7 @@ with col_auth_widget:
                         else: st.error("Access Refused.")
     else:
         st.markdown(f"<span style='color:#86efac; font-size:0.9rem; font-weight:600;'>🟢 Welcome, {st.session_state['logged_in_username']} </span>", unsafe_allow_html=True)
-        if st.button("🚪 Disconnect Session", type="secondary", size="small"):
+        if st.button("🚪 Disconnect Session", type="secondary"):
             st.session_state["logged_in_user_id"] = None
             st.session_state["logged_in_username"] = None
             st.session_state["confirmed_owner_property"] = None
@@ -139,7 +248,7 @@ with col_auth_widget:
 st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin-top:0; margin-bottom:2rem;">', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 📂 SIDEBAR PORTFOLIO CONSOLE (ONLY MOUNTED ON USER LOGIN STATE)
+# 📂 SIDEBAR PORTFOLIO CONSOLE (USER STATE ONLY)
 # ─────────────────────────────────────────────
 if st.session_state["logged_in_user_id"] is not None:
     st.sidebar.markdown("📂 **Votre Portefeuille Secure**")
@@ -275,7 +384,7 @@ else:
             st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ECO-PTZ RE-COMPILING GENERATOR LOAN MATRIX
+        # ECO-PTZ LOAN SLIDER SIMULATOR
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">Financing Leverage</p><p class="section-title">{T["loan_title"]}</p>', unsafe_allow_html=True)
         loan_years_duration = st.slider(T["loan_duration"], 5, 20, 15)
