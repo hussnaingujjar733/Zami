@@ -22,6 +22,12 @@ try:
 except ImportError:
     ML_BACKEND_READY = False
 
+try:
+    from ademe_api import lookup_dpe_by_address
+    ADEME_API_READY = True
+except ImportError:
+    ADEME_API_READY = False
+
 # Boot systems databases
 utils_db.init_db()
 
@@ -64,15 +70,32 @@ def ban_search(query: str, limit: int = 5):
     return results
 
 def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, lon=2.3522):
-    random.seed(int(len(query_address)))
-    mock_dpe = random.choice(["E", "F", "G"])
-    mock_surface = random.randint(30, 95)
-    if ML_BACKEND_READY and hasattr(ml, "predict_cost"):
-        try: cost = ml.predict_cost(mock_surface, mock_dpe, zipcode)
-        except Exception: cost = round(float(mock_surface) * _FALLBACK_RENO_COST.get(mock_dpe, 0), 0)
-    else: cost = round(float(mock_surface) * _FALLBACK_RENO_COST.get(mock_dpe, 0), 0)
-    roi = round(_FALLBACK_UPLIFT.get(mock_dpe, 0.0), 1)
-    return {"address": query_address, "dpe": mock_dpe, "surface": mock_surface, "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon}
+    """
+    Real ADEME DPE lookup — replaces the old random mock data.
+    Fetches official certified DPE records from ADEME Open Data (25M+ records).
+    Falls back to intelligent zone-based estimate if address not found.
+    """
+    if ADEME_API_READY:
+        return lookup_dpe_by_address(
+            address_label=query_address,
+            zipcode=zipcode,
+            lat=lat,
+            lon=lon,
+            fallback_cost_map=_FALLBACK_RENO_COST,
+            fallback_uplift_map=_FALLBACK_UPLIFT,
+        )
+    # Emergency fallback if ademe_api.py not present (keeps app running)
+    dpe_by_region = {"75": "E", "92": "E", "93": "F", "94": "E", "69": "D", "13": "D", "31": "D"}
+    region = str(zipcode)[:2]
+    dpe = dpe_by_region.get(region, "E")
+    surface = 62.0 if region == "75" else 75.0
+    cost = round(surface * _FALLBACK_RENO_COST.get(dpe, 620), 0)
+    roi  = _FALLBACK_UPLIFT.get(dpe, 13.1)
+    return {
+        "address": query_address, "dpe": dpe, "surface": surface,
+        "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon,
+        "source": "FALLBACK_ZONALE", "data_found": False,
+    }
 
 # Language translations matrix
 LANG_DICT = {
@@ -253,6 +276,49 @@ else:
             
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p><div class="owner-exclusive-title">{base_prop["address"]}</div>', unsafe_allow_html=True)
+
+    # ── ADEME Data Source Badge ──
+    if base_prop.get("data_found"):
+        numero = base_prop.get("numero_dpe") or "—"
+        date_dpe = base_prop.get("date_dpe", "")[:10] if base_prop.get("date_dpe") else ""
+        st.markdown(f'''
+        <div style="display:inline-flex;align-items:center;gap:8px;
+                    background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);
+                    padding:6px 16px;border-radius:100px;margin-bottom:1.2rem;">
+            <span style="width:7px;height:7px;background:#22c55e;border-radius:50%;
+                         box-shadow:0 0 8px #22c55e;display:inline-block;"></span>
+            <span style="font-size:0.72rem;font-weight:700;color:#4ade80;letter-spacing:0.08em;">
+                ✓ DONNÉES OFFICIELLES ADEME · DPE N° {numero}
+                {"· " + date_dpe if date_dpe else ""}
+            </span>
+        </div>''', unsafe_allow_html=True)
+        # Show enriched fields if available
+        annee = base_prop.get("annee_construction")
+        conso = base_prop.get("conso_kwh")
+        ges   = base_prop.get("emission_ges")
+        energie = base_prop.get("energie_chauffage", "")
+        if annee or conso or ges:
+            ec1, ec2, ec3, ec4 = st.columns(4)
+            if annee:
+                ec1.markdown(f'<span class="metric-label-sub">Année construction</span><br><span style="font-size:1.3rem;font-weight:800;color:#f8fafc;">{annee}</span>', unsafe_allow_html=True)
+            if conso:
+                ec2.markdown(f'<span class="metric-label-sub">Consommation</span><br><span style="font-size:1.3rem;font-weight:800;color:#f8fafc;">{int(conso):,} kWh/an</span>', unsafe_allow_html=True)
+            if ges:
+                ec3.markdown(f'<span class="metric-label-sub">Émissions GES</span><br><span style="font-size:1.3rem;font-weight:800;color:#f8fafc;">{int(ges):,} kg CO₂</span>', unsafe_allow_html=True)
+            if energie:
+                ec4.markdown(f'<span class="metric-label-sub">Chauffage</span><br><span style="font-size:1.3rem;font-weight:800;color:#f8fafc;">{energie[:20]}</span>', unsafe_allow_html=True)
+            st.markdown('<hr style="border-color:rgba(255,255,255,0.04);margin:1rem 0;">', unsafe_allow_html=True)
+    else:
+        st.markdown(f'''
+        <div style="display:inline-flex;align-items:center;gap:8px;
+                    background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);
+                    padding:6px 16px;border-radius:100px;margin-bottom:1.2rem;">
+            <span style="width:7px;height:7px;background:#eab308;border-radius:50%;display:inline-block;"></span>
+            <span style="font-size:0.72rem;font-weight:700;color:#fbbf24;letter-spacing:0.08em;">
+                ⚡ ESTIMATION ZONALE — Aucun DPE officiel trouvé · Données estimées
+            </span>
+        </div>''', unsafe_allow_html=True)
+
     st.markdown(f'<p class="metric-label-sub" style="color:#ffffff; margin-bottom:15px; font-weight:600;">{T["choose_plan"]}</p>', unsafe_allow_html=True)
     
     sc_col1, sc_col2, sc_col3 = st.columns(3)
