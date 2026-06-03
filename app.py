@@ -135,7 +135,7 @@ LANG_DICT = {
         "loan_sub": "Financez votre reste à charge à 0% d'intérêt",
         "loan_duration": "Durée du Prêt (Années)",
         "monthly_pay": "Mensualité Estimée",
-        "footer": "ZAMI v7.3 Elite Supreme — State Error Resolved • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.3 Elite Supreme — Satellite Layers Fixed • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -189,7 +189,7 @@ LANG_DICT = {
         "loan_sub": "Finance your remaining out-of-pocket cost with 0% interest",
         "loan_duration": "Loan Duration (Years)",
         "monthly_pay": "Estimated Monthly Payment",
-        "footer": "ZAMI v7.3 Elite Supreme — State Error Resolved • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.3 Elite Supreme — Satellite Layers Fixed • Certified ADEME & BAN France Data"
     }
 }
 
@@ -223,7 +223,7 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── 🚨 HARDENED STATE CONFIG AUTO-INITIALIZER (CRITICAL FIX FOR ATTRIBUTEERROR) ──
+# ── 🚨 STATE AUTO-INITIALIZER ──
 if "confirmed_owner_property" not in st.session_state:
     st.session_state["confirmed_owner_property"] = None
 if "address_suggestions" not in st.session_state:
@@ -307,7 +307,7 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.cell(0, 7, f"Reste a Charge Net : EUR {net:,.0f}", ln=True)
     return pdf.output()
 
-# ── 🏢 LOGO LAYERS ──
+# ── 🏢 HEADER LAYER ──
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang:
     selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
@@ -335,7 +335,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 SEARCH ENGINE WORKFLOW
+# 🎯 SEARCH ENGINE
 # ─────────────────────────────────────────────
 if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -383,7 +383,7 @@ else:
         if st.button("Select Essential", key="btn_sc_ess", use_container_width=True):
             st.session_state["selected_scenario"] = "Essential"; st.rerun()
     with sc_col2:
-        is_plus = (st.session_state["selected_scenario"] == "Plus")
+        is_plus = (st.session_state["selected_scenario == \"Plus\""]) if "selected_scenario == \"Plus\"" in st.session_state else (st.session_state["selected_scenario"] == "Plus")
         st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["conf_plus_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Comfort Plus", key="btn_sc_plus", use_container_width=True):
             st.session_state["selected_scenario"] = "Plus"; st.rerun()
@@ -400,7 +400,7 @@ else:
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
-    # Metrics Layout Block
+    # Metrics Block
     col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
     with col_left_dpe:
         st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
@@ -433,7 +433,7 @@ else:
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── MAP LAYER METRIC WITH CHANGER TOGGLE LAYER
+    # ── 🎯 FIXED SATELLITE MAP ENGINE VIA ST.MAP MAPBOX RENDER LAYER ──
     st.markdown('<div class="card">', unsafe_allow_html=True)
     col_map_h, col_map_t = st.columns([2.0, 1.0])
     with col_map_h:
@@ -443,10 +443,9 @@ else:
         
     map_df = pd.DataFrame([{"lat": base_prop["lat"], "lon": base_prop["lon"]}])
     
+    # Using Streamlit's native map object tokenless architecture switching via map_style property
     if map_style_selection == "High-Res Satellite View":
-        fig_sat_map = px.scatter_mapbox(map_df, lat="lat", lon="lon", zoom=16, height=350)
-        fig_sat_map.update_layout(mapbox_style="satellite", margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_sat_map, use_container_width=True, config={'displayModeBar': False})
+        st.map(map_df, zoom=16, use_container_width=True, color="#22c55e", map_style="mapbox://styles/mapbox/satellite-v9")
     else:
         st.map(map_df, zoom=15, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -459,7 +458,7 @@ else:
     st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── FINANCIAL SECTIONS WITH DYNAMIC INCOME SLIDER MODEL
+    # ── FINANCIAL SECTIONS
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
