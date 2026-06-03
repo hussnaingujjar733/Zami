@@ -75,15 +75,17 @@ def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, l
     return {"address": query_address, "dpe": mock_dpe, "surface": mock_surface, "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon}
 
 # Language translation matrix mapping framework
-LANG_DICT = {"FR": {"title": "Portail SaaS Propriétaire Énergétique", "subtitle": "Estimez et gérez vos actifs immobiliers", "form_name": "Nom Complet *", "form_phone": "Numéro de Téléphone *", "form_email": "Adresse Email *", "form_time": "Créneau de rappel souhaité", "form_notes": "Précisions complémentaires (facultatif)", "form_btn": "📨 Envoyer ma demande de RDV", "form_err": "⚠️ Veuillez remplir tous les champs obligatoires (*).", "form_success": "🎉 Félicitations ! Votre demande a été enregistrée.", "download_btn": "⬇️ Télécharger mon Rapport PDF Officiel", "map_title": "🗺️ Cartographie Spatiale & Cadastre Registre", "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées", "income_label": "💰 Sélectionnez votre Profil de Revenu (Anah) :", "loan_title": "💶 Simulateur Financement : Eco-Prêt à Taux Zéro (Eco-PTZ)", "loan_duration": "Durée du Prêt (Années)", "monthly_pay": "Mensualité Estimée", "footer": "ZAMI v8.1 SaaS Premium — Identity & Portfolio Stack Operational • Données ADEME", "budget_est": "Budget Estimé", "surface": "Surface", "uplift_label": "Uplift Patrimoine", "current_class": "Classe Initiale", "target_class": "🎯 Cible", "visual_prog": "Progression Énergétique Visuelle", "fin_title": "Cockpit Financier & Graphiques", "fin_sub": "Aides d'État Proportional Base", "subvention_label": "MaPrimeRénov'", "reste_charge": "Reste à charge", "chart_5yr_title": "📊 Évolution Prédictive du Patrimoine (5 Ans)", "chart_5yr_sub": "Rénové vs Non-Rénové Asset Value Curves", "impact_facture": "Impact Facture: En choisissant le plan {sc}, vous économisez {saving} en moyenne."}, "EN": {"title": "SaaS Energy Portal Platform", "subtitle": "Track, simulate and save your certified real-estate properties", "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Email Address *", "form_time": "Callback window preference", "form_notes": "Project notes (optional)", "form_btn": "📨 Submit Request to Local RGE", "form_err": "⚠️ Required fields missing.", "form_success": "🎉 Request recorded into core databases.", "download_btn": "⬇️ Download Official PDF Analytical Summary", "map_title": "🗺️ Geospatial Layer Mapping Infrastructure", "loss_title": "🌡️ Structural Defect Heat Losses Estimation", "income_label": "💰 Anah Income Profile Mapping Vector:", "loan_title": "💶 Financing Leverage Selector: Eco-PTZ Framework", "loan_duration": "Amortization Matrix (Years)", "monthly_pay": "Estimated Payment Factor", "footer": "ZAMI v8.1 SaaS Premium — Identity & Portfolio Stack Operational • ADEME Core", "budget_est": "Budget Estimate", "surface": "Surface Area", "uplift_label": "Asset Value Growth", "current_class": "Initial Class", "target_class": "🎯 Target Scenario", "visual_prog": "Energy Progression Flow Chart View", "fin_title": "Capital Deployment Analysis Charting", "fin_sub": "State Financing Allocations vs Net Capital Out", "subvention_label": "State Grants Matrix", "reste_charge": "Net out-of-pocket", "chart_5yr_title": "📊 5-Year Financial Projection Curve Track", "chart_5yr_sub": "Asset Trajectory Mapping Layout", "impact_facture": "Energy Invoices Vector: Choosing plan {sc} yields ~{saving} annual savings."}}
+LANG_DICT = {"FR": {"title": "Portail SaaS Propriétaire Énergétique", "subtitle": "Estimez et gérez vos actifs immobiliers", "form_name": "Nom Complet *", "form_phone": "Numéro de Téléphone *", "form_email": "Adresse Email *", "form_time": "Créneau de rappel souhaité", "form_notes": "Précisions complémentaires (facultatif)", "form_btn": "📨 Envoyer ma demande de RDV", "form_err": "⚠️ Veuillez remplir tous les champs obligatoires (*).", "form_success": "🎉 Félicitations ! Votre demande a été enregistrée.", "download_btn": "⬇️ Télécharger mon Rapport PDF Officiel", "map_title": "🗺️ Cartographie Spatiale & Cadastre Registre", "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées", "income_label": "💰 Sélectionnez votre Profil de Revenu (Anah) :", "loan_title": "💶 Simulateur Financement : Eco-Prêt à Taux Zéro (Eco-PTZ)", "loan_duration": "Durée du Prêt (Années)", "monthly_pay": "Mensualité Estimée", "footer": "ZAMI v8.2 SaaS Premium — Persistent Branding Fixed • Données ADEME", "budget_est": "Budget Estimé", "surface": "Surface", "uplift_label": "Uplift Patrimoine", "current_class": "Classe Initiale", "target_class": "🎯 Cible", "visual_prog": "Progression Énergétique Visuelle", "fin_title": "Cockpit Financier & Graphiques", "fin_sub": "Aides d'État Proportional Base", "subvention_label": "MaPrimeRénov'", "reste_charge": "Reste à charge", "chart_5yr_title": "📊 Évolution Prédictive du Patrimoine (5 Ans)", "chart_5yr_sub": "Rénové vs Non-Rénové Asset Value Curves", "impact_facture": "Impact Facture: En choisissant le plan {sc}, vous économisez {saving} en moyenne."}, "EN": {"title": "SaaS Energy Portal Platform", "subtitle": "Track, simulate and save your certified real-estate properties", "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Email Address *", "form_time": "Callback window preference", "form_notes": "Project notes (optional)", "form_btn": "📨 Submit Request to Local RGE", "form_err": "⚠️ Required fields missing.", "form_success": "🎉 Request recorded into core databases.", "download_btn": "⬇️ Download Official PDF Analytical Summary", "map_title": "🗺️ Geospatial Location & Registry Mapping", "loss_title": "🌡️ AI Estimation of Structural Heat Losses", "income_label": "💰 Select your Anah Income Profile :", "loan_title": "💶 Financing Simulator: Eco-Prêt à Taux Zéro (Eco-PTZ)", "loan_duration": "Loan Duration (Years)", "monthly_pay": "Estimated Monthly Payment", "footer": "ZAMI v8.2 SaaS Premium — Persistent Branding Fixed • ADEME Core", "budget_est": "Budget Estimate", "surface": "Surface Area", "uplift_label": "Asset Value Growth", "current_class": "Initial Class", "target_class": "🎯 Target Scenario", "visual_prog": "Energy Progression Flow Chart View", "fin_title": "Capital Deployment Analysis Charting", "fin_sub": "State Financing Allocations vs Net Capital Out", "subvention_label": "State Grants Matrix", "reste_charge": "Net remaining", "chart_5yr_title": "📊 5-Year Asset Value Predictive Evolution", "chart_5yr_sub": "Asset Trajectory Mapping Layout", "impact_facture": "Energy Invoices Vector: Choosing plan {sc} yields ~{saving} annual savings."}}
 
 # Headers Layout setup
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang: selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
 T = LANG_DICT[selected_lang]
 
-# Render logo html container parameters 
-st.markdown('<div class="brand-header-flex" style="margin-top:-30px;"><div style="font-family:\'DM Sans\', serif; font-size:2.2rem; color:#fff; font-weight:700;">🏢 ZA<span style="color:#22c55e;">MI</span></div><div><span class="brand-status-tag">ZAMI PLATINUM SAAS V8.1</span></div></div>', unsafe_allow_html=True)
+# ── 👑 HIGH-END HYBRID LOGO RESOLUTION LAYER (TEXT + GLOW ICON AS BACKUP) ──
+logo_html = '<div style="font-family:\'DM Serif Display\', sans-serif; font-size:2.4rem; color:#fff; font-weight:700; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;">🏢 ZA<span style="color:#22c55e;">MI</span><span style="font-size:0.9rem; font-family:\'DM Sans\', sans-serif; background:rgba(34,197,94,0.1); color:#22c55e; padding:3px 10px; border-radius:10px; margin-left:5px; font-weight:600; border:1px solid rgba(34,197,94,0.2);">PRO</span></div>'
+
+st.markdown(f'<div class="brand-header-flex" style="margin-top:-30px;">{logo_html}<div><span class="brand-status-tag">ZAMI ENTERPRISE V8.2 LAUNCH</span></div></div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # 🔐 THE SAAS ACCUMULATION & ENTRY CONTROL LAYER
@@ -105,7 +107,7 @@ if st.session_state["logged_in_user_id"] is None:
                 if auth_mode == "Inscription (Sign Up)":
                     if utils_db.create_user(username_f, email_f if email_f else "", password_f):
                         st.success("Registration Successful! Shifting to login console...")
-                        time.sleep(1)
+                        st.rerun()
                     else: st.error("Username or Email already mapped inside the matrix.")
                 else:
                     user_id_check = utils_db.authenticate_user(username_f, password_f)
@@ -120,10 +122,8 @@ if st.session_state["logged_in_user_id"] is None:
 # 🏢 ACTIVE DEPLOYED SaaS CONSOLE INTERACTION
 # ─────────────────────────────────────────────
 else:
-    # Sidebar Profile Operations Container Frame Layout
     st.sidebar.markdown(f"<h4>👤 Client: {st.session_state['logged_in_username']}</h4>", unsafe_allow_html=True)
     
-    # ✅ THE "MY PORTFOLIO" SAVED DATA SIDEBAR RENDERER
     st.sidebar.markdown("---")
     st.sidebar.markdown("📂 **Votre Portefeuille Immobilier**", unsafe_allow_html=True)
     user_saved_portfolio_df = utils_db.fetch_user_portfolio(st.session_state["logged_in_user_id"])
@@ -145,7 +145,6 @@ else:
         st.session_state["confirmed_owner_property"] = None
         st.rerun()
 
-    # Main workflow search triggers
     if st.session_state["confirmed_owner_property"] is None:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">{T["title"]}</p><p class="section-title">{T["subtitle"]}</p>', unsafe_allow_html=True)
@@ -166,20 +165,17 @@ else:
         base_prop = st.session_state["confirmed_owner_property"]
         dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
         
-        # Upper control button dashboard frames row
         btn_col1, btn_col2 = st.columns([4, 1])
         with btn_col1:
             if st.button(T["btn_back"]): st.session_state["confirmed_owner_property"] = None; st.rerun()
         with btn_col2:
-            # ✅ THE RE-ENGINEERED SAAS SEAMLESS PORTFOLIO INJECT BUTTON TRIGGER
             if st.button("💾 Sauvegarder l'Actif", type="primary", use_container_width=True):
                 utils_db.save_property_to_portfolio(
                     st.session_state["logged_in_user_id"], base_prop["address"], base_prop["zipcode"],
                     base_prop["dpe"], base_prop["surface"], base_prop["cost"], base_prop["roi"],
                     base_prop["lat"], base_prop["lon"]
                 )
-                st.success("Asset locked inside portfolio registry! Saved inside sidebar panels.")
-                time.sleep(0.5)
+                st.success("Asset saved inside portfolio!")
                 st.rerun()
             
         st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -220,7 +216,7 @@ else:
                 st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── MAP LAYERS VIEW CONTROL ──
+        # ── 🗺️ GEOSPATIAL MAP ENGINE BLOCK ──
         st.markdown('<div class="card">', unsafe_allow_html=True)
         col_map_h, col_map_t = st.columns([2.0, 1.0])
         with col_map_h: st.markdown(f'<p class="section-label">Geospatial Registry</p><p class="section-title">{T["map_title"]}</p>', unsafe_allow_html=True)
@@ -235,7 +231,7 @@ else:
         st_folium(f_map, use_container_width=True, height=340, returned_objects=[])
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── FINANCIAL CALCULATOR ENGINE BLOCK ──
+        # ── FINANCIAL MODEL LAYER ──
         if active_cost > 0:
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
@@ -259,11 +255,12 @@ else:
                 st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-            # ── ECO-PTZ RE-COMPILING GENERATOR LOAN MATRIX
+            # ── ECO-PTZ LOAN SLIDER SIMULATOR ──
             st.markdown('<div class="card">', unsafe_allow_html=True)
             st.markdown(f'<p class="section-label">Financing Leverage</p><p class="section-title">{T["loan_title"]}</p>', unsafe_allow_html=True)
             loan_years_duration = st.slider(T["loan_duration"], 5, 20, 15)
             calculated_monthly_installment = net_cost / (loan_years_duration * 12)
+            
             col_ln_m1, col_ln_m2 = st.columns(2)
             with col_ln_m1: st.markdown(f'<br><span class="metric-value-huge" style="color:#22c55e;">€{calculated_monthly_installment:,.2f}</span><span style="font-size:1.2rem;color:#94a3b8;"> / mois</span><br><span class="metric-label-sub">{T["monthly_pay"]} (0% TAEG)</span>', unsafe_allow_html=True)
             with col_ln_m2:
@@ -272,13 +269,14 @@ else:
                 st.plotly_chart(fig_gauge, use_container_width=True, config={'displayModeBar': False})
             st.markdown("</div>", unsafe_allow_html=True)
 
+        # ── 5-YEAR LINE CHART ACCELERATION ──
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
         fig_5yr = utils_charts.generate_five_year_trajectory(active_roi)
         st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── LEAD INTERCEPT FORM CONTROL STRUCTURE ──
+        # ── LEAD GENERATION DATA INTAKE FORM ──
         if active_cost > 0:
             st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.25); background: #080d14;">', unsafe_allow_html=True)
             st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
