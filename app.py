@@ -3,7 +3,7 @@ import base64
 import random
 import time
 import io
-import sqlite3  # 🚨 Added for secure local database logging layer
+import sqlite3
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -37,7 +37,6 @@ st.set_page_config(
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zami_leads.db")
 
 def init_db():
-    """Creates the leads tracking table automatically if it doesn't exist"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -60,11 +59,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Boot initialization
 init_db()
 
 def log_lead_to_db(address, zipcode, initial_dpe, target_dpe, scenario, cost, name, phone, email, callback_time, notes):
-    """Safely injects a newly captured business lead into the SQLite repository"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -134,7 +131,7 @@ LANG_DICT = {
         "map_title": "🗺️ Localisation Spatiale & Cadastre Registre",
         "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées",
         "loss_sub": "Zones critiques nécessitant une isolation prioritaire",
-        "footer": "ZAMI v7.0 Titanium — SQLite Database Leads Engine Active • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.1 Titanium — SQLite Protected Database Active • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -183,12 +180,12 @@ LANG_DICT = {
         "map_title": "🗺️ Geospatial Location & Registry Mapping",
         "loss_title": "🌡️ AI Estimation of Structural Heat Losses",
         "loss_sub": "Critical building zones requiring urgent insulation",
-        "footer": "ZAMI v7.0 Titanium — SQLite Database Leads Engine Active • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.1 Titanium — SQLite Protected Database Active • Certified ADEME & BAN France Data"
     }
 }
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES — Ultra Luxury Dark Theme
+# GLOBAL STYLES
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -280,9 +277,6 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.set_font("Helvetica", "B", 24)
     pdf.set_text_color(255, 255, 255)
     pdf.text(15, 28, "ZAMI | AUDIT ENERGETIQUE")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(148, 163, 184)
-    pdf.text(145, 28, "VERSION TITANIUM v7.0")
     pdf.set_y(55)
     pdf.set_text_color(5, 7, 12)
     pdf.set_font("Helvetica", "B", 14)
@@ -291,15 +285,12 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.ln(5)
     pdf.cell(0, 7, f"Adresse : {prop_details['address']}", ln=True)
     pdf.cell(0, 7, f"Surface Habitable : {prop_details['surface']} m2", ln=True)
-    pdf.cell(0, 7, f"Classe DPE Initiale : DPE {prop_details['dpe']}", ln=True)
     pdf.cell(0, 7, f"Plan Selectionne : {sc} (Target DPE {target_dpe})", ln=True)
-    pdf.ln(5)
     pdf.cell(0, 7, f"Budget Travaux Global Estime : EUR {cost:,.0f}", ln=True)
-    pdf.cell(0, 7, f"Reste a Charge Net Proprietaire : EUR {net:,.0f}", ln=True)
     return pdf.output()
 
 # ─────────────────────────────────────────────
-# 🏢 BRAND HEADER & LANGUAGE SELECTOR
+# BRAND HEADER
 # ─────────────────────────────────────────────
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang:
@@ -323,12 +314,12 @@ else:
 st.markdown(f"""
 <div class="brand-header-flex" style="margin-top:-30px;">
     {logo_html}
-    <div><span class="brand-status-tag">ZAMI TITANIUM V7.0 DB ACTIVE</span></div>
+    <div><span class="brand-status-tag">ZAMI TITANIUM V7.1 SECURE LIVE</span></div>
 </div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 SEARCH LAYER
+# SEARCH LAYER
 # ─────────────────────────────────────────────
 if st.session_state.confirmed_owner_property is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -353,7 +344,7 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🌟 PREMIUM MULTI-SCENARIO EXCLUSIVE COCKPIT
+# COCKPIT CORES
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state.confirmed_owner_property
@@ -391,28 +382,23 @@ else:
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
-    # Metrics Row
     m_col1, m_col2, m_col3 = st.columns(3)
     m_col1.metric(T["surface"], f"{base_prop['surface']} m²")
     m_col2.metric(T["budget_est"], f"€{active_cost:,.0f}")
     m_col3.metric(T["uplift_label"], f"+{active_roi}%")
 
-    # ── MAP LAYER ──
     map_df = pd.DataFrame([{"lat": base_prop["lat"], "lon": base_prop["lon"]}])
     st.map(map_df, zoom=14, use_container_width=True)
 
-    # ── 🌡️ HEAT LOSS MATRIX ──
     st.markdown(f'<p class="section-title">{T["loss_title"]}</p>', unsafe_allow_html=True)
     fig_loss = go.Figure(go.Bar(x=[30, 25, 15, 10], y=["Roof", "Walls", "Windows", "Floors"], orientation='h', marker=dict(color='#dc2626')))
     fig_loss.update_layout(height=140, margin=dict(l=10,r=10,t=10,b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
 
-    # ── FINANCIALS ANALYSIS SECTION
     subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
     estimated_subsidy = round(active_cost * subsidy_rate, 0)
     net_cost = active_cost - estimated_subsidy
 
-    # ── LEAD GENERATION CAPTURE FORM WITH SQLITE ARCHITECTURE ──
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: #0b1116;">', unsafe_allow_html=True)
         st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
@@ -436,31 +422,20 @@ else:
                 if not owner_name or not owner_phone or not owner_email:
                     st.error(T["form_err"])
                 else:
-                    with st.spinner("Logging securely..."):
-                        # 1. 🗄️ Save into local SQLite database binary layer
-                        db_logged = log_lead_to_db(
-                            base_prop["address"], base_prop["zipcode"], base_prop["dpe"], target_dpe,
-                            current_scenario, active_cost, owner_name, owner_phone, owner_email, time_slot, additional_notes
-                        )
-                        
-                        # 2. Send external fallback notification trigger
-                        payload = {
-                            "access_key": access_key_token,
-                            "subject": f"🔥 SQLITE LOGGED LEAD - {base_prop['zipcode']}",
-                            "Address": base_prop["address"],
-                            "Name": owner_name,
-                            "Phone": owner_phone,
-                            "Email": owner_email,
-                            "Cost": f"EUR {active_cost:,.0f}"
-                        }
-                        try: requests.post(form_action_url, data=payload, timeout=10)
-                        except Exception: pass
-                        
-                        if db_logged:
-                            st.success(T["form_success"])
+                    db_logged = log_lead_to_db(
+                        base_prop["address"], base_prop["zipcode"], base_prop["dpe"], target_dpe,
+                        current_scenario, active_cost, owner_name, owner_phone, owner_email, time_slot, additional_notes
+                    )
+                    payload = {
+                        "access_key": access_key_token,
+                        "subject": f"🔥 SQLITE LOGGED LEAD - {base_prop['zipcode']}",
+                        "Address": base_prop["address"], "Name": owner_name, "Phone": owner_phone, "Email": owner_email
+                    }
+                    try: requests.post(form_action_url, data=payload, timeout=10)
+                    except Exception: pass
+                    if db_logged: st.success(T["form_success"])
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── PDF EXPORT HUB ──
     try:
         pdf_string_data = generate_zami_pdf_bytes(base_prop, current_scenario, target_dpe, active_cost, estimated_subsidy, net_cost, selected_lang)
         pdf_bytes_io = io.BytesIO(pdf_string_data.encode('latin1') if isinstance(pdf_string_data, str) else pdf_string_data)
@@ -468,29 +443,40 @@ else:
     except Exception: pass
 
 # ─────────────────────────────────────────────
-# 🛡️ EXCLUSIVE FEATURE: INTERNAL ADMIN LEAD VIEW (FOR MONITORING)
+# 🛡️ 100% SECURE & PASSWORD PROTECTED ADMIN VAULT LAYER
 # ─────────────────────────────────────────────
 st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 3rem 0;">', unsafe_allow_html=True)
 st.markdown('<p class="section-label">Contrôle Système Private</p>', unsafe_allow_html=True)
-show_admin_vault = st.checkbox("🔑 Open ZAMI Secure Admin Database Vault Viewer")
 
-if show_admin_vault:
-    st.markdown('<div class="card" style="border:1px solid rgba(234,179,8,0.2);">', unsafe_allow_html=True)
-    st.markdown('<h4>📊 Registre Interne des Leads SQLITE Logs</h4>', unsafe_allow_html=True)
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
-        conn.close()
+# 1. Checkbox text triggering fields
+open_vault_request = st.checkbox("🔑 Open ZAMI Secure Admin Database Vault Viewer")
+
+if open_vault_request:
+    # 2. Input secure string layer (Masked via type="password")
+    admin_password_input = st.text_input("Enter Secret Admin System Password :", type="password", key="vault_password_field")
+    
+    # 🚨 AUTHENTICATION LOCK CONDITION (Only you know this key token)
+    if admin_password_input == "HussnainZami2026":
+        st.markdown('<div class="card" style="border:1px solid rgba(34,197,94,0.3); background: #070f14;">', unsafe_allow_html=True)
+        st.markdown('<h4 style="color:#22c55e;">🔓 ACCESS GRANTED — Registre Interne des Leads SQLITE Logs</h4>', unsafe_allow_html=True)
         
-        if not leads_df.empty:
-            st.dataframe(leads_df, use_container_width=True)
-            # Live dynamic database file export link format
-            with open(DB_PATH, "rb") as f:
-                st.download_button("💾 Backup SQLite Database File (.db)", data=f.read(), file_name="zami_leads_backup.db", use_container_width=True)
-        else:
-            st.info("La base de données est actuellement vide. Aucun lead n'a encore été soumis.")
-    except Exception as e:
-        st.error(f"Error reading database rows: {e}")
-    st.markdown('</div>', unsafe_allow_html=True)
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
+            conn.close()
+            
+            if not leads_df.empty:
+                st.dataframe(leads_df, use_container_width=True)
+                with open(DB_PATH, "rb") as f:
+                    st.download_button("💾 Backup SQLite Database File (.db)", data=f.read(), file_name="zami_leads_backup.db", use_container_width=True)
+            else:
+                st.info("La base de données est actuellement vide.")
+        except Exception as e:
+            st.error(f"Error reading database: {e}")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    elif admin_password_input != "":
+        # Dynamic security warning trigger mapping failed inputs
+        st.markdown('<span style="color:#dc2626; font-size:0.85rem; font-weight:600;">❌ ACCESS DENIED: Invalid System Encryption Token Password.</span>', unsafe_allow_html=True)
 
 st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
