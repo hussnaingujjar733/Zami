@@ -135,7 +135,7 @@ LANG_DICT = {
         "loan_sub": "Financez votre reste à charge à 0% d'intérêt",
         "loan_duration": "Durée du Prêt (Années)",
         "monthly_pay": "Mensualité Estimée",
-        "footer": "ZAMI v7.3 Elite Supreme — Système Global Intégré • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.3 Elite Supreme — BAN Search Resolved • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -189,12 +189,12 @@ LANG_DICT = {
         "loan_sub": "Finance your remaining out-of-pocket cost with 0% interest",
         "loan_duration": "Loan Duration (Years)",
         "monthly_pay": "Estimated Monthly Payment",
-        "footer": "ZAMI v7.3 Elite Supreme — Global Integrated System • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.3 Elite Supreme — BAN Search Resolved • Certified ADEME & BAN France Data"
     }
 }
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES — Professional Luxury Design Language
+# GLOBAL STYLES
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -220,18 +220,38 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 .metric-value-huge { font-size: 2.8rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; line-height: 1.1; }
 .metric-label-sub { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block; }
 .footer { text-align: center; color: #475569; padding: 3rem 0; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 4rem; }
-.processing-step { padding: 12px 20px; background: rgba(255,255,255,0.02); border-left: 3px solid #22c55e; margin-bottom: 8px; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: #94a3b8; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────
-# STATE HANDLING
-# ─────────────────────────────────────────────
-if "confirmed_owner_property" not in st.session_state: st.session_state.confirmed_owner_property = None
-if "address_suggestions" not in st.session_state: st.session_state.address_suggestions = []
-if "selected_scenario" not in st.session_state: st.session_state.selected_scenario = "Essential"
+# ── 🔍 FIXED FEATURE: RE-INJECTED BAN SEARCH HANDLER FOR LAT/LON PARSING ──
+def safe_get(url, params=None, timeout=10):
+    try:
+        r = requests.get(url, params=params, timeout=timeout)
+        r.raise_for_status()
+        return r.json()
+    except Exception: return None
 
-# ── 🤖 ML MODEL INTEGRATION BOUNDARY ──
+@st.cache_data(ttl=300)
+def ban_search(query: str, limit: int = 5):
+    if not query or len(query.strip()) < 3: return []
+    data = safe_get("https://api-adresse.data.gouv.fr/search/", {"q": query, "limit": limit, "type": "housenumber"})
+    if not data: data = safe_get("https://api-adresse.data.gouv.fr/search/", {"q": query, "limit": limit})
+    features = data.get("features", []) if data else []
+    results = []
+    for f in features:
+        p = f.get("properties", {})
+        c = f.get("geometry", {}).get("coordinates", [2.3522, 48.8566])
+        results.append({
+            "label":    p.get("label", ""),
+            "postcode": p.get("postcode", ""),
+            "city":     p.get("city", ""),
+            "lon":      c[0],
+            "lat":      c[1],
+            "score":    p.get("score", 0),
+        })
+    return results
+
+# ── 🤖 ML MODEL VECTOR ALLOCATIONS ──
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
 _SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
 _SCENARIO_TARGET_DPE     = {"Essential": "D", "Plus": "C", "Zero": "B"}
@@ -239,7 +259,6 @@ _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 
 _FALLBACK_UPLIFT    = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0, "A": 0}
 _DPE_COLORS         = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "E": "#ff6600", "F": "#ff3300", "G": "#ff0000"}
 
-# ── 💡 NEW FEATURE 2: ANAH FRENCH INCOME SUBSIDY COEFFICIENTS ──
 _INCOME_SUBSIDY_MAP = {
     "Très Modeste (Bleu)": 0.75,
     "Modeste (Jaune)": 0.60,
@@ -282,9 +301,7 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.cell(0, 7, f"Reste a Charge Net : EUR {net:,.0f}", ln=True)
     return pdf.output()
 
-# ─────────────────────────────────────────────
-# BRAND HEADER AREA
-# ─────────────────────────────────────────────
+# ── 🏢 LOGO LAYERS ──
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang:
     selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
@@ -312,7 +329,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🎯 SEARCH ENGINE
+# 🎯 SEARCH ENGINE WORKFLOW
 # ─────────────────────────────────────────────
 if st.session_state.confirmed_owner_property is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -337,7 +354,7 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# 🌟 PREMIUM MASTER ENGINE FLOW
+# 🌟 PREMIUM MASTER COCKPIT INTERFACE
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state.confirmed_owner_property
@@ -352,8 +369,6 @@ else:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p>', unsafe_allow_html=True)
     st.markdown(f'<div class="owner-exclusive-title">{base_prop["address"]}</div>', unsafe_allow_html=True)
-    
-    st.markdown(f'<p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:12px;">{T["choose_plan"]}</p>', unsafe_allow_html=True)
     
     sc_col1, sc_col2, sc_col3 = st.columns(3)
     with sc_col1:
@@ -379,7 +394,7 @@ else:
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
-    # Core Numerical Badges Row
+    # Metrics Layout Block
     col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
     with col_left_dpe:
         st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
@@ -397,7 +412,6 @@ else:
         with m_col3:
             st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">{T["uplift_label"]}</span>', unsafe_allow_html=True)
 
-        # Progression Map Path Gauge
         st.markdown(f'<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">{T["visual_prog"]}</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
         if base_prop["dpe"] in dpe_sequence and target_dpe in dpe_sequence:
@@ -413,7 +427,7 @@ else:
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 🎯 NEW FEATURE 3: GEOSPATIAL MAP MULTI-LAYER SATELLITE TOGGLE ──
+    # ── MAP LAYER METRIC WITH CHANGER TOGGLE LAYER
     st.markdown('<div class="card">', unsafe_allow_html=True)
     col_map_h, col_map_t = st.columns([2.0, 1.0])
     with col_map_h:
@@ -423,21 +437,15 @@ else:
         
     map_df = pd.DataFrame([{"lat": base_prop["lat"], "lon": base_prop["lon"]}])
     
-    # Render map mapping options selector structure
     if map_style_selection == "High-Res Satellite View":
-        # Satellite Visual Layer Mapping
         fig_sat_map = px.scatter_mapbox(map_df, lat="lat", lon="lon", zoom=16, height=350)
-        fig_sat_map.update_layout(
-            mapbox_style="satellite",
-            margin=dict(l=0, r=0, t=0, b=0),
-            paper_bgcolor="rgba(0,0,0,0)"
-        )
+        fig_sat_map.update_layout(mapbox_style="satellite", margin=dict(l=0, r=0, t=0, b=0), paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_sat_map, use_container_width=True, config={'displayModeBar': False})
     else:
         st.map(map_df, zoom=15, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 🌡️ HEAT LOSS MATRIX CHART
+    # ── THERMAL DEPERDITIONS BAR 
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">Thermal Architecture</p><p class="section-title">{T["loss_title"]}</p>', unsafe_allow_html=True)
     fig_loss = go.Figure(go.Bar(x=[30, 25, 15, 10], y=["Toiture (Roof)", "Murs (Walls)", "Fenêtres (Windows)", "Planchers (Floors)"], orientation='h', marker=dict(color=['#dc2626', '#ef4444', '#f97316', '#eab308']), text=[f"{val}%" for val in [30, 25, 15, 10]], textposition='auto'))
@@ -445,17 +453,14 @@ else:
     st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 🎯 NEW FEATURE 1: DYNAMIC ANAH INCOME MATRICES & FINANCIAL ENGINE ──
+    # ── FINANCIAL SECTIONS WITH DYNAMIC INCOME SLIDER MODEL
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
         
-        # Income bracket customized drop matrix input UI
         selected_income_bracket = st.selectbox(T["income_label"], list(_INCOME_SUBSIDY_MAP.keys()), index=2)
-        
         subsidy_percentage_rate = _INCOME_SUBSIDY_MAP[selected_income_bracket]
         
-        # Scaling modifications for Plus or Carbon Zero scenarios
         if current_scenario == "Plus":
             subsidy_percentage_rate = min(subsidy_percentage_rate + 0.05, 0.85)
         elif current_scenario == "Zero":
@@ -478,31 +483,22 @@ else:
             st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── 🎯 NEW FEATURE 2: ECO-PTZ BANKING SIMULATOR LAYER ──
+        # ── ECO-PTZ SIMULATOR COMPONENT LAYER
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">Financing Leverage</p><p class="section-title">{T["loan_title"]}</p>', unsafe_allow_html=True)
-        st.markdown(f'<p style="color:#94a3b8; font-size:0.9rem; margin-top:-5px;">{T["loan_sub"]}</p>', unsafe_allow_html=True)
-        
         loan_years_duration = st.slider(T["loan_duration"], min_value=5, max_value=20, value=15, step=1)
-        
-        # Eco-PTZ 0% Interest Rate Mathematics: Total Cost / (Months)
         calculated_monthly_installment = net_cost / (loan_years_duration * 12)
         
         col_ln_m1, col_ln_m2 = st.columns(2)
         with col_ln_m1:
             st.markdown(f'<br><span class="metric-value-huge" style="color:#22c55e;">€{calculated_monthly_installment:,.2f}</span><span style="font-size:1.2rem;color:#94a3b8;"> / mois</span><br><span class="metric-label-sub">{T["monthly_pay"]} (0% TAEG)</span>', unsafe_allow_html=True)
         with col_ln_m2:
-            # Gauge chart showing financing leverage ratios
-            fig_gauge = go.Figure(go.Indicator(
-                mode = "gauge+number", value = calculated_monthly_installment,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                gauge = {'axis': {'range': [0, 500 if net_cost < 20000 else 1200]}, 'bar': {'color': "#22c55e"}}
-            ))
+            fig_gauge = go.Figure(go.Indicator(mode = "gauge+number", value = calculated_monthly_installment, domain = {'x': [0, 1], 'y': [0, 1]}, gauge = {'axis': {'range': [0, 500 if net_cost < 20000 else 1200]}, 'bar': {'color': "#22c55e"}}))
             fig_gauge.update_layout(height=110, margin=dict(l=10,r=10,t=10,b=10), paper_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig_gauge, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 5-YEAR PROJECTION LINE TRACK
+    # ── 5-YEAR FORECAST GRAPH PLOT
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
     years_projection = ["2026", "2027", "2028", "2029", "2030", "2031"]
@@ -516,7 +512,7 @@ else:
     st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── LEAD GENERATION CAPTURE FORM WITH SQLITE ARCHITECTURE
+    # ── LEAD GENERATION CONSOLE FORM WITH SQLITE ARCHITECTURE
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.25); background: #080d14;">', unsafe_allow_html=True)
         st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
@@ -547,7 +543,7 @@ else:
                     if db_logged: st.success(T["form_success"])
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── PDF EXPORT HUB (IN-MEMORY SECURE STREAMING LAYER)
+    # ── PDF IN-MEMORY STREAM SYSTEM ──
     st.markdown('<div class="card">', unsafe_allow_html=True)
     try:
         pdf_string_data = generate_zami_pdf_bytes(base_prop, current_scenario, target_dpe, active_cost, estimated_subsidy, net_cost, selected_lang)
@@ -556,13 +552,13 @@ else:
     except Exception: pass
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ── FAQ ACCORDIONS ENGINE
+# ── FAQ BLOCKS
 st.markdown('<br>', unsafe_allow_html=True)
 st.markdown(f'<p class="section-label">FAQ & Law Hub</p><p class="section-title">{T["faq_title"]}</p>', unsafe_allow_html=True)
 if selected_lang == "FR":
     with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"): st.markdown("Les logements classés **G** ne peuvent plus être loués...")
 else:
-    with st.expander("⚖️ What are the legal risks under the Climate Law?"): st.markdown("**G** rated homes are banned from rental markets...")
+    with st.expander("⚖️ What are the legal risks under the Climate Law?"): st.markdown("G rated homes are banned from rental markets...")
 
 # ─────────────────────────────────────────────
 # 🛡️ PASSWORD PROTECTED ADMIN VAULT LAYER
