@@ -1,6 +1,6 @@
 """
 utils_pdf.py — ZAMI Professional PDF Generator
-Uses only standard FPDF fonts — no external font files needed
+Fixed version — no external fonts, proper output handling
 """
 
 from fpdf import FPDF
@@ -31,7 +31,7 @@ DPE_COLORS = {
 
 
 class ZAMIPDF(FPDF):
-    """Custom PDF class with ZAMI branding — uses standard fonts only"""
+    """Custom PDF class with ZAMI branding"""
     
     def __init__(self, property_data, scenario_data=None):
         super().__init__()
@@ -57,7 +57,7 @@ class ZAMIPDF(FPDF):
         self.ln(10)
         
     def footer(self):
-        """Professional footer with timestamp and page number"""
+        """Professional footer"""
         self.set_y(-20)
         self.set_font('Helvetica', 'I', 7)
         self.set_text_color(*COLORS['text_light'])
@@ -65,7 +65,7 @@ class ZAMIPDF(FPDF):
         self.cell(0, 5, f'Page {self.page_no()}', align='R')
         
     def section_title(self, title):
-        """Render a styled section title"""
+        """Render styled section title"""
         self.set_font('Helvetica', 'B', 14)
         self.set_text_color(*COLORS['primary'])
         self.cell(0, 10, self.clean_text(title), ln=True)
@@ -87,7 +87,7 @@ class ZAMIPDF(FPDF):
         self.set_x(self.get_x() + size)
         
     def metric_card(self, label, value, unit='', width=85):
-        """Creates a professional metric card"""
+        """Creates metric card"""
         self.set_fill_color(248, 250, 252)
         self.rect(self.get_x(), self.get_y(), width, 35, 'F')
         self.set_draw_color(*COLORS['text_light'])
@@ -119,10 +119,10 @@ class ZAMIPDF(FPDF):
         self.ln(2)
         
     def clean_text(self, text):
-        """Remove emojis and special characters that FPDF can't handle"""
+        """Remove emojis and special characters"""
         if not text:
             return ""
-        # Remove emojis and other non-ASCII chars
+        # Remove emojis
         emoji_pattern = re.compile("["
             u"\U0001F600-\U0001F64F"
             u"\U0001F300-\U0001F5FF"
@@ -136,7 +136,7 @@ class ZAMIPDF(FPDF):
             u"\U00002B50-\U00002B59"
             "]+", flags=re.UNICODE)
         text = emoji_pattern.sub(r'', text)
-        # Replace common symbols
+        # Replace special characters
         replacements = {
             '✓': '[OK]', '⚠️': '[!]', '✅': '[OK]', '❌': '[X]',
             '🔴': '[!]', '🟡': '[*]', '🔧': '[Tool]', '🏠': '[Home]',
@@ -155,13 +155,12 @@ class ZAMIPDF(FPDF):
 def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
     """
     Generates a professional, investment-grade PDF report.
+    Returns bytes ready for download.
     """
     pdf = ZAMIPDF(property_data, scenario)
     pdf.add_page()
     
-    # ============================================
     # PROPERTY INFO SECTION
-    # ============================================
     pdf.section_title('Property Information')
     
     # Address
@@ -172,7 +171,7 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     pdf.multi_cell(0, 6, clean_address, align='L')
     pdf.ln(8)
     
-    # DPE Badge and metrics row
+    # DPE Badge and metrics
     start_y = pdf.get_y()
     pdf.set_x(15)
     pdf.dpe_badge(property_data.get('dpe', 'E'), 50)
@@ -200,12 +199,10 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     
     pdf.ln(10)
     
-    # ============================================
     # RENOVATION SCENARIO SECTION
-    # ============================================
     pdf.section_title('Renovation Scenario')
     
-    # Scenario highlight box
+    # Scenario box
     pdf.set_fill_color(*COLORS['primary'])
     pdf.set_text_color(255, 255, 255)
     pdf.set_font('Helvetica', 'B', 12)
@@ -234,9 +231,7 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     
     pdf.ln(10)
     
-    # ============================================
     # FINANCIAL SUMMARY TABLE
-    # ============================================
     pdf.section_title('Financial Summary')
     
     # Table header
@@ -267,7 +262,7 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
         
     pdf.ln(8)
     
-    # Value increase calculation
+    # Value increase
     current_value = property_data.get('current_value', 250000)
     value_increase = int(current_value * (roi / 100))
     new_value = current_value + value_increase
@@ -279,9 +274,7 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     
     pdf.ln(15)
     
-    # ============================================
-    # RECOMMENDATIONS SECTION
-    # ============================================
+    # RECOMMENDATIONS
     pdf.section_title('Smart Recommendations')
     
     recommendations = get_recommendations(property_data.get('dpe', 'E'), target_dpe)
@@ -295,9 +288,7 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     
     pdf.ln(10)
     
-    # ============================================
-    # NEXT STEPS SECTION
-    # ============================================
+    # NEXT STEPS
     pdf.section_title('Next Steps')
     
     next_steps = [
@@ -316,19 +307,18 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     
     pdf.ln(10)
     
-    # ============================================
     # DISCLAIMER
-    # ============================================
     pdf.set_font('Helvetica', 'I', 7)
     pdf.set_text_color(*COLORS['text_light'])
     disclaimer = "Disclaimer: This report is an estimate based on available data and should not be considered as professional financial or legal advice. Please consult certified professionals for final decisions."
     pdf.multi_cell(0, 4, pdf.clean_text(disclaimer), align='L')
     
-    return pdf.output(dest='S').encode('latin-1')
+    # Return PDF as bytes (FPDF output already returns bytes)
+    return pdf.output(dest='S')
 
 
 def get_recommendations(current_dpe, target_dpe):
-    """Returns renovation recommendations based on current and target DPE"""
+    """Returns renovation recommendations based on current DPE"""
     
     base_recs = [
         "Insulate attic and roof (reduces heat loss by up to 30%)",
