@@ -18,6 +18,7 @@ import utils_styles
 import utils_db
 import utils_charts
 import utils_animations as anim
+import utils_transitions as trans
 
 try:
     import ml_engine as ml
@@ -38,8 +39,10 @@ except ImportError:
 # Boot systems databases
 utils_db.init_db()
 
-# Run Premium Style Injection
+# Run Premium Style Injections
 utils_styles.inject_premium_styles()
+trans.inject_page_transitions()
+trans.add_loading_spinner()
 
 
 # ─────────────────────────────────────────────
