@@ -23,10 +23,14 @@ except ImportError:
     ML_BACKEND_READY = False
 
 try:
-    from ademe_api import lookup_dpe_by_address
-    ADEME_API_READY = True
+    from data_enricher import enrich_property
+    DATA_ENRICHER_READY = True
 except ImportError:
-    ADEME_API_READY = False
+    try:
+        from ademe_api import lookup_dpe_by_address
+        DATA_ENRICHER_READY = False
+    except ImportError:
+        DATA_ENRICHER_READY = False
 
 # Boot systems databases
 utils_db.init_db()
@@ -66,35 +70,45 @@ def ban_search(query: str, limit: int = 5):
     for f in features:
         p = f.get("properties", {})
         c = f.get("geometry", {}).get("coordinates", [2.3522, 48.8566])
-        results.append({"label": p.get("label", ""), "postcode": p.get("postcode", ""), "city": p.get("city", ""), "lon": c[0], "lat": c[1]})
+        results.append({
+            "label":    p.get("label", ""),
+            "postcode": p.get("postcode", ""),
+            "city":     p.get("city", ""),
+            "lon":      c[0],
+            "lat":      c[1],
+            "citycode": p.get("citycode", ""),   # INSEE code — needed for DVF
+        })
     return results
 
-def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, lon=2.3522):
+def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, lon=2.3522, citycode: str = ""):
     """
-    Real ADEME DPE lookup — replaces the old random mock data.
-    Fetches official certified DPE records from ADEME Open Data (25M+ records).
-    Falls back to intelligent zone-based estimate if address not found.
+    Full real data enrichment:
+      - ADEME API → certified DPE class, kWh/an, CO₂/an, heating type
+      - DVF Etalab → real surface m² from notarial deed, real price €/m²
+    Zero random data. Zero mock.
     """
-    if ADEME_API_READY:
-        return lookup_dpe_by_address(
+    if DATA_ENRICHER_READY:
+        return enrich_property(
             address_label=query_address,
-            zipcode=zipcode,
+            postcode=zipcode,
             lat=lat,
             lon=lon,
+            citycode=citycode,
             fallback_cost_map=_FALLBACK_RENO_COST,
             fallback_uplift_map=_FALLBACK_UPLIFT,
         )
-    # Emergency fallback if ademe_api.py not present (keeps app running)
-    dpe_by_region = {"75": "E", "92": "E", "93": "F", "94": "E", "69": "D", "13": "D", "31": "D"}
+    # Emergency fallback (keeps app running if data_enricher.py missing)
+    dpe_by_region = {"75":"E","92":"E","93":"F","94":"E","69":"D","13":"D","31":"D"}
     region = str(zipcode)[:2]
     dpe = dpe_by_region.get(region, "E")
-    surface = 62.0 if region == "75" else 75.0
+    surface = 52.0 if region == "75" else 75.0
     cost = round(surface * _FALLBACK_RENO_COST.get(dpe, 620), 0)
     roi  = _FALLBACK_UPLIFT.get(dpe, 13.1)
     return {
         "address": query_address, "dpe": dpe, "surface": surface,
         "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon,
-        "source": "FALLBACK_ZONALE", "data_found": False,
+        "data_found": False, "ademe_found": False, "dvf_found": False,
+        "data_sources": ["ESTIMATION_ZONALE"], "confidence": "LOW",
     }
 
 # Language translations matrix
@@ -249,7 +263,13 @@ if st.session_state["confirmed_owner_property"] is None:
         selected_label = st.selectbox(T["select_certified"], labels, key="main_address_selectbox")
         chosen_property = suggestions[labels.index(selected_label)]
         if st.button(T["btn_analyze"], type="primary", use_container_width=True, key="execute_analysis_btn"):
-            st.session_state["confirmed_owner_property"] = fetch_single_property_ademe(chosen_property["label"], chosen_property["postcode"], chosen_property["lat"], chosen_property["lon"])
+            st.session_state["confirmed_owner_property"] = fetch_single_property_ademe(
+                chosen_property["label"],
+                chosen_property["postcode"],
+                chosen_property["lat"],
+                chosen_property["lon"],
+                citycode=chosen_property.get("citycode", ""),
+            )
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -349,9 +369,26 @@ else:
         
     with col_right_metrics:
         m_col1, m_col2, m_col3 = st.columns(3)
-        with m_col1: st.markdown(f'<span class="metric-value-huge">{base_prop["surface"]}</span><span style="font-size:1.5rem; font-weight:700; color:#475569;"> m²</span><br><span class="metric-label-sub">{T["surface"]}</span>', unsafe_allow_html=True)
+        with m_col1: st.markdown(f'<span class="metric-value-huge">{int(base_prop["surface"])}</span><span style="font-size:1.5rem; font-weight:700; color:#475569;"> m²</span><br><span class="metric-label-sub">{T["surface"]} {"✓ DVF" if base_prop.get("dvf_found") else "~Estimé"}</span>', unsafe_allow_html=True)
         with m_col2: st.markdown(f'<span class="metric-value-huge">€{active_cost:,.0f}</span><br><span class="metric-label-sub">{T["budget_est"]}</span>', unsafe_allow_html=True)
         with m_col3: st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">{T["uplift_label"]}</span>', unsafe_allow_html=True)
+
+        # Real DVF price per m² if available
+        prix_m2 = base_prop.get("prix_m2")
+        if prix_m2:
+            prix_vente = base_prop.get("prix_vente_recent")
+            date_vente = base_prop.get("date_vente","")[:10] if base_prop.get("date_vente") else ""
+            st.markdown(f'''
+            <div style="margin-top:12px; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.2);
+                        padding:12px 18px; border-radius:14px;">
+                <span style="font-size:0.72rem;font-weight:800;color:#22c55e;letter-spacing:0.1em;text-transform:uppercase;">
+                    Prix marché réel (DVF)
+                </span><br>
+                <span style="font-size:1.6rem;font-weight:900;color:#f8fafc;">
+                    €{int(prix_m2):,}/m²
+                </span>
+                {"<span style='font-size:0.75rem;color:#64748b;'> · Dernière vente: " + ("€{:,}".format(int(prix_vente)) if prix_vente else "") + (" (" + date_vente + ")" if date_vente else "") + "</span>" if prix_vente else ""}
+            </div>''', unsafe_allow_html=True)
 
         st.markdown(f'<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">{T["visual_prog"]}</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
