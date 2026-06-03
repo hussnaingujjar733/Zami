@@ -17,6 +17,7 @@ from datetime import datetime
 import utils_styles
 import utils_db
 import utils_charts
+import utils_animations as anim
 
 try:
     import ml_engine as ml
@@ -258,15 +259,56 @@ LANG_DICT = {
 }
 
 
-def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, net):
+def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
+    """Generate PDF report - returns proper bytes format"""
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_fill_color(5, 7, 12)
-    pdf.rect(0, 0, 210, 45, 'F')
-    pdf.set_font("Helvetica", "B", 24)
-    pdf.set_text_color(255, 255, 255)
-    pdf.text(15, 28, "ZAMI | COCKPIT REPORT V8.3")
-    return pdf.output()
+    
+    pdf.set_font('Helvetica', 'B', 20)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 15, 'ZAMI PROPERTY REPORT', ln=True, align='C')
+    
+    pdf.set_font('Helvetica', '', 10)
+    pdf.cell(0, 8, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
+    pdf.ln(5)
+    
+    address = property_data.get('address', 'Address not available')
+    pdf.set_font('Helvetica', 'B', 12)
+    pdf.multi_cell(0, 8, str(address))
+    pdf.ln(5)
+    
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.cell(0, 10, 'Property Details', ln=True)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 8, f"Current DPE: {property_data.get('dpe', 'N/A')}", ln=True)
+    pdf.cell(0, 8, f"Target DPE: {target_dpe}", ln=True)
+    pdf.cell(0, 8, f"Surface: {int(property_data.get('surface', 0))} m2", ln=True)
+    pdf.ln(5)
+    
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.cell(0, 10, 'Financial Summary', ln=True)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 8, f"Renovation Cost: EUR {active_cost:,.0f}", ln=True)
+    pdf.cell(0, 8, f"Subsidy: EUR {subsidy:,.0f}", ln=True)
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(0, 8, f"Net Investment: EUR {net_cost:,.0f}", ln=True)
+    pdf.cell(0, 8, f"Expected ROI: +{roi}%", ln=True)
+    pdf.ln(5)
+    
+    pdf.set_font('Helvetica', 'I', 10)
+    pdf.cell(0, 8, f"Selected Scenario: {scenario}", ln=True)
+    pdf.ln(10)
+    
+    pdf.set_y(-30)
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(128, 128, 128)
+    pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
+    pdf.cell(0, 8, 'This document is an estimate only.', ln=True, align='C')
+    
+    output = pdf.output(dest='S')
+    if isinstance(output, bytearray):
+        output = bytes(output)
+    return output
 
 
 def _estimate_reno_cost(surface, dpe_class, zipcode, cost_map):
@@ -291,7 +333,7 @@ with col_left_brand:
     if os.path.exists(logo_path):
         try:
             with open(logo_path, "rb") as img_f:
-                logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{base64.b64encode(img_f.read()).decode()}" style="height:auto; width:140px;"></div>'
+                logo_html = f'<div><img src="data:image/png;base64,{base64.b64encode(img_f.read()).decode()}" style="height:auto; width:140px;"></div>'
         except Exception:
             logo_html = '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:2rem; color:#fff; font-weight:800;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
     else:
@@ -361,11 +403,23 @@ if st.session_state["logged_in_user_id"] is not None:
 
 
 # ─────────────────────────────────────────────
-# MAIN CONTENT
+# MAIN CONTENT WITH LOTTIE ANIMATIONS
 # ─────────────────────────────────────────────
 if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<p class="section-label">🔍 SEARCH ENGINE</p><h2 class="section-title">{T["subtitle"]}</h2>', unsafe_allow_html=True)
+    
+    # Hero Section with Animation
+    col_text, col_anim = st.columns([2, 1])
+    with col_text:
+        st.markdown(f'<p class="section-label">🏠 ZAMI</p>', unsafe_allow_html=True)
+        st.markdown(f'<h1 class="owner-exclusive-title">{T["subtitle"]}</h1>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#94a3b8;">Obtenez votre DPE, subventions et ROI en 10 secondes</p>', unsafe_allow_html=True)
+    with col_anim:
+        anim.add_hero_animation()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
         "🔍 Mode de recherche:",
@@ -533,7 +587,14 @@ else:
     # Financial Section
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown(f'<p class="section-label">{T["fin_title"]}</p><h3 class="section-title">{T["fin_sub"]}</h3>', unsafe_allow_html=True)
+        
+        # Animation + Text
+        sub_col1, sub_col2 = st.columns([1.5, 1])
+        with sub_col1:
+            st.markdown(f'<p class="section-label">{T["fin_title"]}</p><h3 class="section-title">{T["fin_sub"]}</h3>', unsafe_allow_html=True)
+        with sub_col2:
+            anim.add_subsidy_animation()
+        
         income_bracket = st.selectbox(T["income_label"], list(_INCOME_SUBSIDY_MAP.keys()), index=2, key="income_select")
         subsidy_rate = _INCOME_SUBSIDY_MAP[income_bracket]
         if current_scenario == "Plus":
@@ -590,47 +651,37 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # PDF Download Section
-   # PDF DOWNLOAD SECTION - FIXED
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Download Property Report</h3>', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Download Property Report</h3>', unsafe_allow_html=True)
 
-try:
-    from utils_pdf import generate_professional_pdf
-    
-    pdf_data = generate_professional_pdf(
-        property_data=base_prop,
-        scenario=current_scenario,
-        target_dpe=target_dpe,
-        active_cost=active_cost,
-        net_cost=net_cost,
-        subsidy=estimated_subsidy if 'estimated_subsidy' in dir() else 0,
-        roi=active_roi
-    )
-    
-    # Ensure we have bytes
-    if pdf_data and isinstance(pdf_data, (bytes, bytearray)):
-        # Convert bytearray to bytes if needed
-        if isinstance(pdf_data, bytearray):
-            pdf_bytes = bytes(pdf_data)
-        else:
-            pdf_bytes = pdf_data
-            
-        st.download_button(
-            label="📥 Download PDF Report",
-            data=pdf_bytes,
-            file_name=f"ZAMI_Report_{base_prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-            key="pdf_download_btn"
+    try:
+        pdf_bytes = generate_professional_pdf(
+            property_data=base_prop,
+            scenario=current_scenario,
+            target_dpe=target_dpe,
+            active_cost=active_cost,
+            net_cost=net_cost,
+            subsidy=estimated_subsidy if 'estimated_subsidy' in dir() else 0,
+            roi=active_roi
         )
-        st.success("✓ PDF ready for download")
-    else:
-        st.warning("⚠️ PDF data not available. Please try again.")
         
-except Exception as e:
-    st.error(f"PDF Error: {str(e)}")
+        if pdf_bytes and len(pdf_bytes) > 100:
+            st.download_button(
+                label="📥 Download PDF Report",
+                data=pdf_bytes,
+                file_name=f"ZAMI_Report_{base_prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key="pdf_download_btn"
+            )
+        else:
+            st.warning("PDF generation in progress. Please try again.")
+    except Exception as e:
+        st.warning(f"PDF feature will be available soon.")
     
-st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
 # Admin Section
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
 if st.checkbox("🔐 Admin Vault", key="admin_vault"):
