@@ -1,7 +1,5 @@
 import os
 import base64
-import random
-import io
 import json
 import requests
 import pandas as pd
@@ -14,7 +12,6 @@ from typing import Optional
 from datetime import datetime
 
 # ── ⚡ IMPORT MODULES ──
-import data_store as db
 import utils_styles
 import utils_charts
 import utils_animations as anim
@@ -29,10 +26,6 @@ trans.add_loading_spinner()
 # ─────────────────────────────────────────────
 # STATE MANAGEMENT
 # ─────────────────────────────────────────────
-if "logged_in_user_id" not in st.session_state:
-    st.session_state["logged_in_user_id"] = None
-if "logged_in_username" not in st.session_state:
-    st.session_state["logged_in_username"] = None
 if "confirmed_owner_property" not in st.session_state:
     st.session_state["confirmed_owner_property"] = None
 if "address_suggestions" not in st.session_state:
@@ -41,6 +34,8 @@ if "selected_scenario" not in st.session_state:
     st.session_state["selected_scenario"] = "Essential"
 if "selected_address_label" not in st.session_state:
     st.session_state["selected_address_label"] = None
+if "chat_open" not in st.session_state:
+    st.session_state["chat_open"] = False
 
 # Global Variables
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
@@ -51,36 +46,150 @@ _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0,
 _DPE_COLORS = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "E": "#ff6600", "F": "#ff3300", "G": "#ff0000"}
 _INCOME_SUBSIDY_MAP = {"Très Modeste (Bleu)": 0.75, "Modeste (Jaune)": 0.60, "Intermédiaire (Violet)": 0.40, "Supérieur (Rose)": 0.15}
 
+CHAT_FILE = "chat_messages.json"
+
+
+# ─────────────────────────────────────────────
+# CHAT FUNCTIONS (JSON Storage)
+# ─────────────────────────────────────────────
+def save_chat_message(name, email, message):
+    """Save chat message to JSON file"""
+    try:
+        # Load existing messages
+        if os.path.exists(CHAT_FILE):
+            with open(CHAT_FILE, "r", encoding="utf-8") as f:
+                messages = json.load(f)
+        else:
+            messages = []
+        
+        # Add new message
+        messages.append({
+            "id": len(messages) + 1,
+            "name": name,
+            "email": email,
+            "message": message,
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "status": "unread"
+        })
+        
+        # Save back
+        with open(CHAT_FILE, "w", encoding="utf-8") as f:
+            json.dump(messages, f, indent=2, ensure_ascii=False)
+        
+        return True
+    except Exception as e:
+        print(f"Save error: {e}")
+        return False
+
+
+def get_all_chat_messages():
+    """Get all chat messages from JSON file"""
+    try:
+        if os.path.exists(CHAT_FILE):
+            with open(CHAT_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+    except:
+        return []
+
+
+def mark_message_read(msg_id):
+    """Mark a message as read"""
+    try:
+        messages = get_all_chat_messages()
+        for msg in messages:
+            if msg.get("id") == msg_id:
+                msg["status"] = "read"
+                break
+        with open(CHAT_FILE, "w", encoding="utf-8") as f:
+            json.dump(messages, f, indent=2, ensure_ascii=False)
+        return True
+    except:
+        return False
+
 
 # ─────────────────────────────────────────────
 # LOGO FUNCTION
 # ─────────────────────────────────────────────
 def get_logo_html():
-    """Return logo HTML with fallback"""
     logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "zami_logo.png")
-    
     if os.path.exists(logo_path):
         try:
             with open(logo_path, "rb") as img_f:
                 logo_base64 = base64.b64encode(img_f.read()).decode()
-                return f'''
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <img src="data:image/png;base64,{logo_base64}" style="height:45px; width:auto;">
-                    <span style="font-family:'Space Grotesk', sans-serif; font-size:1.5rem; font-weight:700; color:#22c55e;">ZAMI</span>
-                </div>
-                '''
-        except Exception:
+                return f'<img src="data:image/png;base64,{logo_base64}" style="height:45px; width:auto;">'
+        except:
             pass
-    
-    # Fallback text logo
-    return '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:1.8rem; font-weight:800; color:#fff;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
+    return '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:1.8rem; font-weight:800; color:#22c55e;">ZAMI</div>'
 
 
 # ─────────────────────────────────────────────
-# 100% EXACT DPE NUMBER LOOKUP FUNCTION
+# CHAT BOT FUNCTION (Floating)
+# ─────────────────────────────────────────────
+def chat_bot():
+    """Floating chat bot widget with JSON storage"""
+    
+    # CSS for floating button
+    st.markdown("""
+    <style>
+    .floating-chat {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 999;
+    }
+    .chat-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(34,197,94,0.3);
+        transition: all 0.3s;
+        border: none;
+    }
+    .chat-btn:hover {
+        transform: scale(1.1);
+    }
+    .chat-btn span {
+        font-size: 28px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Chat expander
+    with st.expander("💬 Chat with ZAMI Support", expanded=False):
+        st.markdown("### 💬 Need Help?")
+        st.markdown("Ask us anything about DPE, subsidies, or renovation!")
+        
+        with st.form("chat_form", clear_on_submit=True):
+            chat_name = st.text_input("Your Name *", placeholder="Jean Dupont")
+            chat_email = st.text_input("Your Email *", placeholder="jean@example.com")
+            chat_message = st.text_area("Your Message *", placeholder="I have a question about DPE G properties...", height=100)
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                submitted = st.form_submit_button("📨 Send Message", type="primary", use_container_width=True)
+            
+            if submitted:
+                if chat_name and chat_email and chat_message:
+                    success = save_chat_message(chat_name, chat_email, chat_message)
+                    if success:
+                        st.success("✅ Message sent! We'll get back to you within 24 hours.")
+                        st.balloons()
+                    else:
+                        st.error("❌ Unable to save message. Please try again.")
+                else:
+                    st.warning("Please fill all fields (*)")
+
+
+# ─────────────────────────────────────────────
+# DPE FUNCTIONS
 # ─────────────────────────────────────────────
 def fetch_by_dpe_number(numero_dpe: str) -> Optional[dict]:
-    """Fetches exact DPE record from ADEME using unique DPE number."""
     if not numero_dpe or len(numero_dpe.strip()) < 5:
         return None
     
@@ -115,21 +224,11 @@ def fetch_by_dpe_number(numero_dpe: str) -> Optional[dict]:
                     "zipcode": postcode,
                     "lat": 48.8566,
                     "lon": 2.3522,
-                    "ges": record.get("etiquette_ges", dpe_class),
-                    "numero_dpe": record.get("numero_dpe", ""),
-                    "annee_construction": record.get("annee_construction"),
-                    "conso_kwh": record.get("conso_5_usages_ef_energie_n1"),
-                    "emission_ges": record.get("emission_ges_5_usages_n1"),
-                    "energie_chauffage": record.get("type_energie_principale_chauffage", ""),
-                    "date_dpe": record.get("date_etablissement_dpe", ""),
                     "data_found": True,
-                    "ademe_found": True,
-                    "dvf_found": False,
                     "source": "ADEME_DPE_NUMBER",
-                    "confidence": "HIGH",
                     "current_value": 250000
                 }
-    except Exception:
+    except:
         pass
     return None
 
@@ -138,7 +237,7 @@ def safe_get(url, params=None):
     try:
         r = requests.get(url, params=params, timeout=10)
         return r.json()
-    except Exception:
+    except:
         return None
 
 
@@ -163,7 +262,6 @@ def ban_search(query: str, limit: int = 5):
 
 
 def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, lon=2.3522, citycode: str = ""):
-    """Full real data enrichment: ADEME + DVF"""
     dpe_by_region = {"75": "E", "92": "E", "93": "F", "94": "E", "69": "D", "13": "D", "31": "D"}
     region = str(zipcode)[:2]
     dpe = dpe_by_region.get(region, "E")
@@ -173,109 +271,24 @@ def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, l
     return {
         "address": query_address, "dpe": dpe, "surface": surface,
         "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon,
-        "data_found": False, "ademe_found": False, "dvf_found": False,
-        "data_sources": ["ESTIMATION_ZONALE"], "confidence": "LOW",
+        "data_found": False, "source": "ESTIMATION",
         "current_value": 250000
     }
 
 
-# Language translations
-LANG_DICT = {
-    "FR": {
-        "title": "Portail Propriétaire Énergétique", "subtitle": "Estimez instantanément la valeur et les travaux de votre bien",
-        "input_label": "Saisissez l'adresse de votre logement :", "select_certified": "Sélectionnez l'adresse certifiée BAN France :",
-        "btn_analyze": "⚡ Lancer l'Analyse Temporelle AI", "btn_back": "⬅️ Nouvelle recherche", "bilan_title": "BILAN PATRIMONIAL EXCLUSIF",
-        "choose_plan": "PLAN DE CONFIGURATION ÉNERGÉTIQUE", "eco_ess": "🛠️ Éco Essential", "eco_ess_sub": "DPE D • Conformité Légale 2026",
-        "conf_plus": "⚡ Confort Plus", "conf_plus_sub": "DPE C • Isolation Enveloppe Globale", "carb_zero": "🟢 Carbone Zéro",
-        "carb_zero_sub": "DPE B • Décarbonation Pompe à Chaleur", "current_class": "Classe Initiale", "target_class": "🎯 Objectif Scénario",
-        "surface": "Surface Habitable", "budget_est": "Investissement Global", "uplift_label": "Uplift Marché Estimé",
-        "visual_prog": "Vecteur de Progression Énergétique", "your_property": "Actif 🏠", "target_label": "Cible",
-        "fin_title": "Analyse d'Ingénierie Financière", "fin_sub": "Subventions Publiques vs Reste à Charge Net",
-        "subvention_label": "Aides MaPrimeRénov'", "reste_charge": "Reste à Charge Net",
-        "impact_facture": "Impact Facture: Le plan {sc} génère une économie moyenne de {saving} par an sur vos factures de fluide.",
-        "chart_5yr_title": "📊 Évolution Prédictive de l'Actif (2026 - 2031)",
-        "chart_5yr_sub": "Modélisation de la trajectoire patrimoniale",
-        "form_title": "Mise en Relation avec un Gestionnaire RGE Audit",
-        "form_sub": "Planifiez une visite technique sur site pour valider l'éligibilité aux aides d'État.",
-        "form_name": "Nom Complet *", "form_phone": "Numéro de Téléphone *", "form_email": "Adresse Email Professionnelle *",
-        "form_time": "Créneau de rappel", "form_notes": "Notes de projet particulières (facultatif)",
-        "form_btn": "📨 Transmettre le Dossier Technique", "form_err": "⚠️ Paramètres requis manquants.",
-        "form_success": "🎉 Dossier sécurisé consigné dans le registre. Un consultant RGE prendra contact sous 24h.",
-        "download_btn": "⬇️ Exporter le Rapport d'Audit Certifié (PDF)",
-        "map_title": "🗺️ Cadastre Registre & Géolocalisation Spatiale",
-        "loss_title": "🌡️ Diagnostic Prédictif des Déperditons Thermiques Estimées",
-        "income_label": "💰 Profil de Revenu Fiscal de Référence (Anah) :",
-        "loan_title": "💶 Simulateur d'Effet de Levier Financier : Eco-PTZ Framework",
-        "loan_duration": "Maturité d'Amortissement (Années)", "monthly_pay": "Mensualité Arbitrée (0% Interest)",
-        "footer": "ZAMI PRO v8.3 Supreme Freemium — Baseline ADEME Cloud Backend",
-        "search_method_address": "📍 Recherche par adresse (rapide, ~85% précision)",
-        "search_method_dpe": "🔑 Recherche par numéro DPE (100% exact)",
-        "dpe_number_label": "🔑 Numéro DPE (sur votre certificat DPE)",
-        "dpe_number_help": "📄 Le numéro DPE se trouve sur votre diagnostic de performance énergétique — 100% fiable",
-        "dpe_not_found": "❌ Numéro DPE invalide. Vérifiez votre certificat.",
-        "exact_match_badge": "✅ Données 100% exactes — certificat DPE officiel",
-        "select_address_warning": "📍 Veuillez sélectionner une adresse",
-        "enter_input_warning": "⚠️ Veuillez entrer une adresse ou un numéro DPE"
-    },
-    "EN": {
-        "title": "Energy Portal Platform", "subtitle": "Estimate your property value and renovation costs instantly",
-        "input_label": "Enter your property address:", "select_certified": "Select certified BAN France address:",
-        "btn_analyze": "⚡ Run AI Temporal Assessment", "btn_back": "⬅️ New Search",
-        "bilan_title": "EXCLUSIVE PROPERTY AUDIT", "choose_plan": "ENERGY CONFIGURATION PLAN",
-        "eco_ess": "🛠️ Eco Essential", "eco_ess_sub": "DPE D • Legal Compliance 2026",
-        "conf_plus": "⚡ Comfort Plus", "conf_plus_sub": "DPE C • Full Insulation",
-        "carb_zero": "🟢 Carbon Zero", "carb_zero_sub": "DPE B • Heat Pump Decarbonization",
-        "current_class": "Current Class", "target_class": "🎯 Target Scenario",
-        "surface": "Surface Area", "budget_est": "Global Investment", "uplift_label": "Market Uplift",
-        "visual_prog": "Energy Progression", "your_property": "Your Asset 🏠", "target_label": "Target",
-        "fin_title": "Financial Engineering Analysis", "fin_sub": "Public Subsidies vs Net Cost",
-        "subvention_label": "MaPrimeRénov' Aid", "reste_charge": "Net Remaining",
-        "impact_facture": "Impact: Plan {sc} generates ~{saving} annual savings on utilities.",
-        "chart_5yr_title": "📊 5-Year Asset Value Prediction (2026-2031)",
-        "chart_5yr_sub": "Renovation vs Obsolescence trajectory",
-        "form_title": "Connect with an RGE Certified Manager",
-        "form_sub": "Schedule a technical site visit to verify state aid eligibility.",
-        "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Professional Email *",
-        "form_time": "Callback time", "form_notes": "Project notes (optional)",
-        "form_btn": "📨 Submit Technical File", "form_err": "⚠️ Required parameters missing.",
-        "form_success": "🎉 File secured. An RGE consultant will contact you within 24h.",
-        "download_btn": "⬇️ Export Certified Audit Report (PDF)",
-        "map_title": "🗺️ Cadastre Registry & Geospatial Location",
-        "loss_title": "🌡️ Predictive Heat Loss Diagnostic",
-        "income_label": "💰 Fiscal Revenue Profile (Anah):",
-        "loan_title": "💶 Financial Leverage Simulator: Eco-PTZ Framework",
-        "loan_duration": "Amortization Maturity (Years)", "monthly_pay": "Monthly Installment (0% Interest)",
-        "footer": "ZAMI PRO v8.3 Supreme — ADEME Cloud Backend",
-        "search_method_address": "📍 Address search (fast, ~85% accurate)",
-        "search_method_dpe": "🔑 DPE number search (100% exact)",
-        "dpe_number_label": "🔑 DPE Number (on your certificate)",
-        "dpe_number_help": "📄 The DPE number is on your energy performance certificate",
-        "dpe_not_found": "❌ Invalid DPE number. Check your certificate.",
-        "exact_match_badge": "✅ 100% exact data — official DPE certificate",
-        "select_address_warning": "📍 Please select an address from the list",
-        "enter_input_warning": "⚠️ Please enter an address or DPE number"
-    }
-}
-
-
 def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
-    """Generate PDF report"""
     pdf = FPDF()
     pdf.add_page()
-    
     pdf.set_font('Helvetica', 'B', 20)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(0, 15, 'ZAMI PROPERTY REPORT', ln=True, align='C')
-    
     pdf.set_font('Helvetica', '', 10)
     pdf.cell(0, 8, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
     pdf.ln(5)
-    
     address = property_data.get('address', 'Address not available')
     pdf.set_font('Helvetica', 'B', 12)
     pdf.multi_cell(0, 8, str(address))
     pdf.ln(5)
-    
     pdf.set_font('Helvetica', 'B', 14)
     pdf.cell(0, 10, 'Property Details', ln=True)
     pdf.set_font('Helvetica', '', 11)
@@ -283,7 +296,6 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     pdf.cell(0, 8, f"Target DPE: {target_dpe}", ln=True)
     pdf.cell(0, 8, f"Surface: {int(property_data.get('surface', 0))} m2", ln=True)
     pdf.ln(5)
-    
     pdf.set_font('Helvetica', 'B', 14)
     pdf.cell(0, 10, 'Financial Summary', ln=True)
     pdf.set_font('Helvetica', '', 11)
@@ -292,64 +304,100 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, f"Net Investment: EUR {net_cost:,.0f}", ln=True)
     pdf.cell(0, 8, f"Expected ROI: +{roi}%", ln=True)
-    pdf.ln(5)
-    
     pdf.set_y(-30)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(128, 128, 128)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    
     output = pdf.output(dest='S')
     if isinstance(output, bytearray):
         output = bytes(output)
     return output
 
 
-# ─────────────────────────────────────────────
-# HEADER & NAVBAR WITH LOGO
-# ─────────────────────────────────────────────
-col_left_brand, col_right_actions = st.columns([1.6, 1.4])
+# Language translations
+LANG_DICT = {
+    "FR": {
+        "title": "Portail Propriétaire Énergétique", "subtitle": "Estimez instantanément la valeur et les travaux de votre bien",
+        "input_label": "Saisissez l'adresse de votre logement :", "select_certified": "Sélectionnez l'adresse certifiée BAN France :",
+        "btn_analyze": "⚡ Lancer l'Analyse", "btn_back": "⬅️ Nouvelle recherche",
+        "bilan_title": "BILAN PATRIMONIAL EXCLUSIF", "choose_plan": "PLAN DE CONFIGURATION ÉNERGÉTIQUE",
+        "eco_ess": "🛠️ Éco Essential", "eco_ess_sub": "DPE D • Conformité Légale 2026",
+        "conf_plus": "⚡ Confort Plus", "conf_plus_sub": "DPE C • Isolation Enveloppe Globale",
+        "carb_zero": "🟢 Carbone Zéro", "carb_zero_sub": "DPE B • Décarbonation Pompe à Chaleur",
+        "current_class": "Classe Initiale", "target_class": "🎯 Objectif Scénario",
+        "surface": "Surface Habitable", "budget_est": "Investissement Global", "uplift_label": "Uplift Marché Estimé",
+        "visual_prog": "Vecteur de Progression Énergétique", "your_property": "Actif 🏠", "target_label": "Cible",
+        "fin_title": "Analyse d'Ingénierie Financière", "fin_sub": "Subventions Publiques vs Reste à Charge Net",
+        "subvention_label": "Aides MaPrimeRénov'", "reste_charge": "Reste à Charge Net",
+        "impact_facture": "Impact: Le plan {sc} génère {saving} d'économies par an.",
+        "chart_5yr_title": "📊 Évolution Prédictive de l'Actif (2026-2031)",
+        "chart_5yr_sub": "Trajectoire patrimoniale après rénovation",
+        "form_title": "Mise en Relation avec un Artisan RGE",
+        "form_sub": "Recevez 3 devis gratuits d'artisans certifiés",
+        "form_name": "Nom Complet *", "form_phone": "Téléphone *", "form_email": "Email *",
+        "form_time": "Créneau de rappel", "form_notes": "Notes (optionnel)",
+        "form_btn": "📨 Envoyer ma demande", "form_err": "⚠️ Champs requis manquants",
+        "form_success": "🎉 Demande envoyée! Un artisan vous contactera sous 24h.",
+        "download_btn": "⬇️ Télécharger le Rapport PDF",
+        "map_title": "🗺️ Géolocalisation du bien", "loss_title": "🌡️ Pertes thermiques estimées",
+        "income_label": "💰 Profil de revenu:", "loan_title": "💶 Simulation Eco-PTZ",
+        "loan_duration": "Durée (années)", "monthly_pay": "Mensualité (0% intérêt)",
+        "footer": "ZAMI - Intelligence Rénovation Énergétique",
+        "search_method_address": "📍 Recherche par adresse (~85% précis)",
+        "search_method_dpe": "🔑 Recherche par numéro DPE (100% exact)",
+        "dpe_number_label": "🔑 Numéro DPE", "dpe_number_help": "Trouvez le numéro sur votre certificat DPE",
+        "dpe_not_found": "❌ Numéro DPE invalide", "exact_match_badge": "✅ Données 100% exactes",
+        "select_address_warning": "📍 Sélectionnez une adresse", "enter_input_warning": "⚠️ Entrez une adresse ou un numéro DPE"
+    },
+    "EN": {
+        "title": "Energy Property Portal", "subtitle": "Estimate your property value and renovation costs instantly",
+        "input_label": "Enter your property address:", "select_certified": "Select certified BAN France address:",
+        "btn_analyze": "⚡ Run Analysis", "btn_back": "⬅️ New Search",
+        "bilan_title": "EXCLUSIVE PROPERTY AUDIT", "choose_plan": "ENERGY CONFIGURATION PLAN",
+        "eco_ess": "🛠️ Eco Essential", "eco_ess_sub": "DPE D • Legal Compliance 2026",
+        "conf_plus": "⚡ Comfort Plus", "conf_plus_sub": "DPE C • Full Insulation",
+        "carb_zero": "🟢 Carbon Zero", "carb_zero_sub": "DPE B • Heat Pump",
+        "current_class": "Current Class", "target_class": "🎯 Target Scenario",
+        "surface": "Surface Area", "budget_est": "Global Investment", "uplift_label": "Market Uplift",
+        "visual_prog": "Energy Progression", "your_property": "Your Asset 🏠", "target_label": "Target",
+        "fin_title": "Financial Analysis", "fin_sub": "Public Subsidies vs Net Cost",
+        "subvention_label": "MaPrimeRénov' Aid", "reste_charge": "Net Remaining",
+        "impact_facture": "Impact: Plan {sc} saves {saving} annually on utilities.",
+        "chart_5yr_title": "📊 5-Year Asset Value Prediction (2026-2031)",
+        "chart_5yr_sub": "Renovation vs Obsolescence trajectory",
+        "form_title": "Connect with an RGE Certified Contractor",
+        "form_sub": "Get 3 free quotes from certified professionals",
+        "form_name": "Full Name *", "form_phone": "Phone *", "form_email": "Email *",
+        "form_time": "Callback time", "form_notes": "Notes (optional)",
+        "form_btn": "📨 Submit Request", "form_err": "⚠️ Required fields missing",
+        "form_success": "🎉 Request sent! A contractor will contact you within 24h.",
+        "download_btn": "⬇️ Download PDF Report",
+        "map_title": "🗺️ Property Location", "loss_title": "🌡️ Estimated Heat Loss",
+        "income_label": "💰 Income profile:", "loan_title": "💶 Eco-PTZ Simulation",
+        "loan_duration": "Duration (years)", "monthly_pay": "Monthly payment (0% interest)",
+        "footer": "ZAMI - Energy Renovation Intelligence",
+        "search_method_address": "📍 Address search (~85% accurate)",
+        "search_method_dpe": "🔑 DPE number search (100% exact)",
+        "dpe_number_label": "🔑 DPE Number", "dpe_number_help": "Find the number on your DPE certificate",
+        "dpe_not_found": "❌ Invalid DPE number", "exact_match_badge": "✅ 100% exact data",
+        "select_address_warning": "📍 Please select an address", "enter_input_warning": "⚠️ Please enter address or DPE number"
+    }
+}
 
-with col_left_brand:
+
+# ─────────────────────────────────────────────
+# HEADER (No Login)
+# ─────────────────────────────────────────────
+col_left, col_right = st.columns([1.6, 1.4])
+
+with col_left:
     st.markdown(get_logo_html(), unsafe_allow_html=True)
 
-with col_right_actions:
-    sub_col_lang, sub_col_auth = st.columns([0.4, 0.6])
-    with sub_col_lang:
-        selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed", key="global_lang_selector")
-        T = LANG_DICT[selected_lang]
-    with sub_col_auth:
-        if st.session_state["logged_in_user_id"] is None:
-            with st.expander("👤 Workspace Account", expanded=False):
-                auth_mode = st.radio("Gate Mode", ["Login", "Sign Up"], horizontal=True, label_visibility="collapsed", key="nav_auth_mode")
-                u_input = st.text_input("Username", key="main_user_input")
-                p_input = st.text_input("Password", type="password", key="main_pwd_input")
-                if st.button("Verify Identity", use_container_width=True, type="primary", key="nav_submit_auth"):
-                    if u_input and p_input:
-                        st.success("Demo login - full features coming soon!")
-                        st.session_state["logged_in_user_id"] = 1
-                        st.session_state["logged_in_username"] = u_input
-                        st.rerun()
-        else:
-            col_inner_user, col_inner_out = st.columns([0.6, 0.4])
-            with col_inner_user:
-                st.markdown(f"<p style='color:#86efac; font-size:0.75rem; text-align:right;'>🟢 {st.session_state['logged_in_username'].upper()}</p>", unsafe_allow_html=True)
-            with col_inner_out:
-                if st.button("Log Out", type="secondary", key="nav_logout_btn"):
-                    st.session_state["logged_in_user_id"] = None
-                    st.session_state["logged_in_username"] = None
-                    st.session_state["confirmed_owner_property"] = None
-                    st.rerun()
+with col_right:
+    selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed", key="lang")
+    T = LANG_DICT[selected_lang]
 
-st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-top:-5px; margin-bottom:2rem;">', unsafe_allow_html=True)
-
-
-# ─────────────────────────────────────────────
-# SIDEBAR PORTFOLIO
-# ─────────────────────────────────────────────
-if st.session_state["logged_in_user_id"] is not None:
-    st.sidebar.markdown("<p style='font-size:0.7rem; font-weight:800; color:#22c55e;'>📂 PORTFOLIO</p>", unsafe_allow_html=True)
-    st.sidebar.info("Login to save properties")
+st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-bottom:2rem;">', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
@@ -373,27 +421,24 @@ if st.session_state["confirmed_owner_property"] is None:
     search_method = st.radio(
         "🔍 Search method:",
         [T["search_method_address"], T["search_method_dpe"]],
-        key="search_method_radio",
+        key="search_method",
         horizontal=True
     )
     
-    search_query = None
-    dpe_number = None
-    
     if search_method == T["search_method_address"]:
-        search_query = st.text_input(T["input_label"], placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="main_search_input_field")
+        search_query = st.text_input(T["input_label"], placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="search_input")
         if search_query and len(search_query.strip()) >= 3:
             st.session_state["address_suggestions"] = ban_search(search_query)
         suggestions = st.session_state["address_suggestions"]
         if suggestions:
             labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
-            selected_label = st.selectbox(T["select_certified"], labels, key="main_address_selectbox")
+            selected_label = st.selectbox(T["select_certified"], labels, key="address_select")
             st.session_state["selected_address_label"] = selected_label
     else:
-        dpe_number = st.text_input(T["dpe_number_label"], placeholder="Ex: 1234ABCD5678", key="dpe_number_input")
+        dpe_number = st.text_input(T["dpe_number_label"], placeholder="Ex: 1234ABCD5678", key="dpe_input")
         st.caption(T["dpe_number_help"])
     
-    if st.button(T["btn_analyze"], type="primary", use_container_width=True, key="execute_analysis_btn"):
+    if st.button(T["btn_analyze"], type="primary", use_container_width=True, key="analyze_btn"):
         if search_method == T["search_method_dpe"] and dpe_number:
             with st.spinner("🔍 Searching official DPE certificate..."):
                 exact_property = fetch_by_dpe_number(dpe_number)
@@ -433,21 +478,15 @@ else:
     base_prop = st.session_state["confirmed_owner_property"]
     dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
-    btn_col1, btn_col2 = st.columns([4, 1])
-    with btn_col1:
-        if st.button(T["btn_back"], key="dashboard_back_btn"):
-            st.session_state["confirmed_owner_property"] = None
-            st.rerun()
-    with btn_col2:
-        st.markdown('<button disabled style="width:100%; opacity:0.5;">🔒 Login to Save</button>', unsafe_allow_html=True)
+    if st.button(T["btn_back"], key="back_btn"):
+        st.session_state["confirmed_owner_property"] = None
+        st.rerun()
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p><div class="owner-exclusive-title">{base_prop["address"][:60]}</div>', unsafe_allow_html=True)
 
     if base_prop.get("source") == "ADEME_DPE_NUMBER":
         st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.5); padding:8px 20px; border-radius:100px; margin-bottom:1rem;"><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></span><span style="font-size:0.75rem;font-weight:800;color:#22c55e;">{T["exact_match_badge"]}</span></div>', unsafe_allow_html=True)
-    elif base_prop.get("data_found"):
-        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#22c55e;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#4ade80;">✓ OFFICIAL ADEME DATA</span></div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.25); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#eab308;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#fbbf24;">⚡ ZONAL ESTIMATION</span></div>', unsafe_allow_html=True)
 
@@ -503,16 +542,9 @@ else:
 
     # Map Section
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    col_m1, col_m2 = st.columns([2, 1])
-    with col_m1:
-        st.markdown(f'<p class="section-label">🗺️ GEOSPATIAL</p><h3 class="section-title">{T["map_title"]}</h3>', unsafe_allow_html=True)
-    with col_m2:
-        map_style = st.radio("Map Style", ["Standard", "Satellite"], horizontal=True, label_visibility="collapsed", key="map_style")
+    st.markdown(f'<p class="section-label">🗺️ GEOSPATIAL</p><h3 class="section-title">{T["map_title"]}</h3>', unsafe_allow_html=True)
     fmap = folium.Map(location=[base_prop["lat"], base_prop["lon"]], zoom_start=17)
-    if map_style == "Satellite":
-        folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='Esri').add_to(fmap)
-    else:
-        folium.TileLayer('cartodbpositron').add_to(fmap)
+    folium.TileLayer('cartodbpositron').add_to(fmap)
     folium.Marker([base_prop["lat"], base_prop["lon"]], icon=folium.Icon(color='green', icon='home')).add_to(fmap)
     st_folium(fmap, use_container_width=True, height=350, returned_objects=[])
     st.markdown('</div>', unsafe_allow_html=True)
@@ -520,14 +552,9 @@ else:
     # Financial Section
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-label">{T["fin_title"]}</p><h3 class="section-title">{T["fin_sub"]}</h3>', unsafe_allow_html=True)
         
-        sub_col1, sub_col2 = st.columns([1.5, 1])
-        with sub_col1:
-            st.markdown(f'<p class="section-label">{T["fin_title"]}</p><h3 class="section-title">{T["fin_sub"]}</h3>', unsafe_allow_html=True)
-        with sub_col2:
-            anim.add_subsidy_animation()
-        
-        income_bracket = st.selectbox(T["income_label"], list(_INCOME_SUBSIDY_MAP.keys()), index=2, key="income_select")
+        income_bracket = st.selectbox(T["income_label"], list(_INCOME_SUBSIDY_MAP.keys()), index=2, key="income")
         subsidy_rate = _INCOME_SUBSIDY_MAP[income_bracket]
         if current_scenario == "Plus":
             subsidy_rate = min(subsidy_rate + 0.05, 0.85)
@@ -565,7 +592,7 @@ else:
     # Lead Form
     if active_cost > 0:
         st.markdown('<div class="card" style="border:1px solid rgba(34,197,94,0.2);">', unsafe_allow_html=True)
-        st.markdown(f'<p class="section-label" style="color:#22c55e;">📋 RGE CONNECTION</p><h3 style="color:#fff;">{T["form_title"]}</h3>', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-label" style="color:#22c55e;">📋 RGE CONNECTION</p><h3 style="color:#fff;">{T["form_title"]}</h3><p style="color:#64748b;">{T["form_sub"]}</p>', unsafe_allow_html=True)
         with st.form("lead_form"):
             c1, c2 = st.columns(2)
             with c1:
@@ -596,7 +623,6 @@ else:
             subsidy=estimated_subsidy if 'estimated_subsidy' in dir() else 0,
             roi=active_roi
         )
-        
         if pdf_bytes and len(pdf_bytes) > 100:
             st.download_button(
                 label="📥 Download PDF Report",
@@ -604,33 +630,68 @@ else:
                 file_name=f"ZAMI_Report_{base_prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
-                key="pdf_download_btn"
+                key="pdf_btn"
             )
-        else:
-            st.warning("PDF generation in progress.")
-    except Exception as e:
-        st.warning("PDF feature coming soon.")
+    except:
+        st.info("PDF report will be available soon")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Admin Section
+# ─────────────────────────────────────────────
+# ADMIN SECTION (View Chat Messages)
+# ─────────────────────────────────────────────
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
-if st.checkbox("🔐 Admin Vault", key="admin_vault"):
-    pwd = st.text_input("Password", type="password", key="admin_pwd")
-    if pwd == "ZAMI2026":
+if st.checkbox("🔐 Admin Panel", key="admin_panel"):
+    admin_pwd = st.text_input("Admin Password", type="password", key="admin_pwd")
+    if admin_pwd == "ZAMI2026":
         st.success("✅ Admin Access Granted")
         
-        # Show all agencies
-        agencies = db.get_all_agencies()
-        if agencies:
-            st.markdown("### Registered Agencies")
-            for a in agencies:
-                st.markdown(f"- **{a[1]}** ({a[2]}) - {a[3]}")
-        else:
-            st.info("No agencies registered yet")
-    elif pwd:
+        tab1, tab2 = st.tabs(["💬 Chat Messages", "📊 Statistics"])
+        
+        with tab1:
+            st.markdown("### 💬 Visitor Messages")
+            messages = get_all_chat_messages()
+            
+            if messages:
+                for msg in messages:
+                    status_emoji = "🟢" if msg.get("status") == "unread" else "🔵"
+                    with st.expander(f"{status_emoji} {msg['name']} - {msg['time']}"):
+                        st.markdown(f"**Email:** {msg['email']}")
+                        st.markdown(f"**Message:** {msg['message']}")
+                        st.markdown(f"**Status:** {msg.get('status', 'unknown')}")
+                        
+                        if msg.get("status") == "unread":
+                            if st.button(f"Mark as Read", key=f"mark_{msg['id']}"):
+                                mark_message_read(msg['id'])
+                                st.rerun()
+            else:
+                st.info("No messages yet")
+        
+        with tab2:
+            st.markdown("### 📊 Statistics")
+            messages = get_all_chat_messages()
+            st.metric("Total Messages", len(messages))
+            unread = len([m for m in messages if m.get("status") == "unread"])
+            st.metric("Unread Messages", unread)
+            
+            if messages:
+                # Messages per day
+                dates = {}
+                for msg in messages:
+                    date = msg.get("time", "").split(" ")[0]
+                    dates[date] = dates.get(date, 0) + 1
+                if dates:
+                    st.write("Messages by date:", dates)
+    elif admin_pwd:
         st.error("❌ Access Denied")
 st.markdown('</div>', unsafe_allow_html=True)
 
+
+# ─────────────────────────────────────────────
+# FOOTER
+# ─────────────────────────────────────────────
 st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
+
+# Floating Chat Bot
+chat_bot()
