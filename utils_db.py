@@ -1,6 +1,5 @@
 """
 utils_db.py — ZAMI Complete Database Module
-Handles: Users, Agencies, Contractors, Leads, Messages, Quotes, Portfolio
 """
 
 import os
@@ -12,16 +11,17 @@ import pandas as pd
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "zami_leads.db")
 
 
-# ─────────────────────────────────────────────
-# DATABASE INITIALIZATION
-# ─────────────────────────────────────────────
+def hash_password(password):
+    """Encrypts password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
 
 def init_db():
-    """Creates all production-grade tables automatically"""
+    """Creates all tables safely"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # 1. Core Users Table (for property owners)
+    # 1. Users Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,14 +49,14 @@ def init_db():
         )
     """)
     
-    # 3. Contractors Table (RGE Artisans)
+    # 3. Contractors Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contractors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             company_name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             phone TEXT,
-            rge_certified BOOLEAN DEFAULT 1,
+            rge_certified INTEGER DEFAULT 1,
             service_areas TEXT,
             work_types TEXT,
             subscription_type TEXT DEFAULT 'free',
@@ -65,7 +65,7 @@ def init_db():
         )
     """)
     
-    # 4. User Properties Portfolio (saved by property owners)
+    # 4. User Properties Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_properties (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,12 +78,11 @@ def init_db():
             cost REAL,
             roi REAL,
             lat REAL,
-            lon REAL,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+            lon REAL
         )
     """)
     
-    # 5. Agency Leads (leads assigned to agencies)
+    # 5. Agency Leads Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS agency_leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,12 +97,11 @@ def init_db():
             status TEXT DEFAULT 'pending',
             assigned_at TEXT,
             accepted_at TEXT,
-            rejected_at TEXT,
-            FOREIGN KEY(agency_id) REFERENCES agencies(id)
+            rejected_at TEXT
         )
     """)
     
-    # 6. Contractor Leads (leads for contractors)
+    # 6. Contractor Leads Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contractor_leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,12 +109,11 @@ def init_db():
             lead_data TEXT,
             lead_price REAL,
             status TEXT DEFAULT 'sent',
-            sent_at TEXT,
-            FOREIGN KEY(contractor_id) REFERENCES contractors(id)
+            sent_at TEXT
         )
     """)
     
-    # 7. Lead Messages / Chat System
+    # 7. Messages Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS lead_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,13 +134,11 @@ def init_db():
             quote_amount REAL,
             quote_details TEXT,
             status TEXT DEFAULT 'pending',
-            created_at TEXT,
-            FOREIGN KEY(lead_id) REFERENCES agency_leads(id),
-            FOREIGN KEY(agency_id) REFERENCES agencies(id)
+            created_at TEXT
         )
     """)
     
-    # 9. Website Leads (from contact forms)
+    # 9. Website Leads Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -164,23 +159,14 @@ def init_db():
     
     conn.commit()
     conn.close()
+    print("✅ Database initialized successfully")
 
 
 # ─────────────────────────────────────────────
-# HASHING UTILITY
-# ─────────────────────────────────────────────
-
-def hash_password(password):
-    """Encrypts password using SHA-256"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
-# ─────────────────────────────────────────────
-# USER AUTHENTICATION (Property Owners)
+# USER AUTHENTICATION
 # ─────────────────────────────────────────────
 
 def create_user(username, email, password):
-    """Registers a new property owner"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -198,7 +184,6 @@ def create_user(username, email, password):
 
 
 def authenticate_user(username, password):
-    """Verifies property owner credentials"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     pwd_hash = hash_password(password)
@@ -213,7 +198,6 @@ def authenticate_user(username, password):
 # ─────────────────────────────────────────────
 
 def register_agency(company_name, email, phone, siret, address, password):
-    """Register a new agency"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -228,10 +212,12 @@ def register_agency(company_name, email, phone, siret, address, password):
         return True
     except sqlite3.IntegrityError:
         return False
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
 
 
 def authenticate_agency(email, password):
-    """Authenticate agency login"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     pwd_hash = hash_password(password)
@@ -242,7 +228,6 @@ def authenticate_agency(email, password):
 
 
 def get_all_agencies():
-    """Get all registered agencies (for admin)"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, company_name, email, phone FROM agencies ORDER BY created_at DESC")
@@ -252,11 +237,10 @@ def get_all_agencies():
 
 
 # ─────────────────────────────────────────────
-# AGENCY LEADS MANAGEMENT
+# AGENCY LEADS
 # ─────────────────────────────────────────────
 
 def assign_lead_to_agency(agency_id, lead_data):
-    """Assign a lead to agency"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -274,7 +258,6 @@ def assign_lead_to_agency(agency_id, lead_data):
 
 
 def get_agency_leads(agency_id):
-    """Get all leads assigned to an agency"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM agency_leads WHERE agency_id = ? ORDER BY assigned_at DESC", (agency_id,))
@@ -284,7 +267,6 @@ def get_agency_leads(agency_id):
 
 
 def update_lead_status(lead_id, status):
-    """Update lead status (accepted/rejected)"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -299,11 +281,10 @@ def update_lead_status(lead_id, status):
 
 
 # ─────────────────────────────────────────────
-# MESSAGING / CHAT SYSTEM
+# MESSAGES & QUOTES
 # ─────────────────────────────────────────────
 
 def add_message(lead_id, sender_type, sender_id, message):
-    """Add chat message"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -316,7 +297,6 @@ def add_message(lead_id, sender_type, sender_id, message):
 
 
 def get_messages(lead_id):
-    """Get all messages for a lead"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM lead_messages WHERE lead_id = ? ORDER BY sent_at ASC", (lead_id,))
@@ -325,12 +305,7 @@ def get_messages(lead_id):
     return results
 
 
-# ─────────────────────────────────────────────
-# QUOTE SYSTEM
-# ─────────────────────────────────────────────
-
 def add_quote(lead_id, agency_id, amount, details):
-    """Add a quote for a lead"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -343,7 +318,6 @@ def add_quote(lead_id, agency_id, amount, details):
 
 
 def get_quotes_for_lead(lead_id):
-    """Get all quotes for a lead"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM lead_quotes WHERE lead_id = ? ORDER BY created_at DESC", (lead_id,))
@@ -353,11 +327,10 @@ def get_quotes_for_lead(lead_id):
 
 
 # ─────────────────────────────────────────────
-# CONTRACTOR MANAGEMENT
+# CONTRACTORS
 # ─────────────────────────────────────────────
 
 def add_contractor(company_name, email, phone, service_areas, work_types, rge_certified=True):
-    """Add a new contractor to database"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -366,7 +339,7 @@ def add_contractor(company_name, email, phone, service_areas, work_types, rge_ce
         cursor.execute("""
             INSERT INTO contractors (company_name, email, phone, rge_certified, service_areas, work_types, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (company_name, email, phone, rge_certified, service_areas, work_types_str, current_time, current_time))
+        """, (company_name, email, phone, 1 if rge_certified else 0, service_areas, work_types_str, current_time, current_time))
         conn.commit()
         conn.close()
         return True
@@ -375,7 +348,6 @@ def add_contractor(company_name, email, phone, service_areas, work_types, rge_ce
 
 
 def get_contractors_by_zip(zipcode):
-    """Get contractors serving this zipcode"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -387,7 +359,6 @@ def get_contractors_by_zip(zipcode):
 
 
 def save_contractor_lead(contractor_id, lead_data, lead_price=15):
-    """Save lead sent to contractor"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -400,11 +371,10 @@ def save_contractor_lead(contractor_id, lead_data, lead_price=15):
 
 
 # ─────────────────────────────────────────────
-# USER PORTFOLIO (Saved Properties)
+# USER PORTFOLIO
 # ─────────────────────────────────────────────
 
 def save_property_to_portfolio(user_id, address, zipcode, dpe, surface, cost, roi, lat, lon):
-    """Save property to user's portfolio"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -421,7 +391,6 @@ def save_property_to_portfolio(user_id, address, zipcode, dpe, surface, cost, ro
 
 
 def fetch_user_portfolio(user_id):
-    """Retrieve all saved properties for a user"""
     conn = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query("SELECT * FROM user_properties WHERE user_id = ? ORDER BY id DESC", conn, params=[user_id])
     conn.close()
@@ -429,11 +398,10 @@ def fetch_user_portfolio(user_id):
 
 
 # ─────────────────────────────────────────────
-# WEBSITE LEADS (Contact Form)
+# WEBSITE LEADS
 # ─────────────────────────────────────────────
 
 def log_lead_to_db(address, zipcode, initial_dpe, target_dpe, scenario, cost, name, phone, email, time_slot, notes):
-    """Save lead from website contact form"""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
