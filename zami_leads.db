@@ -1,0 +1,21 @@
+python3 << 'EOF'
+import utils_db
+import time
+
+# Add dummy agency
+success = utils_db.register_agency(
+    company_name="Dummy Agency",
+    email="dummy@agency.com",
+    phone="0612345678",
+    siret="123456789",
+    address="Paris, France",
+    password="dummy123"
+)
+
+if success:
+    print("✅ Agency added successfully!")
+    print("📧 Email: dummy@agency.com")
+    print("🔑 Password: dummy123")
+else:
+    print("⚠️ Agency already exists or error")
+EOF
