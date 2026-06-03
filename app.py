@@ -35,7 +35,19 @@ except ImportError:
         DATA_ENRICHER_READY = False
     except ImportError:
         DATA_ENRICHER_READY = False
-
+# ─────────────────────────────────────────────
+# GOOGLE ANALYTICS
+# ─────────────────────────────────────────────
+st.markdown("""
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C1FQVXGYLS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-C1FQVXGYLS');
+</script>
+""", unsafe_allow_html=True)
 # Boot systems databases
 utils_db.init_db()
 
