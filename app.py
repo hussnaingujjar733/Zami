@@ -77,7 +77,6 @@ def log_lead_to_db(address, zipcode, initial_dpe, target_dpe, scenario, cost, na
         conn.close()
         return True
     except Exception as e:
-        st.error(f"Database Logging Error: {e}")
         return False
 
 # ─────────────────────────────────────────────
@@ -131,7 +130,7 @@ LANG_DICT = {
         "map_title": "🗺️ Localisation Spatiale & Cadastre Registre",
         "loss_title": "🌡️ Analyse AI des Déperditons Thermiques Estimées",
         "loss_sub": "Zones critiques nécessitant une isolation prioritaire",
-        "footer": "ZAMI v7.1 Titanium — SQLite Protected Database Active • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.2 Supreme — Système Global Intégré • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -180,12 +179,12 @@ LANG_DICT = {
         "map_title": "🗺️ Geospatial Location & Registry Mapping",
         "loss_title": "🌡️ AI Estimation of Structural Heat Losses",
         "loss_sub": "Critical building zones requiring urgent insulation",
-        "footer": "ZAMI v7.1 Titanium — SQLite Protected Database Active • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.2 Supreme — Integrated Global System • Certified ADEME & BAN France Data"
     }
 }
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES
+# GLOBAL STYLES — Ultra Luxury Dark Theme
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -211,11 +210,12 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 .metric-value-huge { font-size: 3rem; font-weight: 700; color: #ffffff; letter-spacing: -0.03em; line-height: 1.1; }
 .metric-label-sub { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block; }
 .footer { text-align: center; color: #475569; padding: 3rem 0; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 4rem; }
+.processing-step { padding: 12px 20px; background: rgba(255,255,255,0.02); border-left: 3px solid #dc2626; margin-bottom: 8px; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: #94a3b8; }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# STATE CONFIG & STORAGE
+# CONFIG & API BOUNDRIES
 # ─────────────────────────────────────────────
 if "confirmed_owner_property" not in st.session_state: st.session_state.confirmed_owner_property = None
 if "address_suggestions" not in st.session_state: st.session_state.address_suggestions = []
@@ -276,7 +276,7 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.rect(0, 0, 210, 45, 'F')
     pdf.set_font("Helvetica", "B", 24)
     pdf.set_text_color(255, 255, 255)
-    pdf.text(15, 28, "ZAMI | AUDIT ENERGETIQUE")
+    pdf.text(15, 28, "ZAMI | SUPREME AUDIT")
     pdf.set_y(55)
     pdf.set_text_color(5, 7, 12)
     pdf.set_font("Helvetica", "B", 14)
@@ -290,7 +290,7 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     return pdf.output()
 
 # ─────────────────────────────────────────────
-# BRAND HEADER
+# 🏢 BRAND HEADER & LANGUAGE SELECTOR
 # ─────────────────────────────────────────────
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang:
@@ -307,19 +307,19 @@ if os.path.exists(logo_path):
             encoded_string = base64.b64encode(image_file.read()).decode()
         logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{encoded_string}"></div>'
     except Exception:
-        logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
+        logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 else:
-    logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
+    logo_html = '<div style="font-family:\'DM Serif Display\', serif; font-size:2.2rem; color:#fff; letter-spacing:-0.03em;">🏢 ZA<span style="color:#dc2626;">MI</span></div>'
 
 st.markdown(f"""
 <div class="brand-header-flex" style="margin-top:-30px;">
     {logo_html}
-    <div><span class="brand-status-tag">ZAMI TITANIUM V7.1 SECURE LIVE</span></div>
+    <div><span class="brand-status-tag">ZAMI SUPREME V7.2 COMPLETE LIVE</span></div>
 </div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# SEARCH LAYER
+# 🎯 SEARCH LAYER
 # ─────────────────────────────────────────────
 if st.session_state.confirmed_owner_property is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -344,7 +344,7 @@ if st.session_state.confirmed_owner_property is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# COCKPIT CORES
+# 🌟 PREMIUM MULTI-SCENARIO EXCLUSIVE COCKPIT
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state.confirmed_owner_property
@@ -360,45 +360,120 @@ else:
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p>', unsafe_allow_html=True)
     st.markdown(f'<div class="owner-exclusive-title">{base_prop["address"]}</div>', unsafe_allow_html=True)
     
+    st.markdown(f'<p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:12px;">{T["choose_plan"]}</p>', unsafe_allow_html=True)
+    
     sc_col1, sc_col2, sc_col3 = st.columns(3)
     with sc_col1:
         is_ess = (st.session_state.selected_scenario == "Essential")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_ess else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["eco_ess"]}</strong></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card {"scenario-card-active" if is_ess else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["eco_ess"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["eco_ess_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Essential", key="btn_sc_ess", use_container_width=True):
             st.session_state.selected_scenario = "Essential"; st.rerun()
     with sc_col2:
         is_plus = (st.session_state.selected_scenario == "Plus")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["conf_plus_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Comfort Plus", key="btn_sc_plus", use_container_width=True):
             st.session_state.selected_scenario = "Plus"; st.rerun()
     with sc_col3:
         is_zero = (st.session_state.selected_scenario == "Zero")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_zero else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["carb_zero"]}</strong></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card {"scenario-card-active" if is_zero else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["carb_zero"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["carb_zero_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Carbon Zero", key="btn_sc_zero", use_container_width=True):
             st.session_state.selected_scenario = "Zero"; st.rerun()
+
+    st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 1.5rem 0;">', unsafe_allow_html=True)
 
     current_scenario = st.session_state.selected_scenario
     active_cost = round(base_prop["cost"] * _SCENARIO_COST_MULTIPLIER[current_scenario], 0)
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
-    m_col1, m_col2, m_col3 = st.columns(3)
-    m_col1.metric(T["surface"], f"{base_prop['surface']} m²")
-    m_col2.metric(T["budget_est"], f"€{active_cost:,.0f}")
-    m_col3.metric(T["uplift_label"], f"+{active_roi}%")
+    # ✅ RETURNING THE DPE BADGES LAYER
+    col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
+    with col_left_dpe:
+        st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-label-sub" style="margin-bottom:10px; font-weight:600;">{T["current_class"]}</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dpe-badge-big" style="background-color:{dpe_color}; margin-bottom:15px;">{base_prop["dpe"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<p class="metric-label-sub" style="color:#22c55e;">{T["target_class"]} {target_dpe}</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with col_right_metrics:
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.markdown(f'<span class="metric-value-huge">{base_prop["surface"]}</span><span style="font-size:1.5rem;font-weight:700;"> m²</span><br><span class="metric-label-sub">{T["surface"]}</span>', unsafe_allow_html=True)
+        with m_col2:
+            st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{active_cost:,.0f}</span><br><span class="metric-label-sub">{T["budget_est"]}</span>', unsafe_allow_html=True)
+        with m_col3:
+            st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">{T["uplift_label"]}</span>', unsafe_allow_html=True)
 
+        # ✅ RETURNING VISUAL PROGRESSION GAUGE CHART
+        st.markdown(f'<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">{T["visual_prog"]}</p>', unsafe_allow_html=True)
+        dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
+        if base_prop["dpe"] in dpe_sequence and target_dpe in dpe_sequence:
+            current_idx = dpe_sequence.index(base_prop["dpe"])
+            target_idx = dpe_sequence.index(target_dpe)
+            fig_progress = go.Figure()
+            fig_progress.add_trace(go.Scatter(x=dpe_sequence, y=[1]*7, mode='markers+text', text=dpe_sequence, textposition="top center", marker=dict(size=24, color=["#ff0000", "#ff3300", "#ff6600", "#f2b035", "#ccff33", "#33cc33", "#319834"]), showlegend=False))
+            if current_idx < 6 and current_idx != target_idx:
+                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1, ax=dpe_sequence[current_idx], ay=1, xref="x", yref="y", axref="x", ayref="y", text="", showarrow=True, arrowhead=3, arrowsize=1.5, arrowwidth=4, arrowcolor="#fff")
+                fig_progress.add_annotation(x=dpe_sequence[current_idx], y=0.85, text=T["your_property"], showarrow=False, font=dict(color="#fff", size=11))
+                fig_progress.add_annotation(x=dpe_sequence[target_idx], y=1.15, text=f"<b>{T['target_label']} {current_scenario} ✅</b>", showarrow=False, font=dict(color="#22c55e", size=11))
+            fig_progress.update_layout(height=110, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(visible=False), yaxis=dict(visible=False))
+            st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── 🗺️ GEOSPATIAL MAP LAYER
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">Geospatial Registry</p><p class="section-title">{T["map_title"]}</p>', unsafe_allow_html=True)
     map_df = pd.DataFrame([{"lat": base_prop["lat"], "lon": base_prop["lon"]}])
-    st.map(map_df, zoom=14, use_container_width=True)
+    st.map(map_df, zoom=15, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown(f'<p class="section-title">{T["loss_title"]}</p>', unsafe_allow_html=True)
-    fig_loss = go.Figure(go.Bar(x=[30, 25, 15, 10], y=["Roof", "Walls", "Windows", "Floors"], orientation='h', marker=dict(color='#dc2626')))
-    fig_loss.update_layout(height=140, margin=dict(l=10,r=10,t=10,b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+    # ── 🌡️ HEAT LOSS MATRIX 
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">Thermal Architecture</p><p class="section-title">{T["loss_title"]}</p>', unsafe_allow_html=True)
+    fig_loss = go.Figure(go.Bar(x=[30, 25, 15, 10], y=["Toiture (Roof)", "Murs (Walls)", "Fenêtres (Windows)", "Planchers (Floors)"], orientation='h', marker=dict(color=['#dc2626', '#ef4444', '#f97316', '#eab308']), text=[f"{val}%" for val in [30, 25, 15, 10]], textposition='auto'))
+    fig_loss.update_layout(height=160, margin=dict(l=20, r=20, t=10, b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(visible=False), yaxis=dict(color="#f1f5f9"))
     st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
-    estimated_subsidy = round(active_cost * subsidy_rate, 0)
-    net_cost = active_cost - estimated_subsidy
+    # ✅ RETURNING FINANCIALS PIE CHART SECTION
+    if active_cost > 0:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
+        
+        subsidy_rate = 0.40 if current_scenario == "Essential" else (0.55 if current_scenario == "Plus" else 0.70)
+        estimated_subsidy = round(active_cost * subsidy_rate, 0)
+        net_cost = active_cost - estimated_subsidy
+        energy_saving = "€1,200 / an" if current_scenario == "Essential" else ("€1,850 / an" if current_scenario == "Plus" else "€2,600 / an")
+        
+        chart_col, metrics_col = st.columns([1.2, 1.8], gap="large")
+        with chart_col:
+            fig_financial = go.Figure(data=[go.Pie(labels=[T["subvention_label"], T["reste_charge"]], values=[estimated_subsidy, net_cost], hole=.6, marker=dict(colors=['#22c55e', '#dc2626']), textinfo='percent', hoverinfo='label+value', showlegend=False)])
+            fig_financial.update_layout(height=180, margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig_financial, use_container_width=True, config={'displayModeBar': False})
+            
+        with metrics_col:
+            sub1, sub2 = st.columns(2)
+            sub1.metric(T["subvention_label"], f"€{estimated_subsidy:,.0f}", f"~{int(subsidy_rate*100)}%")
+            sub2.metric(T["reste_charge"], f"€{net_cost:,.0f}", "Net remaining")
+            st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
+    # ✅ RETURNING THE 5-YEAR LINE CHART TRAJECTORY
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
+    years_projection = ["2026", "2027", "2028", "2029", "2030", "2031"]
+    base_market_value = 300000
+    renovated_curve = [base_market_value * (1 + (active_roi/100) + (i*0.02)) for i in range(6)]
+    unrenovated_curve = [base_market_value * (1 - (i * 0.035)) for i in range(6)]
+    
+    fig_5yr = go.Figure()
+    fig_5yr.add_trace(go.Scatter(x=years_projection, y=renovated_curve, name="Asset Rénové" if selected_lang=="FR" else "Renovated Asset", line=dict(color='#22c55e', width=4)))
+    fig_5yr.add_trace(go.Scatter(x=years_projection, y=unrenovated_curve, name="Passoire Non-Rénovée" if selected_lang=="FR" else "Unrenovated Passoire", line=dict(color='#dc2626', width=3, dash='dash')))
+    fig_5yr.update_layout(height=240, margin=dict(l=40, r=20, t=10, b=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), xaxis=dict(color="#94a3b8"), yaxis=dict(gridcolor="rgba(255,255,255,0.05)", color="#94a3b8"))
+    st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── LEAD GENERATION CAPTURE FORM WITH SQLITE ARCHITECTURE
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3); background: #0b1116;">', unsafe_allow_html=True)
         st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
@@ -413,7 +488,7 @@ else:
                 owner_phone = st.text_input(T["form_phone"], placeholder="06 12 34 56 78")
             with col_lead2:
                 owner_email = st.text_input(T["form_email"], placeholder="jean.dupont@gmail.com")
-                time_slot = st.selectbox(T["form_time"], ["Matin", "Après-midi"])
+                time_slot = st.selectbox(T["form_time"], ["Matin (9h - 12h)", "Après-midi (14h - 17h)"])
                 
             additional_notes = st.text_area(T["form_notes"])
             submit_lead = st.form_submit_button(T["form_btn"])
@@ -422,61 +497,50 @@ else:
                 if not owner_name or not owner_phone or not owner_email:
                     st.error(T["form_err"])
                 else:
-                    db_logged = log_lead_to_db(
-                        base_prop["address"], base_prop["zipcode"], base_prop["dpe"], target_dpe,
-                        current_scenario, active_cost, owner_name, owner_phone, owner_email, time_slot, additional_notes
-                    )
-                    payload = {
-                        "access_key": access_key_token,
-                        "subject": f"🔥 SQLITE LOGGED LEAD - {base_prop['zipcode']}",
-                        "Address": base_prop["address"], "Name": owner_name, "Phone": owner_phone, "Email": owner_email
-                    }
+                    db_logged = log_lead_to_db(base_prop["address"], base_prop["zipcode"], base_prop["dpe"], target_dpe, current_scenario, active_cost, owner_name, owner_phone, owner_email, time_slot, additional_notes)
+                    payload = {"access_key": access_key_token, "subject": f"🔥 NEW LEAD - {base_prop['zipcode']}", "Address": base_prop["address"], "Name": owner_name, "Phone": owner_phone, "Email": owner_email}
                     try: requests.post(form_action_url, data=payload, timeout=10)
                     except Exception: pass
                     if db_logged: st.success(T["form_success"])
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # ── PDF EXPORT HUB (IN-MEMORY SECURE STREAMING)
     try:
         pdf_string_data = generate_zami_pdf_bytes(base_prop, current_scenario, target_dpe, active_cost, estimated_subsidy, net_cost, selected_lang)
         pdf_bytes_io = io.BytesIO(pdf_string_data.encode('latin1') if isinstance(pdf_string_data, str) else pdf_string_data)
         st.download_button(label=T["download_btn"], data=pdf_bytes_io, file_name=f"ZAMI_Rapport_{base_prop['zipcode']}.pdf", mime="application/pdf", use_container_width=True)
     except Exception: pass
 
+# ── INTERACTIVE FAQ EXPANDER ENGINE
+st.markdown('<br>', unsafe_allow_html=True)
+st.markdown(f'<p class="section-label">FAQ & Law Hub</p><p class="section-title">{T["faq_title"]}</p>', unsafe_allow_html=True)
+if selected_lang == "FR":
+    with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"): st.markdown("Les logements classés **G** ne peuvent plus être loués...")
+else:
+    with st.expander("⚖️ What are the legal risks under the Climate Law?"): st.markdown("**G** rated homes are banned from rental markets...")
+
 # ─────────────────────────────────────────────
-# 🛡️ 100% SECURE & PASSWORD PROTECTED ADMIN VAULT LAYER
+# 🛡️ PASSWORD PROTECTED ADMIN VAULT LAYER
 # ─────────────────────────────────────────────
 st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 3rem 0;">', unsafe_allow_html=True)
 st.markdown('<p class="section-label">Contrôle Système Private</p>', unsafe_allow_html=True)
-
-# 1. Checkbox text triggering fields
 open_vault_request = st.checkbox("🔑 Open ZAMI Secure Admin Database Vault Viewer")
 
 if open_vault_request:
-    # 2. Input secure string layer (Masked via type="password")
     admin_password_input = st.text_input("Enter Secret Admin System Password :", type="password", key="vault_password_field")
-    
-    # 🚨 AUTHENTICATION LOCK CONDITION (Only you know this key token)
     if admin_password_input == "HussnainZami2026":
         st.markdown('<div class="card" style="border:1px solid rgba(34,197,94,0.3); background: #070f14;">', unsafe_allow_html=True)
-        st.markdown('<h4 style="color:#22c55e;">🔓 ACCESS GRANTED — Registre Interne des Leads SQLITE Logs</h4>', unsafe_allow_html=True)
-        
         try:
             conn = sqlite3.connect(DB_PATH)
             leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
             conn.close()
-            
             if not leads_df.empty:
                 st.dataframe(leads_df, use_container_width=True)
-                with open(DB_PATH, "rb") as f:
-                    st.download_button("💾 Backup SQLite Database File (.db)", data=f.read(), file_name="zami_leads_backup.db", use_container_width=True)
-            else:
-                st.info("La base de données est actuellement vide.")
-        except Exception as e:
-            st.error(f"Error reading database: {e}")
+                with open(DB_PATH, "rb") as f: st.download_button("💾 Backup SQLite Database File (.db)", data=f.read(), file_name="zami_leads_backup.db", use_container_width=True)
+            else: st.info("La base de données est vide.")
+        except Exception as e: st.error(f"Error: {e}")
         st.markdown('</div>', unsafe_allow_html=True)
-        
     elif admin_password_input != "":
-        # Dynamic security warning trigger mapping failed inputs
         st.markdown('<span style="color:#dc2626; font-size:0.85rem; font-weight:600;">❌ ACCESS DENIED: Invalid System Encryption Token Password.</span>', unsafe_allow_html=True)
 
 st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
