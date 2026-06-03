@@ -167,13 +167,17 @@ def init_db():
 
 
 # ─────────────────────────────────────────────
-# USER AUTHENTICATION (Property Owners)
+# HASHING UTILITY
 # ─────────────────────────────────────────────
 
 def hash_password(password):
     """Encrypts password using SHA-256"""
     return hashlib.sha256(password.encode()).hexdigest()
 
+
+# ─────────────────────────────────────────────
+# USER AUTHENTICATION (Property Owners)
+# ─────────────────────────────────────────────
 
 def create_user(username, email, password):
     """Registers a new property owner"""
