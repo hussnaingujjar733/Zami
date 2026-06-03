@@ -5,3 +5,4 @@ requests
 streamlit-option-menu
 streamlit-lottie
 fpdf2
+streamlit-folium
