@@ -1,5 +1,6 @@
 """
-utils_styles.py — ZAMI Premium UI Styling with 3D Particles
+utils_styles.py — ZAMI Premium UI Styling
+Apple/Stripe level glass morphism with 3D particles
 """
 
 import streamlit as st
@@ -8,7 +9,7 @@ def inject_premium_styles():
     st.markdown("""
     <style>
     /* ─────────────────────────────────────────────
-       IMPORT FONTS
+       FONTS
     ───────────────────────────────────────────── */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
@@ -46,27 +47,72 @@ def inject_premium_styles():
     .card:nth-child(1) { animation-delay: 0s; }
     .card:nth-child(2) { animation-delay: 0.1s; }
     .card:nth-child(3) { animation-delay: 0.2s; }
+    .card:nth-child(4) { animation-delay: 0.3s; }
     
-    /* Premium Glass Card */
+    /* ─────────────────────────────────────────────
+       PREMIUM GLASS CARD
+    ───────────────────────────────────────────── */
     .card {
-        background: rgba(10, 15, 30, 0.7) !important;
+        background: rgba(15, 25, 45, 0.65) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 32px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 28px !important;
         padding: 2rem !important;
         margin-bottom: 1.5rem !important;
         transition: all 0.4s cubic-bezier(0.2, 0.8, 0.4, 1) !important;
-        box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .card::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: -100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.15), transparent) !important;
+        transition: left 0.6s ease !important;
+    }
+    
+    .card:hover::before {
+        left: 100% !important;
     }
     
     .card:hover {
         transform: translateY(-6px) !important;
         border-color: rgba(34, 197, 94, 0.4) !important;
-        box-shadow: 0 35px 55px -15px rgba(34, 197, 94, 0.15) !important;
+        box-shadow: 0 20px 40px -15px rgba(34, 197, 94, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3) !important;
     }
     
-    /* Typography */
+    .card::after {
+        content: '' !important;
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 2px !important;
+        background: linear-gradient(90deg, transparent, #22c55e, transparent) !important;
+        opacity: 0 !important;
+        transition: opacity 0.3s ease !important;
+    }
+    
+    .card:hover::after {
+        opacity: 1 !important;
+    }
+    
+    /* Scenario Active Card */
+    .scenario-card-active {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(15, 25, 45, 0.8)) !important;
+        border: 1px solid rgba(34, 197, 94, 0.5) !important;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.2) !important;
+    }
+    
+    /* ─────────────────────────────────────────────
+       TYPOGRAPHY
+    ───────────────────────────────────────────── */
     .owner-exclusive-title {
         font-family: 'Space Grotesk', sans-serif;
         font-size: 2.8rem;
@@ -91,32 +137,158 @@ def inject_premium_styles():
         color: #22c55e;
         font-weight: 800;
         margin-bottom: 0.5rem;
+        display: inline-block;
     }
     
-    /* DPE Badge */
+    /* ─────────────────────────────────────────────
+       PREMIUM BUTTONS
+    ───────────────────────────────────────────── */
+    .stButton button {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.95) 100%) !important;
+        border: none !important;
+        border-radius: 50px !important;
+        padding: 14px 32px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.3px !important;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1) !important;
+        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25) !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .stButton button::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        width: 0 !important;
+        height: 0 !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.3) !important;
+        transform: translate(-50%, -50%) !important;
+        transition: width 0.4s ease, height 0.4s ease !important;
+    }
+    
+    .stButton button:hover::before {
+        width: 200px !important;
+        height: 200px !important;
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 15px 30px -8px rgba(34, 197, 94, 0.4) !important;
+    }
+    
+    /* Secondary Button */
+    .stButton button[kind="secondary"] {
+        background: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: none !important;
+    }
+    
+    .stButton button[kind="secondary"]:hover {
+        background: rgba(34, 197, 94, 0.15) !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    }
+    
+    /* ─────────────────────────────────────────────
+       PREMIUM INPUTS
+    ───────────────────────────────────────────── */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div,
+    .stTextArea > div > textarea,
+    .stNumberInput input {
+        background: rgba(15, 25, 45, 0.5) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 16px !important;
+        padding: 14px 18px !important;
+        color: #fff !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div:focus-within,
+    .stNumberInput input:focus {
+        border-color: #22c55e !important;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15), 0 0 0 1px #22c55e !important;
+        outline: none !important;
+        background: rgba(15, 25, 45, 0.7) !important;
+    }
+    
+    /* ─────────────────────────────────────────────
+       PREMIUM RADIO BUTTONS
+    ───────────────────────────────────────────── */
+    .stRadio > div {
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .stRadio label {
+        background: rgba(15, 25, 45, 0.5) !important;
+        backdrop-filter: blur(10px) !important;
+        padding: 10px 24px !important;
+        border-radius: 50px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
+    }
+    
+    .stRadio label:hover {
+        background: rgba(34, 197, 94, 0.15) !important;
+        border-color: rgba(34, 197, 94, 0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* ─────────────────────────────────────────────
+       DPE BADGE
+    ───────────────────────────────────────────── */
     .dpe-badge-big {
         display: inline-block;
-        padding: 20px 50px;
-        font-size: 4rem;
+        padding: 22px 55px;
+        font-size: 4.5rem;
         font-weight: 900;
-        border-radius: 28px;
+        border-radius: 32px;
         color: white;
         text-align: center;
         transition: all 0.3s ease;
-        box-shadow: 0 20px 35px -10px rgba(0,0,0,0.4);
+        box-shadow: 0 15px 35px -10px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dpe-badge-big::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .dpe-badge-big:hover::before {
+        left: 100%;
     }
     
     .dpe-badge-big:hover {
-        transform: scale(1.02);
-        box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5);
+        transform: scale(1.05) translateY(-5px);
+        box-shadow: 0 25px 45px -12px rgba(0,0,0,0.5);
     }
     
-    /* Metrics */
+    /* ─────────────────────────────────────────────
+       METRICS
+    ───────────────────────────────────────────── */
     .metric-value-huge {
-        font-size: 3rem;
+        font-size: 3.2rem;
         font-weight: 800;
-        color: #fff;
+        background: linear-gradient(135deg, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         letter-spacing: -0.03em;
+        display: inline-block;
     }
     
     .metric-label-sub {
@@ -125,80 +297,43 @@ def inject_premium_styles():
         text-transform: uppercase;
         letter-spacing: 0.1em;
         font-weight: 600;
+        display: inline-block;
+        margin-top: 0.3rem;
     }
     
-    /* Buttons */
-    .stButton button {
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-        border: none !important;
-        border-radius: 40px !important;
-        padding: 12px 28px !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .stButton button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4) !important;
-    }
-    
-    /* Inputs */
-    .stTextInput > div > div > input,
-    .stSelectbox > div > div,
-    .stTextArea > div > textarea {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 16px !important;
-        padding: 12px 16px !important;
-        color: #fff !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #22c55e !important;
-        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2) !important;
-    }
-    
-    /* Radio Buttons */
-    .stRadio > div {
-        gap: 16px;
-    }
-    
-    .stRadio label {
-        background: rgba(15, 23, 42, 0.6);
-        padding: 8px 20px;
-        border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        transition: all 0.2s;
-    }
-    
-    .stRadio label:hover {
-        background: rgba(34, 197, 94, 0.1);
-        border-color: rgba(34, 197, 94, 0.3);
-    }
-    
-    /* Tabs */
+    /* ─────────────────────────────────────────────
+       PREMIUM TABS
+    ───────────────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(15, 23, 42, 0.4);
+        gap: 12px;
+        background: rgba(15, 25, 45, 0.4);
+        backdrop-filter: blur(10px);
         border-radius: 60px;
         padding: 6px;
     }
     
     .stTabs [data-baseweb="tab"] {
         border-radius: 40px;
-        padding: 8px 24px;
+        padding: 10px 28px;
         font-weight: 600;
         color: #94a3b8;
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #22c55e;
+        background: rgba(34, 197, 94, 0.1);
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
+        background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
     }
     
-    /* Floating Action Button */
+    /* ─────────────────────────────────────────────
+       FLOATING ACTION BUTTON
+    ───────────────────────────────────────────── */
     .fab {
         position: fixed;
         bottom: 30px;
@@ -216,6 +351,7 @@ def inject_premium_styles():
         box-shadow: 0 10px 25px rgba(34, 197, 94, 0.3);
         transition: all 0.3s ease;
         z-index: 1000;
+        border: none;
     }
     
     .fab:hover {
@@ -223,12 +359,14 @@ def inject_premium_styles():
         box-shadow: 0 15px 35px rgba(34, 197, 94, 0.4);
     }
     
-    /* Custom Scrollbar */
+    /* ─────────────────────────────────────────────
+       SCROLLBAR
+    ───────────────────────────────────────────── */
     ::-webkit-scrollbar {
         width: 6px;
     }
     ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.03);
         border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb {
@@ -239,7 +377,9 @@ def inject_premium_styles():
         background: rgba(34, 197, 94, 0.5);
     }
     
-    /* Footer */
+    /* ─────────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────────── */
     .footer {
         text-align: center;
         color: #334155;
@@ -249,7 +389,9 @@ def inject_premium_styles():
         margin-top: 4rem;
     }
     
-    /* Responsive */
+    /* ─────────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────────── */
     @media (max-width: 768px) {
         .card {
             padding: 1rem !important;
@@ -264,6 +406,10 @@ def inject_premium_styles():
             font-size: 2.5rem;
             padding: 12px 30px;
         }
+        .stTabs [data-baseweb="tab"] {
+            padding: 6px 16px;
+            font-size: 0.8rem;
+        }
         .fab {
             width: 44px;
             height: 44px;
@@ -271,15 +417,17 @@ def inject_premium_styles():
             bottom: 20px;
             right: 20px;
         }
+        .stRadio label {
+            padding: 6px 16px;
+            font-size: 0.8rem;
+        }
     }
     </style>
     
-    <!-- Floating Action Button -->
     <div class="fab" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
         ↑
     </div>
     
-    <!-- 3D Particle Background -->
     <div id="tsparticles"></div>
     
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
