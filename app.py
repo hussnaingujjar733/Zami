@@ -2,7 +2,7 @@ import os
 import base64
 import random
 import io
-import sqlite3
+import json
 import requests
 import pandas as pd
 import streamlit as st
@@ -19,8 +19,6 @@ import utils_styles
 import utils_charts
 import utils_animations as anim
 import utils_transitions as trans
-
-# Note: No utils_db.init_db() call needed - data_store uses JSON files
 
 # Run Premium Style Injections
 utils_styles.inject_premium_styles()
@@ -52,6 +50,30 @@ _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 
 _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0, "A": 0}
 _DPE_COLORS = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "E": "#ff6600", "F": "#ff3300", "G": "#ff0000"}
 _INCOME_SUBSIDY_MAP = {"Très Modeste (Bleu)": 0.75, "Modeste (Jaune)": 0.60, "Intermédiaire (Violet)": 0.40, "Supérieur (Rose)": 0.15}
+
+
+# ─────────────────────────────────────────────
+# LOGO FUNCTION
+# ─────────────────────────────────────────────
+def get_logo_html():
+    """Return logo HTML with fallback"""
+    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "zami_logo.png")
+    
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, "rb") as img_f:
+                logo_base64 = base64.b64encode(img_f.read()).decode()
+                return f'''
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img src="data:image/png;base64,{logo_base64}" style="height:45px; width:auto;">
+                    <span style="font-family:'Space Grotesk', sans-serif; font-size:1.5rem; font-weight:700; color:#22c55e;">ZAMI</span>
+                </div>
+                '''
+        except Exception:
+            pass
+    
+    # Fallback text logo
+    return '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:1.8rem; font-weight:800; color:#fff;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
 
 
 # ─────────────────────────────────────────────
@@ -284,12 +306,12 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
 
 
 # ─────────────────────────────────────────────
-# HEADER & NAVBAR
+# HEADER & NAVBAR WITH LOGO
 # ─────────────────────────────────────────────
 col_left_brand, col_right_actions = st.columns([1.6, 1.4])
 
 with col_left_brand:
-    st.markdown('<div style="font-family:\'Space Grotesk\', sans-serif; font-size:2rem; color:#fff; font-weight:800;">🏢 ZA<span style="color:#22c55e;">MI</span></div>', unsafe_allow_html=True)
+    st.markdown(get_logo_html(), unsafe_allow_html=True)
 
 with col_right_actions:
     sub_col_lang, sub_col_auth = st.columns([0.4, 0.6])
