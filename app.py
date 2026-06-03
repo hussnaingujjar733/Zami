@@ -13,43 +13,14 @@ import folium
 from typing import Optional
 from datetime import datetime
 
-# ── ⚡ IMPORT ENGINE MODULES ──
+# ── ⚡ IMPORT MODULES ──
+import data_store as db
 import utils_styles
-import data_store as utils_db
 import utils_charts
 import utils_animations as anim
 import utils_transitions as trans
 
-try:
-    import ml_engine as ml
-    ML_BACKEND_READY = True
-except ImportError:
-    ML_BACKEND_READY = False
-
-try:
-    from data_enricher import enrich_property
-    DATA_ENRICHER_READY = True
-except ImportError:
-    try:
-        from ademe_api import lookup_dpe_by_address
-        DATA_ENRICHER_READY = False
-    except ImportError:
-        DATA_ENRICHER_READY = False
-# ─────────────────────────────────────────────
-# GOOGLE ANALYTICS
-# ─────────────────────────────────────────────
-st.markdown("""
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-C1FQVXGYLS"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-C1FQVXGYLS');
-</script>
-""", unsafe_allow_html=True)
-# Boot systems databases
-utils_db.init_db()
+# Note: No utils_db.init_db() call needed - data_store uses JSON files
 
 # Run Premium Style Injections
 utils_styles.inject_premium_styles()
@@ -87,7 +58,7 @@ _INCOME_SUBSIDY_MAP = {"Très Modeste (Bleu)": 0.75, "Modeste (Jaune)": 0.60, "I
 # 100% EXACT DPE NUMBER LOOKUP FUNCTION
 # ─────────────────────────────────────────────
 def fetch_by_dpe_number(numero_dpe: str) -> Optional[dict]:
-    """Fetches exact DPE record from ADEME using unique DPE number. 100% accurate."""
+    """Fetches exact DPE record from ADEME using unique DPE number."""
     if not numero_dpe or len(numero_dpe.strip()) < 5:
         return None
     
@@ -171,16 +142,6 @@ def ban_search(query: str, limit: int = 5):
 
 def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, lon=2.3522, citycode: str = ""):
     """Full real data enrichment: ADEME + DVF"""
-    if DATA_ENRICHER_READY:
-        return enrich_property(
-            address_label=query_address,
-            postcode=zipcode,
-            lat=lat,
-            lon=lon,
-            citycode=citycode,
-            fallback_cost_map=_FALLBACK_RENO_COST,
-            fallback_uplift_map=_FALLBACK_UPLIFT,
-        )
     dpe_by_region = {"75": "E", "92": "E", "93": "F", "94": "E", "69": "D", "13": "D", "31": "D"}
     region = str(zipcode)[:2]
     dpe = dpe_by_region.get(region, "E")
@@ -224,49 +185,50 @@ LANG_DICT = {
         "income_label": "💰 Profil de Revenu Fiscal de Référence (Anah) :",
         "loan_title": "💶 Simulateur d'Effet de Levier Financier : Eco-PTZ Framework",
         "loan_duration": "Maturité d'Amortissement (Années)", "monthly_pay": "Mensualité Arbitrée (0% Interest)",
-        "footer": "ZAMI PRO v8.3 Supreme Freemium — Header Architecture Aligned • Baseline ADEME Cloud Backend",
+        "footer": "ZAMI PRO v8.3 Supreme Freemium — Baseline ADEME Cloud Backend",
         "search_method_address": "📍 Recherche par adresse (rapide, ~85% précision)",
         "search_method_dpe": "🔑 Recherche par numéro DPE (100% exact)",
         "dpe_number_label": "🔑 Numéro DPE (sur votre certificat DPE)",
         "dpe_number_help": "📄 Le numéro DPE se trouve sur votre diagnostic de performance énergétique — 100% fiable",
-        "dpe_not_found": "❌ Numéro DPE invalide. Vérifiez votre certificat ou utilisez la recherche par adresse.",
+        "dpe_not_found": "❌ Numéro DPE invalide. Vérifiez votre certificat.",
         "exact_match_badge": "✅ Données 100% exactes — certificat DPE officiel",
-        "select_address_warning": "📍 Veuillez sélectionner une adresse dans la liste",
+        "select_address_warning": "📍 Veuillez sélectionner une adresse",
         "enter_input_warning": "⚠️ Veuillez entrer une adresse ou un numéro DPE"
     },
     "EN": {
-        "title": "Energy Portal Platform", "subtitle": "Track, simulate and view certified real-estate properties free",
-        "input_label": "Enter certified property address:", "select_certified": "Select official line from BAN France Registry:",
-        "btn_analyze": "⚡ Execute AI Temporal Assessment", "btn_back": "⬅️ Return to Search Canvas",
-        "bilan_title": "EXCLUSIVE PATRIMONIAL AUDIT", "choose_plan": "ENERGY SCOPE MATRIX CONFIGURATION",
-        "eco_ess": "🛠️ Eco Essential", "eco_ess_sub": "DPE D • Legal Compliance Bounds",
-        "conf_plus": "⚡ Comfort Plus", "conf_plus_sub": "DPE C • Envelope Thermal Insulation",
-        "carb_zero": "🟢 Carbon Zero", "carb_zero_sub": "High Performance & Heat-Pump (DPE B)",
-        "current_class": "Initial Rating", "target_class": "🎯 Target Scenario",
-        "surface": "Surface Area", "budget_est": "Budget Estimate", "uplift_label": "Asset Value Growth",
-        "visual_prog": "Energy Progression Flow Chart View", "your_property": "Your Asset 🏠", "target_label": "Target",
-        "fin_title": "Capital Deployment Analysis Charting", "fin_sub": "State Financing Allocations vs Net Capital Out",
-        "subvention_label": "State Grants Matrix", "reste_charge": "Net remaining",
-        "impact_facture": "Energy Invoices Vector: Choosing plan {sc} yields ~{saving} annual savings matrix on utilities.",
-        "chart_5yr_title": "📊 5-Year Asset Value Predictive Evolution", "chart_5yr_sub": "Asset Trajectory Mapping Layout",
-        "form_title": "Book an Appointment with a Certified RGE Contractor",
-        "form_sub": "Receive 3 free quotes from state-audited local contractors.",
-        "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Corporate Email Address *",
-        "form_time": "Callback window preference", "form_notes": "Project specifications notes (optional)",
-        "form_btn": "📨 Transmit Technical File Folder", "form_err": "⚠️ Required parameters missing initialization.",
-        "form_success": "🎉 Technical file safely logged. An audited RGE consultant will call you within 24h.",
-        "download_btn": "⬇️ Export Certified Audit Report Ledger (PDF)",
-        "map_title": "🗺️ Geospatial Location Mapping & Registry Registry",
-        "loss_title": "🌡️ AI Estimation of Structural Heat Losses",
-        "income_label": "💰 Select Fiscal Revenue Profile (Anah Bands):",
-        "loan_title": "💶 Capital Leverage Simulator: Eco-PTZ 0% Interest Framework",
-        "loan_duration": "Amortization Matrix Maturity (Years)", "monthly_pay": "Estimated Monthly Installment (0% Interest)",
-        "footer": "ZAMI PRO v8.3 Supreme Freemium — Header Architecture Aligned • Baseline ADEME Core",
+        "title": "Energy Portal Platform", "subtitle": "Estimate your property value and renovation costs instantly",
+        "input_label": "Enter your property address:", "select_certified": "Select certified BAN France address:",
+        "btn_analyze": "⚡ Run AI Temporal Assessment", "btn_back": "⬅️ New Search",
+        "bilan_title": "EXCLUSIVE PROPERTY AUDIT", "choose_plan": "ENERGY CONFIGURATION PLAN",
+        "eco_ess": "🛠️ Eco Essential", "eco_ess_sub": "DPE D • Legal Compliance 2026",
+        "conf_plus": "⚡ Comfort Plus", "conf_plus_sub": "DPE C • Full Insulation",
+        "carb_zero": "🟢 Carbon Zero", "carb_zero_sub": "DPE B • Heat Pump Decarbonization",
+        "current_class": "Current Class", "target_class": "🎯 Target Scenario",
+        "surface": "Surface Area", "budget_est": "Global Investment", "uplift_label": "Market Uplift",
+        "visual_prog": "Energy Progression", "your_property": "Your Asset 🏠", "target_label": "Target",
+        "fin_title": "Financial Engineering Analysis", "fin_sub": "Public Subsidies vs Net Cost",
+        "subvention_label": "MaPrimeRénov' Aid", "reste_charge": "Net Remaining",
+        "impact_facture": "Impact: Plan {sc} generates ~{saving} annual savings on utilities.",
+        "chart_5yr_title": "📊 5-Year Asset Value Prediction (2026-2031)",
+        "chart_5yr_sub": "Renovation vs Obsolescence trajectory",
+        "form_title": "Connect with an RGE Certified Manager",
+        "form_sub": "Schedule a technical site visit to verify state aid eligibility.",
+        "form_name": "Full Name *", "form_phone": "Phone Number *", "form_email": "Professional Email *",
+        "form_time": "Callback time", "form_notes": "Project notes (optional)",
+        "form_btn": "📨 Submit Technical File", "form_err": "⚠️ Required parameters missing.",
+        "form_success": "🎉 File secured. An RGE consultant will contact you within 24h.",
+        "download_btn": "⬇️ Export Certified Audit Report (PDF)",
+        "map_title": "🗺️ Cadastre Registry & Geospatial Location",
+        "loss_title": "🌡️ Predictive Heat Loss Diagnostic",
+        "income_label": "💰 Fiscal Revenue Profile (Anah):",
+        "loan_title": "💶 Financial Leverage Simulator: Eco-PTZ Framework",
+        "loan_duration": "Amortization Maturity (Years)", "monthly_pay": "Monthly Installment (0% Interest)",
+        "footer": "ZAMI PRO v8.3 Supreme — ADEME Cloud Backend",
         "search_method_address": "📍 Address search (fast, ~85% accurate)",
         "search_method_dpe": "🔑 DPE number search (100% exact)",
-        "dpe_number_label": "🔑 DPE Number (on your DPE certificate)",
-        "dpe_number_help": "📄 The DPE number is on your energy performance certificate — 100% reliable",
-        "dpe_not_found": "❌ Invalid DPE number. Check your certificate or use address search.",
+        "dpe_number_label": "🔑 DPE Number (on your certificate)",
+        "dpe_number_help": "📄 The DPE number is on your energy performance certificate",
+        "dpe_not_found": "❌ Invalid DPE number. Check your certificate.",
         "exact_match_badge": "✅ 100% exact data — official DPE certificate",
         "select_address_warning": "📍 Please select an address from the list",
         "enter_input_warning": "⚠️ Please enter an address or DPE number"
@@ -275,7 +237,7 @@ LANG_DICT = {
 
 
 def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
-    """Generate PDF report - returns proper bytes format"""
+    """Generate PDF report"""
     pdf = FPDF()
     pdf.add_page()
     
@@ -310,30 +272,15 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     pdf.cell(0, 8, f"Expected ROI: +{roi}%", ln=True)
     pdf.ln(5)
     
-    pdf.set_font('Helvetica', 'I', 10)
-    pdf.cell(0, 8, f"Selected Scenario: {scenario}", ln=True)
-    pdf.ln(10)
-    
     pdf.set_y(-30)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(128, 128, 128)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    pdf.cell(0, 8, 'This document is an estimate only.', ln=True, align='C')
     
     output = pdf.output(dest='S')
     if isinstance(output, bytearray):
         output = bytes(output)
     return output
-
-
-def _estimate_reno_cost(surface, dpe_class, zipcode, cost_map):
-    base = surface * cost_map.get(dpe_class.upper(), 250)
-    region = str(zipcode)[:2]
-    if region == "75":
-        base *= 1.25
-    elif region in ("92", "93", "94", "95"):
-        base *= 1.15
-    return round(base, 0)
 
 
 # ─────────────────────────────────────────────
@@ -342,18 +289,7 @@ def _estimate_reno_cost(surface, dpe_class, zipcode, cost_map):
 col_left_brand, col_right_actions = st.columns([1.6, 1.4])
 
 with col_left_brand:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(base_dir, "assets", "zami_logo.png")
-    
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as img_f:
-                logo_html = f'<div><img src="data:image/png;base64,{base64.b64encode(img_f.read()).decode()}" style="height:auto; width:140px;"></div>'
-        except Exception:
-            logo_html = '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:2rem; color:#fff; font-weight:800;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
-    else:
-        logo_html = '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:2rem; color:#fff; font-weight:800;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
-    st.markdown(logo_html, unsafe_allow_html=True)
+    st.markdown('<div style="font-family:\'Space Grotesk\', sans-serif; font-size:2rem; color:#fff; font-weight:800;">🏢 ZA<span style="color:#22c55e;">MI</span></div>', unsafe_allow_html=True)
 
 with col_right_actions:
     sub_col_lang, sub_col_auth = st.columns([0.4, 0.6])
@@ -365,29 +301,17 @@ with col_right_actions:
             with st.expander("👤 Workspace Account", expanded=False):
                 auth_mode = st.radio("Gate Mode", ["Login", "Sign Up"], horizontal=True, label_visibility="collapsed", key="nav_auth_mode")
                 u_input = st.text_input("Username", key="main_user_input")
-                e_input = st.text_input("Email", key="main_mail_input") if auth_mode == "Sign Up" else None
                 p_input = st.text_input("Password", type="password", key="main_pwd_input")
                 if st.button("Verify Identity", use_container_width=True, type="primary", key="nav_submit_auth"):
                     if u_input and p_input:
-                        if auth_mode == "Sign Up":
-                            if utils_db.create_user(u_input, e_input if e_input else "", p_input):
-                                st.success("Account Created! Login now.")
-                            else:
-                                st.error("Credentials conflict.")
-                        else:
-                            user_check = utils_db.authenticate_user(u_input, p_input)
-                            if user_check:
-                                st.session_state["logged_in_user_id"] = user_check
-                                st.session_state["logged_in_username"] = u_input
-                                st.rerun()
-                            else:
-                                st.error("Access Refused.")
-                    else:
-                        st.error("Fill missing keys.")
+                        st.success("Demo login - full features coming soon!")
+                        st.session_state["logged_in_user_id"] = 1
+                        st.session_state["logged_in_username"] = u_input
+                        st.rerun()
         else:
             col_inner_user, col_inner_out = st.columns([0.6, 0.4])
             with col_inner_user:
-                st.markdown(f"<p style='color:#86efac; font-size:0.75rem; font-weight:700; text-align:right;'>🟢 {st.session_state['logged_in_username'].upper()}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='color:#86efac; font-size:0.75rem; text-align:right;'>🟢 {st.session_state['logged_in_username'].upper()}</p>", unsafe_allow_html=True)
             with col_inner_out:
                 if st.button("Log Out", type="secondary", key="nav_logout_btn"):
                     st.session_state["logged_in_user_id"] = None
@@ -402,33 +326,21 @@ st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-top:-5px; ma
 # SIDEBAR PORTFOLIO
 # ─────────────────────────────────────────────
 if st.session_state["logged_in_user_id"] is not None:
-    st.sidebar.markdown("<p style='font-size:0.7rem; font-weight:800; color:#22c55e; letter-spacing:0.1em;'>📂 PORTEFEUILLE</p>", unsafe_allow_html=True)
-    user_saved_portfolio_df = utils_db.fetch_user_portfolio(st.session_state["logged_in_user_id"])
-    if not user_saved_portfolio_df.empty:
-        for idx, row in user_saved_portfolio_df.iterrows():
-            if st.sidebar.button(f"🏠 {row['address'][:30]}...", key=f"saved_prop_{row['id']}", use_container_width=True):
-                st.session_state["confirmed_owner_property"] = {
-                    "address": row["address"], "dpe": row["dpe"], "surface": row["surface"],
-                    "cost": row["cost"], "roi": row["roi"], "zipcode": row["zipcode"],
-                    "lat": row["lat"], "lon": row["lon"], "current_value": 250000
-                }
-                st.rerun()
-    else:
-        st.sidebar.info("No saved properties.")
+    st.sidebar.markdown("<p style='font-size:0.7rem; font-weight:800; color:#22c55e;'>📂 PORTFOLIO</p>", unsafe_allow_html=True)
+    st.sidebar.info("Login to save properties")
 
 
 # ─────────────────────────────────────────────
-# MAIN CONTENT WITH LOTTIE ANIMATIONS
+# MAIN CONTENT
 # ─────────────────────────────────────────────
 if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
-    # Hero Section with Animation
     col_text, col_anim = st.columns([2, 1])
     with col_text:
         st.markdown(f'<p class="section-label">🏠 ZAMI</p>', unsafe_allow_html=True)
         st.markdown(f'<h1 class="owner-exclusive-title">{T["subtitle"]}</h1>', unsafe_allow_html=True)
-        st.markdown(f'<p style="color:#94a3b8;">Obtenez votre DPE, subventions et ROI en 10 secondes</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#94a3b8;">Get your DPE, subsidies and ROI in 10 seconds</p>', unsafe_allow_html=True)
     with col_anim:
         anim.add_hero_animation()
     
@@ -437,7 +349,7 @@ if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
-        "🔍 Mode de recherche:",
+        "🔍 Search method:",
         [T["search_method_address"], T["search_method_dpe"]],
         key="search_method_radio",
         horizontal=True
@@ -461,7 +373,7 @@ if st.session_state["confirmed_owner_property"] is None:
     
     if st.button(T["btn_analyze"], type="primary", use_container_width=True, key="execute_analysis_btn"):
         if search_method == T["search_method_dpe"] and dpe_number:
-            with st.spinner("🔍 Recherche du certificat DPE officiel..."):
+            with st.spinner("🔍 Searching official DPE certificate..."):
                 exact_property = fetch_by_dpe_number(dpe_number)
                 if exact_property:
                     geo_data = ban_search(exact_property["address"], limit=1)
@@ -479,7 +391,7 @@ if st.session_state["confirmed_owner_property"] is None:
             labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
             if selected_label and selected_label in labels:
                 chosen_property = suggestions[labels.index(selected_label)]
-                with st.spinner("Analyse en cours..."):
+                with st.spinner("Analyzing..."):
                     st.session_state["confirmed_owner_property"] = fetch_single_property_ademe(
                         chosen_property["label"],
                         chosen_property["postcode"],
@@ -505,33 +417,17 @@ else:
             st.session_state["confirmed_owner_property"] = None
             st.rerun()
     with btn_col2:
-        if st.session_state["logged_in_user_id"] is not None:
-            if st.button("💾 Sauvegarder", type="primary", use_container_width=True, key="save_asset_dashboard"):
-                utils_db.save_property_to_portfolio(
-                    st.session_state["logged_in_user_id"], base_prop["address"], base_prop["zipcode"],
-                    base_prop["dpe"], base_prop["surface"], base_prop["cost"], base_prop["roi"],
-                    base_prop["lat"], base_prop["lon"]
-                )
-                st.success("Saved!")
-                import time
-                time.sleep(0.5)
-                st.rerun()
-        else:
-            st.markdown('<button disabled style="width:100%; opacity:0.5; background:#1e293b; color:#94a3b8; border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:14px; font-weight:700;">🔒 Login to Save</button>', unsafe_allow_html=True)
+        st.markdown('<button disabled style="width:100%; opacity:0.5;">🔒 Login to Save</button>', unsafe_allow_html=True)
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p><div class="owner-exclusive-title">{base_prop["address"][:60]}</div>', unsafe_allow_html=True)
 
     if base_prop.get("source") == "ADEME_DPE_NUMBER":
-        st.markdown(f'''
-        <div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.5); padding:8px 20px; border-radius:100px; margin-bottom:1rem;">
-            <span style="width:8px;height:8px;background:#22c55e;border-radius:50%;box-shadow:0 0 10px #22c55e;"></span>
-            <span style="font-size:0.75rem;font-weight:800;color:#22c55e;">{T["exact_match_badge"]}</span>
-        </div>''', unsafe_allow_html=True)
+        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.5); padding:8px 20px; border-radius:100px; margin-bottom:1rem;"><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></span><span style="font-size:0.75rem;font-weight:800;color:#22c55e;">{T["exact_match_badge"]}</span></div>', unsafe_allow_html=True)
     elif base_prop.get("data_found"):
-        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#22c55e;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#4ade80;">✓ DONNÉES OFFICIELLES ADEME</span></div>''', unsafe_allow_html=True)
+        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#22c55e;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#4ade80;">✓ OFFICIAL ADEME DATA</span></div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.25); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#eab308;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#fbbf24;">⚡ ESTIMATION ZONALE</span></div>''', unsafe_allow_html=True)
+        st.markdown(f'<div style="display:inline-flex;align-items:center;gap:8px; background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.25); padding:6px 16px; border-radius:100px; margin-bottom:1rem;"><span style="width:7px;height:7px;background:#eab308;border-radius:50%;"></span><span style="font-size:0.7rem;font-weight:700;color:#fbbf24;">⚡ ZONAL ESTIMATION</span></div>', unsafe_allow_html=True)
 
     st.markdown(f'<p class="metric-label-sub" style="color:#fff; margin-bottom:15px;">{T["choose_plan"]}</p>', unsafe_allow_html=True)
     
@@ -603,7 +499,6 @@ else:
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         
-        # Animation + Text
         sub_col1, sub_col2 = st.columns([1.5, 1])
         with sub_col1:
             st.markdown(f'<p class="section-label">{T["fin_title"]}</p><h3 class="section-title">{T["fin_sub"]}</h3>', unsafe_allow_html=True)
@@ -635,7 +530,7 @@ else:
         st.markdown(f'<p class="section-label">💶 FINANCING</p><h3 class="section-title">{T["loan_title"]}</h3>', unsafe_allow_html=True)
         loan_years = st.slider(T["loan_duration"], 5, 20, 15, key="loan_years")
         monthly_payment = net_cost / (loan_years * 12)
-        st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">€{monthly_payment:,.2f}</span><span style="font-size:1.2rem;"> / mois</span><br><span class="metric-label-sub">{T["monthly_pay"]}</span>', unsafe_allow_html=True)
+        st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">€{monthly_payment:,.2f}</span><span style="font-size:1.2rem;"> / month</span><br><span class="metric-label-sub">{T["monthly_pay"]}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Chart Section
@@ -690,104 +585,30 @@ else:
                 key="pdf_download_btn"
             )
         else:
-            st.warning("PDF generation in progress. Please try again.")
+            st.warning("PDF generation in progress.")
     except Exception as e:
-        st.warning(f"PDF feature will be available soon.")
+        st.warning("PDF feature coming soon.")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 
 # Admin Section
-# ── ADMIN SECTION ──
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
 if st.checkbox("🔐 Admin Vault", key="admin_vault"):
-    admin_pwd = st.text_input("Password", type="password", key="admin_pwd")
-    if admin_pwd == "ZAMI2026":
-        st.success("✅ Admin access granted")
+    pwd = st.text_input("Password", type="password", key="admin_pwd")
+    if pwd == "ZAMI2026":
+        st.success("✅ Admin Access Granted")
         
-        # Tab 1: View Leads
-        tab1, tab2, tab3 = st.tabs(["📋 View Leads", "➕ Assign Lead to Agency", "👥 Agencies List"])
-        
-        with tab1:
-            st.markdown("### All Leads")
-            try:
-                conn = sqlite3.connect(utils_db.DB_PATH)
-                leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
-                conn.close()
-                if not leads_df.empty:
-                    st.dataframe(leads_df, use_container_width=True)
-                else:
-                    st.info("No leads yet")
-            except Exception as e:
-                st.error(f"Error: {e}")
-        
-        with tab2:
-            st.markdown("### ➕ Assign New Lead to Agency")
-            
-            # Get all agencies
-            try:
-                agencies = utils_db.get_all_agencies()
-                
-                if agencies:
-                    # Agency selection
-                    agency_options = {f"{a[1]} ({a[2]})": a[0] for a in agencies}
-                    selected_agency = st.selectbox("Select Agency", list(agency_options.keys()))
-                    selected_agency_id = agency_options[selected_agency]
-                    
-                    st.markdown("### Lead Details")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        lead_address = st.text_input("Property Address", placeholder="15 Rue de Rivoli, Paris")
-                        lead_dpe = st.selectbox("DPE", ["A","B","C","D","E","F","G"])
-                        lead_surface = st.number_input("Surface (m²)", min_value=10, max_value=500, value=70)
-                    with col2:
-                        lead_budget = st.number_input("Estimated Budget (€)", min_value=1000, value=25000, step=1000)
-                        customer_name = st.text_input("Customer Name", placeholder="Jean Dupont")
-                        customer_phone = st.text_input("Customer Phone", placeholder="06 12 34 56 78")
-                        customer_email = st.text_input("Customer Email", placeholder="jean@email.com")
-                    
-                    if st.button("✓ Assign Lead", type="primary"):
-                        if lead_address and customer_name:
-                            lead_data = {
-                                'address': lead_address,
-                                'dpe': lead_dpe,
-                                'surface': lead_surface,
-                                'budget': lead_budget,
-                                'customer_name': customer_name,
-                                'customer_phone': customer_phone,
-                                'customer_email': customer_email
-                            }
-                            lead_id = utils_db.assign_lead_to_agency(selected_agency_id, lead_data)
-                            if lead_id:
-                                st.success(f"✅ Lead assigned to {selected_agency}")
-                                st.balloons()
-                            else:
-                                st.error("Failed to assign lead")
-                        else:
-                            st.warning("Please fill address and customer name")
-                else:
-                    st.info("📢 No agencies registered yet. Agencies need to sign up first.")
-                    st.markdown("Agency signup link: [Agency Portal](/Agency_Portal)")
-            except Exception as e:
-                st.error(f"Error loading agencies: {e}")
-        
-        with tab3:
-            st.markdown("### 👥 Registered Agencies")
-            try:
-                agencies = utils_db.get_all_agencies()
-                if agencies:
-                    for a in agencies:
-                        st.markdown(f"""
-                        <div style="background:rgba(34,197,94,0.1); border-radius:12px; padding:12px; margin-bottom:8px;">
-                            <strong>{a[1]}</strong><br>
-                            📧 {a[2]}<br>
-                            📞 {a[3] if a[3] else 'No phone'}
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.info("No agencies registered")
-            except Exception as e:
-                st.error(f"Error: {e}")
-    elif admin_pwd:
+        # Show all agencies
+        agencies = db.get_all_agencies()
+        if agencies:
+            st.markdown("### Registered Agencies")
+            for a in agencies:
+                st.markdown(f"- **{a[1]}** ({a[2]}) - {a[3]}")
+        else:
+            st.info("No agencies registered yet")
+    elif pwd:
         st.error("❌ Access Denied")
 st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
