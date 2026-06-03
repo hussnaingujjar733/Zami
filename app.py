@@ -590,31 +590,43 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # PDF Download Section
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Download Professional Report</h3>', unsafe_allow_html=True)
-    try:
-        from utils_pdf import generate_professional_pdf
-        pdf_bytes = generate_professional_pdf(
-            property_data=base_prop,
-            scenario=current_scenario,
-            target_dpe=target_dpe,
-            active_cost=active_cost,
-            net_cost=net_cost,
-            subsidy=estimated_subsidy,
-            roi=active_roi
-        )
+    # PDF DOWNLOAD SECTION
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Download Property Report</h3>', unsafe_allow_html=True)
+
+try:
+    from utils_pdf import generate_professional_pdf
+    
+    pdf_bytes = generate_professional_pdf(
+        property_data=base_prop,
+        scenario=current_scenario,
+        target_dpe=target_dpe,
+        active_cost=active_cost,
+        net_cost=net_cost,
+        subsidy=estimated_subsidy if 'estimated_subsidy' in dir() else 0,
+        roi=active_roi
+    )
+    
+    # Check if PDF was generated successfully
+    if pdf_bytes and len(pdf_bytes) > 100:
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_bytes,
             file_name=f"ZAMI_Report_{base_prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
             mime="application/pdf",
             use_container_width=True,
-            key="pdf_download"
+            key="pdf_download_btn"
         )
-    except ImportError:
-        st.warning("Professional PDF module coming soon.")
-    st.markdown('</div>', unsafe_allow_html=True)
-
+        st.success("✓ PDF ready for download")
+    else:
+        st.warning("⚠️ PDF generation returned empty data. Please try again.")
+        
+except ImportError as e:
+    st.warning(f"PDF module not available: {e}")
+except Exception as e:
+    st.error(f"Could not generate PDF. Please contact support.")
+    
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Admin Section
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
