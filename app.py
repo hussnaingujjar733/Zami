@@ -717,3 +717,30 @@ if st.checkbox("🔐 Admin Vault", key="admin_vault"):
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
+# In admin section, after password check
+if st.checkbox("📋 Assign Lead to Agency"):
+    agencies = utils_db.get_all_agencies()
+    if agencies:
+        selected_agency = st.selectbox("Select Agency", agencies, format_func=lambda x: x[1])
+        
+        # Lead details
+        lead_address = st.text_input("Property Address")
+        lead_dpe = st.selectbox("DPE", ["A","B","C","D","E","F","G"])
+        lead_surface = st.number_input("Surface (m²)", min_value=10, max_value=500, value=70)
+        lead_budget = st.number_input("Estimated Budget (€)", min_value=1000, value=25000)
+        customer_name = st.text_input("Customer Name")
+        customer_phone = st.text_input("Customer Phone")
+        customer_email = st.text_input("Customer Email")
+        
+        if st.button("Assign Lead"):
+            lead_data = {
+                'address': lead_address,
+                'dpe': lead_dpe,
+                'surface': lead_surface,
+                'budget': lead_budget,
+                'customer_name': customer_name,
+                'customer_phone': customer_phone,
+                'customer_email': customer_email
+            }
+            utils_db.assign_lead_to_agency(selected_agency[0], lead_data)
+            st.success("Lead assigned to agency!")
