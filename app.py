@@ -135,7 +135,7 @@ LANG_DICT = {
         "loan_sub": "Financez votre reste à charge à 0% d'intérêt",
         "loan_duration": "Durée du Prêt (Années)",
         "monthly_pay": "Mensualité Estimée",
-        "footer": "ZAMI v7.3 Elite Supreme — BAN Search Resolved • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.3 Elite Supreme — State Error Resolved • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -189,7 +189,7 @@ LANG_DICT = {
         "loan_sub": "Finance your remaining out-of-pocket cost with 0% interest",
         "loan_duration": "Loan Duration (Years)",
         "monthly_pay": "Estimated Monthly Payment",
-        "footer": "ZAMI v7.3 Elite Supreme — BAN Search Resolved • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.3 Elite Supreme — State Error Resolved • Certified ADEME & BAN France Data"
     }
 }
 
@@ -223,7 +223,14 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── 🔍 FIXED FEATURE: RE-INJECTED BAN SEARCH HANDLER FOR LAT/LON PARSING ──
+# ── 🚨 HARDENED STATE CONFIG AUTO-INITIALIZER (CRITICAL FIX FOR ATTRIBUTEERROR) ──
+if "confirmed_owner_property" not in st.session_state:
+    st.session_state["confirmed_owner_property"] = None
+if "address_suggestions" not in st.session_state:
+    st.session_state["address_suggestions"] = []
+if "selected_scenario" not in st.session_state:
+    st.session_state["selected_scenario"] = "Essential"
+
 def safe_get(url, params=None, timeout=10):
     try:
         r = requests.get(url, params=params, timeout=timeout)
@@ -251,7 +258,6 @@ def ban_search(query: str, limit: int = 5):
         })
     return results
 
-# ── 🤖 ML MODEL VECTOR ALLOCATIONS ──
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
 _SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
 _SCENARIO_TARGET_DPE     = {"Essential": "D", "Plus": "C", "Zero": "B"}
@@ -331,7 +337,7 @@ st.markdown(f"""
 # ─────────────────────────────────────────────
 # 🎯 SEARCH ENGINE WORKFLOW
 # ─────────────────────────────────────────────
-if st.session_state.confirmed_owner_property is None:
+if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["title"]}</p><p class="section-title">{T["subtitle"]}</p>', unsafe_allow_html=True)
     
@@ -339,9 +345,9 @@ if st.session_state.confirmed_owner_property is None:
     
     if search_query and len(search_query.strip()) >= 3:
         with st.spinner("Mapping BAN Engine Infrastructure..."):
-            st.session_state.address_suggestions = ml.ban_search(search_query) if (ML_BACKEND_READY and hasattr(ml, 'ban_search')) else ban_search(search_query)
+            st.session_state["address_suggestions"] = ml.ban_search(search_query) if (ML_BACKEND_READY and hasattr(ml, 'ban_search')) else ban_search(search_query)
             
-    suggestions = st.session_state.address_suggestions
+    suggestions = st.session_state["address_suggestions"]
     if suggestions:
         labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
         selected_label = st.selectbox(T["select_certified"], labels, key="owner_label_select")
@@ -349,7 +355,7 @@ if st.session_state.confirmed_owner_property is None:
         
         if st.button(T["btn_analyze"], type="primary", use_container_width=True):
             property_data = fetch_single_property_ademe(chosen_property["label"], chosen_property["postcode"], chosen_property["lat"], chosen_property["lon"])
-            st.session_state.confirmed_owner_property = property_data
+            st.session_state["confirmed_owner_property"] = property_data
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -357,13 +363,13 @@ if st.session_state.confirmed_owner_property is None:
 # 🌟 PREMIUM MASTER COCKPIT INTERFACE
 # ─────────────────────────────────────────────
 else:
-    base_prop = st.session_state.confirmed_owner_property
+    base_prop = st.session_state["confirmed_owner_property"]
     dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
     if st.button(T["btn_back"], key="reset_owner_flow"):
-        st.session_state.confirmed_owner_property = None
-        st.session_state.address_suggestions = []
-        st.session_state.selected_scenario = "Essential"
+        st.session_state["confirmed_owner_property"] = None
+        st.session_state["address_suggestions"] = []
+        st.session_state["selected_scenario"] = "Essential"
         st.rerun()
         
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -372,24 +378,24 @@ else:
     
     sc_col1, sc_col2, sc_col3 = st.columns(3)
     with sc_col1:
-        is_ess = (st.session_state.selected_scenario == "Essential")
+        is_ess = (st.session_state["selected_scenario"] == "Essential")
         st.markdown(f'<div class="card {"scenario-card-active" if is_ess else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["eco_ess"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["eco_ess_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Essential", key="btn_sc_ess", use_container_width=True):
-            st.session_state.selected_scenario = "Essential"; st.rerun()
+            st.session_state["selected_scenario"] = "Essential"; st.rerun()
     with sc_col2:
-        is_plus = (st.session_state.selected_scenario == "Plus")
+        is_plus = (st.session_state["selected_scenario"] == "Plus")
         st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["conf_plus_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Comfort Plus", key="btn_sc_plus", use_container_width=True):
-            st.session_state.selected_scenario = "Plus"; st.rerun()
+            st.session_state["selected_scenario"] = "Plus"; st.rerun()
     with sc_col3:
-        is_zero = (st.session_state.selected_scenario == "Zero")
+        is_zero = (st.session_state["selected_scenario"] == "Zero")
         st.markdown(f'<div class="card {"scenario-card-active" if is_zero else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["carb_zero"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["carb_zero_sub"]}</span></div>', unsafe_allow_html=True)
         if st.button("Select Carbon Zero", key="btn_sc_zero", use_container_width=True):
-            st.session_state.selected_scenario = "Zero"; st.rerun()
+            st.session_state["selected_scenario"] = "Zero"; st.rerun()
 
     st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 1.5rem 0;">', unsafe_allow_html=True)
 
-    current_scenario = st.session_state.selected_scenario
+    current_scenario = st.session_state["selected_scenario"]
     active_cost = round(base_prop["cost"] * _SCENARIO_COST_MULTIPLIER[current_scenario], 0)
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
