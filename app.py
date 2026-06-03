@@ -137,7 +137,7 @@ LANG_DICT = {
         "loan_sub": "Financez votre reste à charge à 0% d'intérêt",
         "loan_duration": "Durée du Prêt (Années)",
         "monthly_pay": "Mensualité Estimée",
-        "footer": "ZAMI v7.5 Ultimate — Système Global Intégré • Données Certifiées ADEME & BAN France"
+        "footer": "ZAMI v7.6 Ultimate — Verified Complete Engine • Données Certifiées ADEME & BAN France"
     },
     "EN": {
         "title": "Property Energy Portal",
@@ -191,12 +191,12 @@ LANG_DICT = {
         "loan_sub": "Finance your remaining out-of-pocket cost with 0% interest",
         "loan_duration": "Loan Duration (Years)",
         "monthly_pay": "Estimated Monthly Payment",
-        "footer": "ZAMI v7.5 Ultimate — Integrated Global System • Certified ADEME & BAN France Data"
+        "footer": "ZAMI v7.6 Ultimate — Verified Complete Engine • Certified ADEME & BAN France Data"
     }
 }
 
 # ─────────────────────────────────────────────
-# GLOBAL STYLES — Ultra Luxury Dark Theme
+# GLOBAL STYLES
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -205,6 +205,7 @@ st.markdown("""
 #MainMenu, footer, header { visibility: hidden; }
 html, body, .stApp { background: #04060a; color: #e2e8f0; font-family: 'DM Sans', sans-serif; }
 .brand-header-flex { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1.2rem; margin-bottom: 2rem; width: 100%; }
+.logo-img-container img { height: auto; width: 140px; }
 .brand-status-tag { background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2); padding: 7px 15px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; color: #86efac; letter-spacing: 0.05em; }
 h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 .card { background: linear-gradient(145deg, rgba(10,13,22,0.98), rgba(15,19,32,0.92)); border: 1px solid rgba(148,163,184,0.07); border-radius: 20px; padding: 2rem 2.2rem; box-shadow: 0 25px 60px rgba(0,0,0,0.45); margin-bottom: 1.5rem; }
@@ -219,12 +220,12 @@ h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── 🚨 STATE AUTO-INITIALIZER ──
+# ── 🚨 STATE STORAGE CONFIG AUTO-GUARD ──
 if "confirmed_owner_property" not in st.session_state: st.session_state["confirmed_owner_property"] = None
 if "address_suggestions" not in st.session_state: st.session_state["address_suggestions"] = []
 if "selected_scenario" not in st.session_state: st.session_state["selected_scenario"] = "Essential"
 
-# ── BAN SEARCH ──
+# ── BAN SEARCH API CONNECTOR ──
 def safe_get(url, params=None, timeout=10):
     try:
         r = requests.get(url, params=params, timeout=timeout)
@@ -245,6 +246,7 @@ def ban_search(query: str, limit: int = 5):
         results.append({"label": p.get("label", ""), "postcode": p.get("postcode", ""), "city": p.get("city", ""), "lon": c[0], "lat": c[1]})
     return results
 
+# COEFFICIENTS LOGIC INTERFACES
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
 _SCENARIO_ROI_MULTIPLIER  = {"Essential": 1.0, "Plus": 1.45, "Zero": 1.95}
 _SCENARIO_TARGET_DPE     = {"Essential": "D", "Plus": "C", "Zero": "B"}
@@ -277,18 +279,47 @@ def generate_zami_pdf_bytes(prop_details, sc, target_dpe, cost, subsidy, net, la
     pdf.rect(0, 0, 210, 45, 'F')
     pdf.set_font("Helvetica", "B", 24)
     pdf.set_text_color(255, 255, 255)
-    pdf.text(15, 28, "ZAMI | COCKPIT REPORT")
+    pdf.text(15, 28, "ZAMI | ELITE CORE REPORT")
+    pdf.set_y(55)
+    pdf.set_text_color(5, 7, 12)
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, "RAPPORT DE CERTIFICATION ELITE" if lang=="FR" else "ELITE ENERGY CONVERSION AUDIT", ln=True)
+    pdf.set_font("Helvetica", "", 11)
+    pdf.ln(5)
+    pdf.cell(0, 7, f"Adresse : {prop_details['address']}", ln=True)
+    pdf.cell(0, 7, f"Surface Habitable : {prop_details['surface']} m2", ln=True)
+    pdf.cell(0, 7, f"Plan Selectionne : {sc} (Target DPE {target_dpe})", ln=True)
+    pdf.cell(0, 7, f"Budget Travaux Global Estime : EUR {cost:,.0f}", ln=True)
+    pdf.cell(0, 7, f"Reste a Charge Net : EUR {net:,.0f}", ln=True)
     return pdf.output()
 
-# ── 🏢 HEADER LAYER ──
+# ── 🏢 HEADER & DYNAMIC PNG LOGO CONVERSION ──
 col_logo, col_lang = st.columns([2.5, 0.5])
 with col_lang: selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed")
 T = LANG_DICT[selected_lang]
 
-st.markdown(f"""<div class="brand-header-flex" style="margin-top:-30px;"><div style="font-family:'DM Serif Display', serif; font-size:2.2rem; color:#fff;">🏢 ZA<span style="color:#22c55e;">MI</span></div><div><span class="brand-status-tag">ZAMI SUPREME V7.5 FULL ACTIVE</span></div></div>""", unsafe_allow_html=True)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(base_dir, "assets", "zami_logo.png")
+
+if os.path.exists(logo_path):
+    try:
+        with open(logo_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+        logo_html = f'<div class="logo-img-container"><img src="data:image/png;base64,{encoded_string}"></div>'
+    except Exception:
+        logo_html = '<div style="font-family:\'DM Sans\', serif; font-size:2.2rem; color:#fff; font-weight:700;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
+else:
+    logo_html = '<div style="font-family:\'DM Sans\', serif; font-size:2.2rem; color:#fff; font-weight:700;">🏢 ZA<span style="color:#22c55e;">MI</span></div>'
+
+st.markdown(f"""
+<div class="brand-header-flex" style="margin-top:-30px;">
+    {logo_html}
+    <div><span class="brand-status-tag">ZAMI ELITE V7.6 FULL SYSTEMS VERIFIED</span></div>
+</div>
+""", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# SEARCH BLOCK
+# 🎯 SEARCH ENGINE REPOSITORY
 # ─────────────────────────────────────────────
 if st.session_state["confirmed_owner_property"] is None:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -307,7 +338,7 @@ if st.session_state["confirmed_owner_property"] is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# COCKPIT ENGINE RENDER
+# 🌟 MASTER METRICS INTERFACE COCKPIT
 # ─────────────────────────────────────────────
 else:
     base_prop = st.session_state["confirmed_owner_property"]
@@ -319,24 +350,18 @@ else:
     
     sc_col1, sc_col2, sc_col3 = st.columns(3)
     with sc_col1:
-        is_ess = (st.session_state["selected_scenario"] == "Essential")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_ess else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["eco_ess"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["eco_ess_sub"]}</span></div>', unsafe_allow_html=True)
-        if st.button("Select Essential", key="btn_sc_ess", use_container_width=True): st.session_state["selected_scenario"] = "Essential"; st.rerun()
+        if st.button(T["eco_ess"], key="sc_ess", use_container_width=True): st.session_state["selected_scenario"] = "Essential"; st.rerun()
     with sc_col2:
-        is_plus = (st.session_state["selected_scenario"] == "Plus")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_plus else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["conf_plus"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["conf_plus_sub"]}</span></div>', unsafe_allow_html=True)
-        if st.button("Select Comfort Plus", key="btn_sc_plus", use_container_width=True): st.session_state["selected_scenario"] = "Plus"; st.rerun()
+        if st.button(T["conf_plus"], key="sc_plus", use_container_width=True): st.session_state["selected_scenario"] = "Plus"; st.rerun()
     with sc_col3:
-        is_zero = (st.session_state["selected_scenario"] == "Zero")
-        st.markdown(f'<div class="card {"scenario-card-active" if is_zero else ""}" style="padding:1.2rem; margin-bottom:0.5rem; text-align:center;"><strong>{T["carb_zero"]}</strong><br><span style="font-size:0.8rem;color:#94a3b8;">{T["carb_zero_sub"]}</span></div>', unsafe_allow_html=True)
-        if st.button("Select Carbon Zero", key="btn_sc_zero", use_container_width=True): st.session_state["selected_scenario"] = "Zero"; st.rerun()
+        if st.button(T["carb_zero"], key="sc_zero", use_container_width=True): st.session_state["selected_scenario"] = "Zero"; st.rerun()
 
     current_scenario = st.session_state["selected_scenario"]
     active_cost = round(base_prop["cost"] * _SCENARIO_COST_MULTIPLIER[current_scenario], 0)
     active_roi  = round(base_prop["roi"] * _SCENARIO_ROI_MULTIPLIER[current_scenario], 1)
     target_dpe  = _SCENARIO_TARGET_DPE[current_scenario]
 
-    # ✅ RESTORED BADGES LAYOUT MATRIX
+    # Badges Matrix Rows
     col_left_dpe, col_right_metrics = st.columns([0.9, 2.1], gap="large")
     with col_left_dpe:
         st.markdown('<div style="text-align: center; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius:20px;">', unsafe_allow_html=True)
@@ -351,7 +376,6 @@ else:
         with m_col2: st.markdown(f'<span class="metric-value-huge" style="color:#f1f5f9;">€{active_cost:,.0f}</span><br><span class="metric-label-sub">{T["budget_est"]}</span>', unsafe_allow_html=True)
         with m_col3: st.markdown(f'<span class="metric-value-huge" style="color:#22c55e;">+{active_roi}%</span><br><span class="metric-label-sub">{T["uplift_label"]}</span>', unsafe_allow_html=True)
 
-        # ✅ RESTORED ENERGY PROGRESSION GAUGE LINE 
         st.markdown(f'<br><p class="metric-label-sub" style="color:#fff; font-weight:600; margin-bottom:5px;">{T["visual_prog"]}</p>', unsafe_allow_html=True)
         dpe_sequence = ["G", "F", "E", "D", "C", "B", "A"]
         if base_prop["dpe"] in dpe_sequence and target_dpe in dpe_sequence:
@@ -367,7 +391,7 @@ else:
             st.plotly_chart(fig_progress, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 🗺️ TOKENLESS GEOSPATIAL MAP ENGINE (FOLIUM RESTORED COMPACT)
+    # ── 🗺️ FOLIUM GEOSPATIAL RE-ENGINEERED MAP HUB ──
     st.markdown('<div class="card">', unsafe_allow_html=True)
     col_map_h, col_map_t = st.columns([2.0, 1.0])
     with col_map_h: st.markdown(f'<p class="section-label">Geospatial Registry</p><p class="section-title">{T["map_title"]}</p>', unsafe_allow_html=True)
@@ -377,12 +401,12 @@ else:
     if map_style_selection == "High-Res Satellite View":
         folium.TileLayer(tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='Esri', name='Satellite').add_to(f_map)
     else:
-        folium.TileLayer('cartodbpositron', name='Dark').add_to(f_map)
+        folium.TileLayer('cartodbpositron', name='Dark Canvas').add_to(f_map)
     folium.Marker([base_prop["lat"], base_prop["lon"]], icon=folium.Icon(color='green', icon='home')).add_to(f_map)
     st_folium(f_map, use_container_width=True, height=340, returned_objects=[])
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── 🌡️ HEAT LOSS STRUCTURAL GRID
+    # ── 🌡️ THERMAL HEAT LOSS HORIZONTAL CORE
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">Thermal Architecture</p><p class="section-title">{T["loss_title"]}</p>', unsafe_allow_html=True)
     fig_loss = go.Figure(go.Bar(x=[30, 25, 15, 10], y=["Toiture (Roof)", "Murs (Walls)", "Fenêtres (Windows)", "Planchers (Floors)"], orientation='h', marker=dict(color=['#dc2626', '#ef4444', '#f97316', '#eab308']), text=[f"{val}%" for val in [30, 25, 15, 10]], textposition='auto'))
@@ -390,7 +414,7 @@ else:
     st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── ✅ RESTORED FINANCIALS SECTION WITH PIE CHART & DROPDOWN MATCHERS
+    # ── FINANCIAL MATRIX COCKPITS TRAJECTORY ──
     if active_cost > 0:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">{T["fin_title"]}</p><p class="section-title">{T["fin_sub"]}</p>', unsafe_allow_html=True)
@@ -417,7 +441,7 @@ else:
             st.markdown(f'<div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05);">{T["impact_facture"].format(sc=current_scenario, saving=energy_saving)}</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── ECO-PTZ LOAN SLIDER SIMULATOR LAYER
+        # ── ECO-PTZ RE-INTEGRATED SLIDER COMPONENT ──
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown(f'<p class="section-label">Financing Leverage</p><p class="section-title">{T["loan_title"]}</p>', unsafe_allow_html=True)
         loan_years_duration = st.slider(T["loan_duration"], 5, 20, 15)
@@ -431,7 +455,7 @@ else:
             st.plotly_chart(fig_gauge, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── ✅ RESTORED 5-YEAR LINE CHART FORECAST PREDICTIONS
+    # ── 5-YEAR LINE CHART FORECAST PREDICTIONS TRAJECTORIES ──
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["chart_5yr_title"]}</p><p class="section-title">{T["chart_5yr_sub"]}</p>', unsafe_allow_html=True)
     years_projection = ["2026", "2027", "2028", "2029", "2030", "2031"]
@@ -445,7 +469,7 @@ else:
     st.plotly_chart(fig_5yr, use_container_width=True, config={'displayModeBar': False})
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── LEAD CAPTURE SYSTEM INTAKE
+    # ── BUSINESS LEAD CAPTURE SYSTEM CONSOLE ──
     if active_cost > 0:
         st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.25); background: #080d14;">', unsafe_allow_html=True)
         st.markdown(f'<h3 style="color:#f8fafc; margin-top:0;">{T["form_title"]}</h3>', unsafe_allow_html=True)
@@ -469,7 +493,7 @@ else:
                 else: st.error(T["form_err"])
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── IN-MEMORY PDF REGENERATED EMBED BUTTON
+    # ── IN-MEMORY SEAMLESS PDF STREAM GENERATION ──
     st.markdown('<div class="card">', unsafe_allow_html=True)
     try:
         pdf_string_data = generate_zami_pdf_bytes(base_prop, current_scenario, target_dpe, active_cost, estimated_subsidy, net_cost, selected_lang)
@@ -478,16 +502,16 @@ else:
     except Exception: pass
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ── FAQ SECTIONS 
+# ── FAQ LEGAL BLOCKS
 st.markdown('<br>', unsafe_allow_html=True)
 st.markdown(f'<p class="section-label">FAQ & Law Hub</p><p class="section-title">{T["faq_title"]}</p>', unsafe_allow_html=True)
 if selected_lang == "FR":
-    with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"): st.markdown("Les logements classés **G** ne peuvent plus être loués...")
+    with st.expander("⚖️ Quels sont les risques de la Loi Climat pour les passoires thermiques (F & G) ?"): st.markdown("Les logements classés **G** ne peuvent plus être loués. Les classes **F** suivront. De plus, les loyers sont gelés tant que des travaux n'ont pas ramené le bien à la classe **D**.")
 else:
-    with st.expander("⚖️ What are the legal risks under the Climate Law?"): st.markdown("G rated homes are banned from rental markets...")
+    with st.expander("⚖️ What are the legal risks under the Climate Law?"): st.markdown("G rated homes are banned from rental markets soon under the energy passoire laws.")
 
 # ─────────────────────────────────────────────
-# 🛡️ PASSWORD PROTECTED ADMIN VAULT LAYER
+# 🛡️ PASSWORD PROTECTED LOCAL ADMIN VAULT LAYER
 # ─────────────────────────────────────────────
 st.markdown('<hr style="border-color:rgba(255,255,255,0.05); margin: 3rem 0;">', unsafe_allow_html=True)
 st.markdown('<p class="section-label">Contrôle Système Private</p>', unsafe_allow_html=True)
