@@ -698,49 +698,96 @@ else:
 
 
 # Admin Section
+# ── ADMIN SECTION ──
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
 if st.checkbox("🔐 Admin Vault", key="admin_vault"):
-    pwd = st.text_input("Password", type="password", key="admin_pwd")
-    if pwd == "ZAMI2026":
-        try:
-            conn = sqlite3.connect(utils_db.DB_PATH)
-            leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
-            conn.close()
-            if not leads_df.empty:
-                st.dataframe(leads_df, use_container_width=True)
-            else:
-                st.info("No leads yet.")
-        except Exception as e:
-            st.error(f"Error: {e}")
-    elif pwd:
-        st.error("Access Denied")
+    admin_pwd = st.text_input("Password", type="password", key="admin_pwd")
+    if admin_pwd == "ZAMI2026":
+        st.success("✅ Admin access granted")
+        
+        # Tab 1: View Leads
+        tab1, tab2, tab3 = st.tabs(["📋 View Leads", "➕ Assign Lead to Agency", "👥 Agencies List"])
+        
+        with tab1:
+            st.markdown("### All Leads")
+            try:
+                conn = sqlite3.connect(utils_db.DB_PATH)
+                leads_df = pd.read_sql_query("SELECT * FROM leads ORDER BY id DESC", conn)
+                conn.close()
+                if not leads_df.empty:
+                    st.dataframe(leads_df, use_container_width=True)
+                else:
+                    st.info("No leads yet")
+            except Exception as e:
+                st.error(f"Error: {e}")
+        
+        with tab2:
+            st.markdown("### ➕ Assign New Lead to Agency")
+            
+            # Get all agencies
+            try:
+                agencies = utils_db.get_all_agencies()
+                
+                if agencies:
+                    # Agency selection
+                    agency_options = {f"{a[1]} ({a[2]})": a[0] for a in agencies}
+                    selected_agency = st.selectbox("Select Agency", list(agency_options.keys()))
+                    selected_agency_id = agency_options[selected_agency]
+                    
+                    st.markdown("### Lead Details")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        lead_address = st.text_input("Property Address", placeholder="15 Rue de Rivoli, Paris")
+                        lead_dpe = st.selectbox("DPE", ["A","B","C","D","E","F","G"])
+                        lead_surface = st.number_input("Surface (m²)", min_value=10, max_value=500, value=70)
+                    with col2:
+                        lead_budget = st.number_input("Estimated Budget (€)", min_value=1000, value=25000, step=1000)
+                        customer_name = st.text_input("Customer Name", placeholder="Jean Dupont")
+                        customer_phone = st.text_input("Customer Phone", placeholder="06 12 34 56 78")
+                        customer_email = st.text_input("Customer Email", placeholder="jean@email.com")
+                    
+                    if st.button("✓ Assign Lead", type="primary"):
+                        if lead_address and customer_name:
+                            lead_data = {
+                                'address': lead_address,
+                                'dpe': lead_dpe,
+                                'surface': lead_surface,
+                                'budget': lead_budget,
+                                'customer_name': customer_name,
+                                'customer_phone': customer_phone,
+                                'customer_email': customer_email
+                            }
+                            lead_id = utils_db.assign_lead_to_agency(selected_agency_id, lead_data)
+                            if lead_id:
+                                st.success(f"✅ Lead assigned to {selected_agency}")
+                                st.balloons()
+                            else:
+                                st.error("Failed to assign lead")
+                        else:
+                            st.warning("Please fill address and customer name")
+                else:
+                    st.info("📢 No agencies registered yet. Agencies need to sign up first.")
+                    st.markdown("Agency signup link: [Agency Portal](/Agency_Portal)")
+            except Exception as e:
+                st.error(f"Error loading agencies: {e}")
+        
+        with tab3:
+            st.markdown("### 👥 Registered Agencies")
+            try:
+                agencies = utils_db.get_all_agencies()
+                if agencies:
+                    for a in agencies:
+                        st.markdown(f"""
+                        <div style="background:rgba(34,197,94,0.1); border-radius:12px; padding:12px; margin-bottom:8px;">
+                            <strong>{a[1]}</strong><br>
+                            📧 {a[2]}<br>
+                            📞 {a[3] if a[3] else 'No phone'}
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("No agencies registered")
+            except Exception as e:
+                st.error(f"Error: {e}")
+    elif admin_pwd:
+        st.error("❌ Access Denied")
 st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
-# In admin section, after password check
-if st.checkbox("📋 Assign Lead to Agency"):
-    agencies = utils_db.get_all_agencies()
-    if agencies:
-        selected_agency = st.selectbox("Select Agency", agencies, format_func=lambda x: x[1])
-        
-        # Lead details
-        lead_address = st.text_input("Property Address")
-        lead_dpe = st.selectbox("DPE", ["A","B","C","D","E","F","G"])
-        lead_surface = st.number_input("Surface (m²)", min_value=10, max_value=500, value=70)
-        lead_budget = st.number_input("Estimated Budget (€)", min_value=1000, value=25000)
-        customer_name = st.text_input("Customer Name")
-        customer_phone = st.text_input("Customer Phone")
-        customer_email = st.text_input("Customer Email")
-        
-        if st.button("Assign Lead"):
-            lead_data = {
-                'address': lead_address,
-                'dpe': lead_dpe,
-                'surface': lead_surface,
-                'budget': lead_budget,
-                'customer_name': customer_name,
-                'customer_phone': customer_phone,
-                'customer_email': customer_email
-            }
-            utils_db.assign_lead_to_agency(selected_agency[0], lead_data)
-            st.success("Lead assigned to agency!")
