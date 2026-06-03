@@ -590,16 +590,14 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # PDF Download Section
-   # PDF DOWNLOAD SECTION - DEBUG VERSION
+   # PDF DOWNLOAD SECTION - FIXED
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Download Property Report</h3>', unsafe_allow_html=True)
 
 try:
     from utils_pdf import generate_professional_pdf
     
-    st.write("Step 1: Import successful")
-    
-    pdf_bytes = generate_professional_pdf(
+    pdf_data = generate_professional_pdf(
         property_data=base_prop,
         scenario=current_scenario,
         target_dpe=target_dpe,
@@ -609,9 +607,14 @@ try:
         roi=active_roi
     )
     
-    st.write(f"Step 2: PDF generated, length = {len(pdf_bytes) if pdf_bytes else 0} bytes")
-    
-    if pdf_bytes and len(pdf_bytes) > 500:
+    # Ensure we have bytes
+    if pdf_data and isinstance(pdf_data, (bytes, bytearray)):
+        # Convert bytearray to bytes if needed
+        if isinstance(pdf_data, bytearray):
+            pdf_bytes = bytes(pdf_data)
+        else:
+            pdf_bytes = pdf_data
+            
         st.download_button(
             label="📥 Download PDF Report",
             data=pdf_bytes,
@@ -620,15 +623,14 @@ try:
             use_container_width=True,
             key="pdf_download_btn"
         )
-        st.success("✓ PDF ready")
+        st.success("✓ PDF ready for download")
     else:
-        st.error(f"PDF too small: {len(pdf_bytes) if pdf_bytes else 0} bytes")
+        st.warning("⚠️ PDF data not available. Please try again.")
         
 except Exception as e:
-    st.error(f"PDF Error: {type(e).__name__}: {str(e)}")
+    st.error(f"PDF Error: {str(e)}")
     
 st.markdown('</div>', unsafe_allow_html=True)
-
 # Admin Section
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
 if st.checkbox("🔐 Admin Vault", key="admin_vault"):
