@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import os
+import base64
 from datetime import datetime
 import plotly.graph_objects as go
 import pandas as pd
@@ -10,21 +11,34 @@ import data_store as db
 
 st.set_page_config(page_title="ZAMI Agency Portal", page_icon="🏢", layout="wide")
 
+
+# ─────────────────────────────────────────────
+# LOGO FUNCTION (Same as main app)
+# ─────────────────────────────────────────────
+def get_logo_html():
+    logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "zami_logo.png")
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, "rb") as img_f:
+                logo_base64 = base64.b64encode(img_f.read()).decode()
+                return f'<img src="data:image/png;base64,{logo_base64}" style="height:50px; width:auto;">'
+        except:
+            pass
+    return '<div style="font-family:\'Space Grotesk\', sans-serif; font-size:1.8rem; font-weight:800; color:#22c55e;">ZAMI</div>'
+
+
 # Custom CSS for premium look
 st.markdown("""
 <style>
-    /* Hide default Streamlit elements */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .stAppDeployButton {display: none;}
     
-    /* Premium Background */
     .stApp {
         background: linear-gradient(135deg, #0a0c15 0%, #0f1119 100%);
     }
     
-    /* Premium Card Style */
     .premium-card {
         background: linear-gradient(135deg, rgba(15, 25, 45, 0.8), rgba(10, 15, 30, 0.9));
         backdrop-filter: blur(15px);
@@ -41,7 +55,6 @@ st.markdown("""
         box-shadow: 0 20px 40px rgba(34, 197, 94, 0.1);
     }
     
-    /* Gradient Text */
     .gradient-text {
         background: linear-gradient(135deg, #22c55e, #16a34a, #22c55e);
         -webkit-background-clip: text;
@@ -49,7 +62,6 @@ st.markdown("""
         font-weight: 800;
     }
     
-    /* Stats Counter */
     .stat-number {
         font-size: 2.5rem;
         font-weight: 800;
@@ -58,32 +70,18 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
     }
     
-    /* Logo Animation */
     @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     .logo-container {
         animation: fadeInDown 0.6s ease-out;
     }
     
-    /* Welcome Animation */
     @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     .welcome-text {
@@ -99,26 +97,24 @@ if 'agency_logged_in' not in st.session_state:
     st.session_state['agency_name'] = None
 
 # ─────────────────────────────────────────────
-# LOGO SECTION
+# LOGO SECTION (Using same logo as main app)
 # ─────────────────────────────────────────────
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.markdown("""
+    st.markdown(f"""
     <div class="logo-container" style="text-align: center; padding: 20px 0;">
-        <div style="background: linear-gradient(135deg, #22c55e, #16a34a); width: 80px; height: 80px; border-radius: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 10px 30px rgba(34,197,94,0.3);">
-            <span style="font-size: 40px;">🏢</span>
-        </div>
-        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; margin: 0;">
-            ZAMI <span class="gradient-text">Agency</span>
+        {get_logo_html()}
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin: 10px 0 0 0;">
+            Agency <span style="color: #22c55e;">Portal</span>
         </h1>
-        <p style="color: #64748b; margin-top: 8px;">Professional Real Estate Partner Portal</p>
+        <p style="color: #64748b; margin-top: 5px;">Professional Real Estate Partner Portal</p>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("---")
 
 # ─────────────────────────────────────────────
-# LOGIN / SIGNUP SECTION (When not logged in)
+# LOGIN / SIGNUP SECTION
 # ─────────────────────────────────────────────
 if not st.session_state['agency_logged_in']:
     
@@ -184,7 +180,7 @@ if not st.session_state['agency_logged_in']:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# AGENCY DASHBOARD (When logged in)
+# AGENCY DASHBOARD
 # ─────────────────────────────────────────────
 else:
     # Header with agency info
@@ -245,22 +241,17 @@ else:
     
     st.markdown("---")
     
-    # Tabs for different sections
+    # Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 My Leads", "💬 Messages", "💰 Quotes", "📊 Analytics", "⚙️ Settings"])
     
-    # ─────────────────────────────────────────
     # TAB 1: MY LEADS
-    # ─────────────────────────────────────────
     with tab1:
         st.markdown("### 📋 Assigned Leads")
         
         if not leads:
             st.info("📭 No leads assigned yet. Check back soon!")
         else:
-            # Filter options
-            col_f1, col_f2, col_f3 = st.columns([1, 2, 1])
-            with col_f2:
-                status_filter = st.selectbox("Filter by Status", ["All", "Pending", "Accepted", "Rejected"], key="status_filter", label_visibility="collapsed")
+            status_filter = st.selectbox("Filter by Status", ["All", "Pending", "Accepted", "Rejected"], key="status_filter", label_visibility="collapsed")
             
             filter_map = {"All": "all", "Pending": "pending", "Accepted": "accepted", "Rejected": "rejected"}
             filter_value = filter_map.get(status_filter, "all")
@@ -282,13 +273,10 @@ else:
                 
                 if status == 'pending':
                     badge = "🟡 PENDING"
-                    badge_color = "#eab308"
                 elif status == 'accepted':
                     badge = "🟢 ACCEPTED"
-                    badge_color = "#22c55e"
                 else:
                     badge = "🔴 REJECTED"
-                    badge_color = "#ef4444"
                 
                 with st.expander(f"🏠 {address} - DPE: {dpe} - {badge}"):
                     col1, col2 = st.columns(2)
@@ -297,7 +285,6 @@ else:
                         st.write(f"• Surface: **{surface} m²**")
                         st.write(f"• Budget Estimé: **€{budget:,.0f}**")
                         st.write(f"• Current DPE: **{dpe}**")
-                    
                     with col2:
                         st.markdown(f"**👤 Client Information**")
                         st.write(f"• Name: **{customer_name}**")
@@ -319,16 +306,14 @@ else:
                         st.success("✅ Lead Accepted")
                         st.info("You can now message the client using the Messages tab.")
     
-    # ─────────────────────────────────────────
     # TAB 2: MESSAGES
-    # ─────────────────────────────────────────
     with tab2:
         st.markdown("### 💬 Client Messages")
         
         accepted_leads = [l for l in leads if l[9] == 'accepted'] if leads else []
         
         if not accepted_leads:
-            st.info("No accepted leads to message. Accept a lead first to start chatting.")
+            st.info("No accepted leads to message. Accept a lead first.")
         else:
             lead_options = {f"{l[2]} - {l[6]}": l[0] for l in accepted_leads}
             selected = st.selectbox("Select Client", list(lead_options.keys()), key="client_select")
@@ -336,7 +321,6 @@ else:
             
             st.markdown("---")
             
-            # Chat container
             st.markdown('<div class="premium-card" style="height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
             
             messages = db.get_messages(selected_lead_id)
@@ -358,9 +342,8 @@ else:
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Send message
             st.markdown("---")
-            new_msg = st.text_area("Type your message", key="new_msg", height=80, placeholder="Write your message here...")
+            new_msg = st.text_area("Type your message", key="new_msg", height=80)
             col_send1, col_send2, col_send3 = st.columns([1, 1, 1])
             with col_send2:
                 if st.button("📤 Send Message", type="primary", use_container_width=True):
@@ -369,9 +352,7 @@ else:
                         st.success("Message sent!")
                         st.rerun()
     
-    # ─────────────────────────────────────────
     # TAB 3: QUOTES
-    # ─────────────────────────────────────────
     with tab3:
         st.markdown("### 💰 Quotes & Proposals")
         
@@ -409,12 +390,11 @@ else:
                 if st.button("💰 Submit Quote", type="primary", use_container_width=True):
                     if quote_amount > 0 and quote_details:
                         db.add_quote(selected_lead_id, st.session_state['agency_id'], quote_amount, quote_details)
-                        st.success(f"✅ Quote of €{quote_amount:,.0f} submitted successfully!")
+                        st.success(f"✅ Quote of €{quote_amount:,.0f} submitted!")
                         st.balloons()
                     else:
                         st.warning("Please fill amount and details")
             
-            # Show existing quotes
             quotes = db.get_quotes_for_lead(selected_lead_id)
             if quotes:
                 st.markdown("---")
@@ -428,36 +408,24 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
     
-    # ─────────────────────────────────────────
     # TAB 4: ANALYTICS
-    # ─────────────────────────────────────────
     with tab4:
         st.markdown("### 📊 Performance Analytics")
         
         if leads:
-            # Pie chart
             fig = go.Figure(data=[go.Pie(
                 labels=['Pending', 'Accepted', 'Rejected'],
                 values=[pending, accepted, rejected],
                 marker=dict(colors=['#eab308', '#22c55e', '#ef4444']),
                 hole=0.4,
-                textinfo='label+percent',
-                textposition='auto'
+                textinfo='label+percent'
             )])
-            fig.update_layout(
-                height=400,
-                title="Lead Status Distribution",
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="white")
-            )
+            fig.update_layout(height=400, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
             st.plotly_chart(fig, use_container_width=True)
             
-            # Conversion rate
             conversion_rate = (accepted / total * 100) if total > 0 else 0
-            st.metric("🎯 Conversion Rate", f"{conversion_rate:.1f}%", delta=f"{conversion_rate - 50:.1f}% vs target")
+            st.metric("🎯 Conversion Rate", f"{conversion_rate:.1f}%")
             
-            # Monthly trend (sample)
             st.markdown("---")
             st.markdown("#### 📈 Lead Trend")
             months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
@@ -471,24 +439,15 @@ else:
                 fill='tozeroy',
                 fillcolor='rgba(34,197,94,0.1)'
             )])
-            fig_line.update_layout(
-                height=300,
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                xaxis=dict(title="Month", color="#64748b"),
-                yaxis=dict(title="Leads", color="#64748b")
-            )
+            fig_line.update_layout(height=300, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
             st.plotly_chart(fig_line, use_container_width=True)
-            
         else:
             st.info("No data yet. Start accepting leads to see analytics.")
     
-    # ─────────────────────────────────────────
     # TAB 5: SETTINGS
-    # ─────────────────────────────────────────
     with tab5:
         st.markdown("### ⚙️ Agency Settings")
-        st.info("Profile settings coming soon. You can update your contact information here.")
+        st.info("Profile settings coming soon.")
         
         st.markdown("---")
         st.markdown("#### 📞 Contact Information")
@@ -505,9 +464,9 @@ else:
         col_save1, col_save2, col_save3 = st.columns([1, 2, 1])
         with col_save2:
             if st.button("💾 Save Changes", type="primary", use_container_width=True):
-                st.success("Settings saved successfully!")
+                st.success("Settings saved!")
     
-    # Logout button at bottom
+    # Logout button
     st.markdown("---")
     col_logout1, col_logout2, col_logout3 = st.columns([1, 2, 1])
     with col_logout2:
