@@ -1,0 +1,40 @@
+# Secrets and config
+.streamlit/secrets.toml
+secrets.toml
+config.toml
+
+# Database and JSON files
+*.db
+*.sqlite
+*.sqlite3
+chat_messages.json
+agencies.json
+leads.json
+messages.json
+quotes.json
+dpe_chroma_db/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
