@@ -1,77 +1,44 @@
 """
-ai_features.py — ZAMI AI Features
-Contains: AI Chat Agent + PDF Q&A Chatbot
+ai_features.py — ZAMI AI Features (Simplified)
 """
 
 import streamlit as st
 import tempfile
 import os
 
-# Optional imports with try-except for graceful fallback
+# Try to import OpenAI
 try:
-    from langchain_openai import ChatOpenAI
-    from langchain_community.document_loaders import PyPDFLoader
-    from langchain_community.vectorstores import Chroma
-    from langchain_openai import OpenAIEmbeddings
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-    from langchain.memory import ConversationBufferMemory
-    from langchain.chains import RetrievalQA
-    LANGCHAIN_AVAILABLE = True
-except ImportError as e:
-    LANGCHAIN_AVAILABLE = False
-    print(f"LangChain import error: {e}")
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+# Try to import PDF processing
+try:
+    from pypdf import PdfReader
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
 
 
 # ============================================
 # CONFIGURATION
 # ============================================
 
-def get_llm():
-    """Get LLM instance from secrets"""
-    
-    if not LANGCHAIN_AVAILABLE:
-        return None
-    
-    # Try to get API key from Streamlit secrets
+def get_api_key():
+    """Get API key from secrets"""
     try:
-        openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
-        openai_key = st.secrets.get("OPENAI_API_KEY", "")
+        return st.secrets.get("OPENROUTER_API_KEY", "")
     except:
-        openrouter_key = ""
-        openai_key = ""
-    
-    # Use OpenAI if available
-    if openai_key:
-        try:
-            return ChatOpenAI(
-                model="gpt-3.5-turbo",
-                temperature=0.7,
-                api_key=openai_key
-            )
-        except Exception:
-            pass
-    
-    # Use OpenRouter as fallback (free)
-    if openrouter_key:
-        try:
-            return ChatOpenAI(
-                model="meta-llama/llama-3.2-3b-instruct:free",
-                temperature=0.7,
-                api_key=openrouter_key,
-                base_url="https://openrouter.ai/api/v1"
-            )
-        except Exception:
-            pass
-    
-    return None
+        return ""
 
 
 # ============================================
-# FEATURE 1: AI CHAT AGENT
+# FEATURE 1: AI CHAT AGENT (Without LangChain)
 # ============================================
 
 def ai_chat_agent():
-    """Simple AI chat agent for property renovation questions"""
+    """Simple AI chat agent using direct OpenAI call"""
     
     st.markdown("""
     <div style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.05)); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
@@ -85,46 +52,36 @@ def ai_chat_agent():
     </div>
     """, unsafe_allow_html=True)
     
-    if not LANGCHAIN_AVAILABLE:
-        st.error("❌ AI features not available. Packages are being installed.")
-        st.info("Please wait 2-3 minutes and refresh the page. If issue persists, contact support.")
+    if not OPENAI_AVAILABLE:
+        st.error("❌ OpenAI package not installed. Please wait for deployment to complete.")
         return
     
-    llm = get_llm()
+    api_key = get_api_key()
     
-    if not llm:
-        st.warning("⚠️ AI features require API key configuration.")
+    if not api_key:
+        st.warning("⚠️ API key not configured.")
         st.info("""
-        ### How to set up AI features:
+        ### How to set up:
         1. Get a free API key from [OpenRouter](https://openrouter.io/keys)
-        2. Add it to Streamlit Cloud Secrets:
-           - Go to your app settings
-           - Add `OPENROUTER_API_KEY` = "your-key-here"
+        2. Go to Streamlit Cloud Settings → Secrets
+        3. Add: `OPENROUTER_API_KEY = "your-key-here"`
         """)
         return
     
-    # Initialize session state for chat history
+    # Configure OpenAI client for OpenRouter
+    client = openai.OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
+    )
+    
+    # Initialize session state
     if "ai_chat_history" not in st.session_state:
         st.session_state.ai_chat_history = []
     
     # Display chat history
     for msg in st.session_state.ai_chat_history:
-        if msg["role"] == "user":
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                <div style="background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 18px; padding: 10px 16px; max-width: 80%;">
-                    <span style="color: white;">{msg['content']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="display: flex; justify-content: flex-start; margin-bottom: 12px;">
-                <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 18px; padding: 10px 16px; max-width: 80%;">
-                    <span style="color: #e2e8f0;">🤖 {msg['content']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
     
     # Chat input
     user_question = st.chat_input("Ask me about your property renovation...")
@@ -132,37 +89,30 @@ def ai_chat_agent():
     if user_question:
         # Add user message
         st.session_state.ai_chat_history.append({"role": "user", "content": user_question})
+        with st.chat_message("user"):
+            st.write(user_question)
         
         # Get AI response
         with st.spinner("🤔 Thinking..."):
             try:
-                system_prompt = """You are ZAMI AI Assistant, an expert in French property energy renovation.
-                You help property owners with:
-                - DPE (Diagnostic de Performance Énergétique) - classes A to G
-                - MaPrimeRénov' subsidies and eligibility
-                - Renovation cost estimates and ROI
-                - Finding RGE certified contractors
-                - Energy efficiency improvements
-                
-                Be helpful, concise, and professional. Respond in French unless asked otherwise.
-                """
-                
                 messages = [
-                    {"role": "system", "content": system_prompt}
-                ] + [
-                    {"role": m["role"], "content": m["content"]} 
-                    for m in st.session_state.ai_chat_history
-                ]
+                    {"role": "system", "content": "You are ZAMI AI Assistant, expert in French property energy renovation. Help with DPE, MaPrimeRénov' subsidies, ROI, and RGE contractors. Be concise and helpful. Respond in French if asked in French."},
+                ] + st.session_state.ai_chat_history
                 
-                response = llm.invoke(messages)
-                answer = response.content
+                response = client.chat.completions.create(
+                    model="meta-llama/llama-3.2-3b-instruct:free",
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=500
+                )
                 
+                answer = response.choices[0].message.content
                 st.session_state.ai_chat_history.append({"role": "assistant", "content": answer})
-                st.rerun()
+                with st.chat_message("assistant"):
+                    st.write(answer)
                 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-                st.session_state.ai_chat_history.pop()
     
     # Quick question buttons
     st.markdown("---")
@@ -189,11 +139,11 @@ def ai_chat_agent():
 
 
 # ============================================
-# FEATURE 2: PDF Q&A CHATBOT
+# FEATURE 2: PDF Q&A (Simple Version)
 # ============================================
 
 def pdf_qa_chatbot():
-    """Chat with your DPE PDF documents"""
+    """Simple PDF text extraction and Q&A"""
     
     st.markdown("""
     <div style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.05)); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
@@ -207,93 +157,54 @@ def pdf_qa_chatbot():
     </div>
     """, unsafe_allow_html=True)
     
-    if not LANGCHAIN_AVAILABLE:
-        st.error("❌ AI features not available. Packages are being installed.")
+    if not OPENAI_AVAILABLE:
+        st.error("❌ OpenAI package not installed.")
         return
     
-    llm = get_llm()
+    api_key = get_api_key()
     
-    if not llm:
-        st.warning("⚠️ AI features require API key configuration.")
-        st.info("Get a free API key from [OpenRouter](https://openrouter.io/keys) and add to Streamlit secrets.")
+    if not api_key:
+        st.warning("⚠️ API key not configured.")
         return
     
-    # Initialize session state for PDF chat
-    if "pdf_chat_history" not in st.session_state:
-        st.session_state.pdf_chat_history = []
-    if "pdf_vectorstore" not in st.session_state:
-        st.session_state.pdf_vectorstore = None
+    client = openai.OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
+    )
+    
+    # Initialize session state
+    if "pdf_text" not in st.session_state:
+        st.session_state.pdf_text = ""
     if "pdf_processed" not in st.session_state:
         st.session_state.pdf_processed = False
+    if "pdf_chat_history" not in st.session_state:
+        st.session_state.pdf_chat_history = []
     
     # File uploader
     uploaded_file = st.file_uploader("Upload your DPE certificate (PDF)", type=["pdf"])
     
     if uploaded_file and not st.session_state.pdf_processed:
-        with st.spinner("📖 Analyzing your DPE document..."):
+        with st.spinner("📖 Reading PDF..."):
             try:
-                # Save uploaded file temporarily
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                    tmp_file.write(uploaded_file.getbuffer())
-                    tmp_path = tmp_file.name
-                
-                # Load PDF
-                loader = PyPDFLoader(tmp_path)
-                documents = loader.load()
-                
-                # Split text into chunks
-                text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000,
-                    chunk_overlap=200,
-                    separators=["\n\n", "\n", " ", ""]
-                )
-                chunks = text_splitter.split_documents(documents)
-                
-                # Get embedding API key
-                try:
-                    openai_key = st.secrets.get("OPENAI_API_KEY", "")
-                    openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
-                except:
-                    openai_key = ""
-                    openrouter_key = ""
-                
-                # Use OpenAI embeddings if API key available
-                if openai_key:
-                    embeddings = OpenAIEmbeddings(
-                        model="text-embedding-3-small",
-                        openai_api_key=openai_key
-                    )
+                if PDF_AVAILABLE:
+                    reader = PdfReader(uploaded_file)
+                    text = ""
+                    for page in reader.pages:
+                        text += page.extract_text()
+                    st.session_state.pdf_text = text[:8000]  # Limit to 8000 chars
+                    st.session_state.pdf_processed = True
+                    st.success(f"✅ Document loaded! {len(text)} characters extracted.")
                 else:
-                    # Use a free embedding model via HuggingFace
-                    from langchain_community.embeddings import HuggingFaceEmbeddings
-                    embeddings = HuggingFaceEmbeddings(
-                        model_name="sentence-transformers/all-MiniLM-L6-v2"
-                    )
-                
-                # Create vector store
-                vectorstore = Chroma.from_documents(
-                    documents=chunks,
-                    embedding=embeddings,
-                    persist_directory="./dpe_chroma_db"
-                )
-                
-                st.session_state.pdf_vectorstore = vectorstore
-                st.session_state.pdf_processed = True
-                
-                # Clean up temp file
-                os.unlink(tmp_path)
-                
-                st.success(f"✅ Document processed! {len(chunks)} sections created. You can now ask questions.")
-                
+                    st.error("PDF processing not available. Please wait for packages to install.")
             except Exception as e:
-                st.error(f"Error processing PDF: {str(e)}")
+                st.error(f"Error reading PDF: {str(e)}")
     
-    if st.session_state.pdf_processed and st.session_state.pdf_vectorstore:
-        st.info(f"📄 Active document ready for questions")
+    if st.session_state.pdf_processed and st.session_state.pdf_text:
+        st.info(f"📄 Document ready for questions")
         
-        if st.button("🔄 Clear document", use_container_width=True):
+        if st.button("🔄 Clear Document", use_container_width=True):
             st.session_state.pdf_processed = False
-            st.session_state.pdf_vectorstore = None
+            st.session_state.pdf_text = ""
             st.session_state.pdf_chat_history = []
             st.rerun()
         
@@ -301,63 +212,51 @@ def pdf_qa_chatbot():
         
         # Display chat history
         for msg in st.session_state.pdf_chat_history:
-            if msg["role"] == "user":
-                st.markdown(f"""
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                    <div style="background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 18px; padding: 10px 16px; max-width: 80%;">
-                        <span style="color: white;">{msg['content']}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div style="display: flex; justify-content: flex-start; margin-bottom: 12px;">
-                    <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 18px; padding: 10px 16px; max-width: 80%;">
-                        <span style="color: #e2e8f0;">📄 {msg['content']}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            with st.chat_message(msg["role"]):
+                st.write(msg["content"])
         
         # Question input
         user_question = st.chat_input("Ask about your DPE document...")
         
         if user_question:
             st.session_state.pdf_chat_history.append({"role": "user", "content": user_question})
+            with st.chat_message("user"):
+                st.write(user_question)
             
-            with st.spinner("🔍 Searching document..."):
+            with st.spinner("🔍 Analyzing..."):
                 try:
-                    # Create QA chain
-                    qa_chain = RetrievalQA.from_chain_type(
-                        llm=llm,
-                        retriever=st.session_state.pdf_vectorstore.as_retriever(
-                            search_kwargs={"k": 4}
-                        ),
-                        return_source_documents=True
+                    messages = [
+                        {"role": "system", "content": f"You are analyzing this DPE document. Answer questions based ONLY on the document content. Document text: {st.session_state.pdf_text[:4000]}"},
+                        {"role": "user", "content": user_question}
+                    ]
+                    
+                    response = client.chat.completions.create(
+                        model="meta-llama/llama-3.2-3b-instruct:free",
+                        messages=messages,
+                        temperature=0.3,
+                        max_tokens=500
                     )
                     
-                    result = qa_chain.invoke({"query": user_question})
-                    answer = result['result']
-                    
+                    answer = response.choices[0].message.content
                     st.session_state.pdf_chat_history.append({"role": "assistant", "content": answer})
-                    st.rerun()
+                    with st.chat_message("assistant"):
+                        st.write(answer)
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
-                    st.session_state.pdf_chat_history.pop()
         
         # Sample questions
         st.markdown("---")
         st.markdown("### 💡 Try asking:")
         sample_qs = [
-            "What is my current DPE class?",
-            "How much subsidy can I get?",
-            "What renovations are recommended?",
-            "What is my energy consumption?"
+            "What is the DPE class?",
+            "What is the energy consumption?",
+            "What renovations are recommended?"
         ]
         
-        cols = st.columns(2)
+        cols = st.columns(3)
         for i, q in enumerate(sample_qs):
-            with cols[i % 2]:
+            with cols[i]:
                 if st.button(q, use_container_width=True):
                     st.session_state.pdf_chat_history.append({"role": "user", "content": q})
                     st.rerun()
@@ -367,7 +266,7 @@ def pdf_qa_chatbot():
 
 
 # ============================================
-# MAIN AI FEATURES PAGE
+# MAIN PAGE
 # ============================================
 
 def ai_features_page():
@@ -378,13 +277,12 @@ def ai_features_page():
         🤖 ZAMI AI Features
     </h1>
     <p style="color: #94a3b8; margin-bottom: 2rem;">
-        Powered by advanced AI to help you make better renovation decisions
+        Powered by AI to help you make better renovation decisions
     </p>
     """, unsafe_allow_html=True)
     
-    if not LANGCHAIN_AVAILABLE:
-        st.warning("⚠️ AI packages are being installed. Please wait a few minutes and refresh the page.")
-        st.info("This happens only once during initial deployment.")
+    if not OPENAI_AVAILABLE:
+        st.warning("⚠️ AI packages are being installed. Please wait a few minutes and refresh.")
         return
     
     # Tab selection
