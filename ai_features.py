@@ -7,44 +7,63 @@ import streamlit as st
 import tempfile
 import os
 
-# LangChain imports
-from langchain_openai import ChatOpenAI
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
+# Optional imports with try-except for graceful fallback
+try:
+    from langchain_openai import ChatOpenAI
+    from langchain_community.document_loaders import PyPDFLoader
+    from langchain_community.vectorstores import Chroma
+    from langchain_openai import OpenAIEmbeddings
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain.memory import ConversationBufferMemory
+    from langchain.chains import RetrievalQA
+    LANGCHAIN_AVAILABLE = True
+except ImportError as e:
+    LANGCHAIN_AVAILABLE = False
+    print(f"LangChain import error: {e}")
+
 
 # ============================================
 # CONFIGURATION
 # ============================================
 
-# Use OpenRouter (free alternative to OpenAI)
-# Get API key from: https://openrouter.io/keys
-OPENROUTER_API_KEY = st.secrets.get("OPENROUTER_API_KEY", "")
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-
-# Or use OpenAI (if you have API key)
-OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", "")
-
 def get_llm():
-    """Get LLM instance (prioritize OpenAI if available)"""
-    if OPENAI_API_KEY:
-        return ChatOpenAI(
-            model="gpt-3.5-turbo",
-            temperature=0.7,
-            api_key=OPENAI_API_KEY
-        )
-    elif OPENROUTER_API_KEY:
-        return ChatOpenAI(
-            model="meta-llama/llama-3.2-3b-instruct:free",
-            temperature=0.7,
-            api_key=OPENROUTER_API_KEY,
-            base_url=OPENROUTER_BASE_URL
-        )
-    else:
+    """Get LLM instance from secrets"""
+    
+    if not LANGCHAIN_AVAILABLE:
         return None
+    
+    # Try to get API key from Streamlit secrets
+    try:
+        openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
+        openai_key = st.secrets.get("OPENAI_API_KEY", "")
+    except:
+        openrouter_key = ""
+        openai_key = ""
+    
+    # Use OpenAI if available
+    if openai_key:
+        try:
+            return ChatOpenAI(
+                model="gpt-3.5-turbo",
+                temperature=0.7,
+                api_key=openai_key
+            )
+        except Exception:
+            pass
+    
+    # Use OpenRouter as fallback (free)
+    if openrouter_key:
+        try:
+            return ChatOpenAI(
+                model="meta-llama/llama-3.2-3b-instruct:free",
+                temperature=0.7,
+                api_key=openrouter_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+        except Exception:
+            pass
+    
+    return None
 
 
 # ============================================
@@ -66,11 +85,22 @@ def ai_chat_agent():
     </div>
     """, unsafe_allow_html=True)
     
+    if not LANGCHAIN_AVAILABLE:
+        st.error("❌ AI features not available. Packages are being installed.")
+        st.info("Please wait 2-3 minutes and refresh the page. If issue persists, contact support.")
+        return
+    
     llm = get_llm()
     
     if not llm:
-        st.warning("⚠️ AI features require API key. Add OPENROUTER_API_KEY or OPENAI_API_KEY to secrets.")
-        st.info("Get free API key from: https://openrouter.io/keys")
+        st.warning("⚠️ AI features require API key configuration.")
+        st.info("""
+        ### How to set up AI features:
+        1. Get a free API key from [OpenRouter](https://openrouter.io/keys)
+        2. Add it to Streamlit Cloud Secrets:
+           - Go to your app settings
+           - Add `OPENROUTER_API_KEY` = "your-key-here"
+        """)
         return
     
     # Initialize session state for chat history
@@ -131,7 +161,8 @@ def ai_chat_agent():
                 st.rerun()
                 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Error: {str(e)}")
+                st.session_state.ai_chat_history.pop()
     
     # Quick question buttons
     st.markdown("---")
@@ -176,10 +207,15 @@ def pdf_qa_chatbot():
     </div>
     """, unsafe_allow_html=True)
     
+    if not LANGCHAIN_AVAILABLE:
+        st.error("❌ AI features not available. Packages are being installed.")
+        return
+    
     llm = get_llm()
     
     if not llm:
-        st.warning("⚠️ AI features require API key. Add OPENROUTER_API_KEY or OPENAI_API_KEY to secrets.")
+        st.warning("⚠️ AI features require API key configuration.")
+        st.info("Get a free API key from [OpenRouter](https://openrouter.io/keys) and add to Streamlit secrets.")
         return
     
     # Initialize session state for PDF chat
@@ -213,26 +249,35 @@ def pdf_qa_chatbot():
                 )
                 chunks = text_splitter.split_documents(documents)
                 
-                # Create embeddings and vector store
-                embeddings = OpenAIEmbeddings(
-                    model="text-embedding-3-small",
-                    openai_api_key=OPENAI_API_KEY if OPENAI_API_KEY else OPENROUTER_API_KEY
-                )
+                # Get embedding API key
+                try:
+                    openai_key = st.secrets.get("OPENAI_API_KEY", "")
+                    openrouter_key = st.secrets.get("OPENROUTER_API_KEY", "")
+                except:
+                    openai_key = ""
+                    openrouter_key = ""
                 
+                # Use OpenAI embeddings if API key available
+                if openai_key:
+                    embeddings = OpenAIEmbeddings(
+                        model="text-embedding-3-small",
+                        openai_api_key=openai_key
+                    )
+                else:
+                    # Use a free embedding model via HuggingFace
+                    from langchain_community.embeddings import HuggingFaceEmbeddings
+                    embeddings = HuggingFaceEmbeddings(
+                        model_name="sentence-transformers/all-MiniLM-L6-v2"
+                    )
+                
+                # Create vector store
                 vectorstore = Chroma.from_documents(
                     documents=chunks,
                     embedding=embeddings,
                     persist_directory="./dpe_chroma_db"
                 )
                 
-                # Create conversation chain
-                memory = ConversationBufferMemory(
-                    memory_key="chat_history",
-                    return_messages=True
-                )
-                
                 st.session_state.pdf_vectorstore = vectorstore
-                st.session_state.pdf_memory = memory
                 st.session_state.pdf_processed = True
                 
                 # Clean up temp file
@@ -241,7 +286,7 @@ def pdf_qa_chatbot():
                 st.success(f"✅ Document processed! {len(chunks)} sections created. You can now ask questions.")
                 
             except Exception as e:
-                st.error(f"Error processing PDF: {e}")
+                st.error(f"Error processing PDF: {str(e)}")
     
     if st.session_state.pdf_processed and st.session_state.pdf_vectorstore:
         st.info(f"📄 Active document ready for questions")
@@ -282,8 +327,6 @@ def pdf_qa_chatbot():
             with st.spinner("🔍 Searching document..."):
                 try:
                     # Create QA chain
-                    from langchain.chains import RetrievalQA
-                    
                     qa_chain = RetrievalQA.from_chain_type(
                         llm=llm,
                         retriever=st.session_state.pdf_vectorstore.as_retriever(
@@ -299,7 +342,8 @@ def pdf_qa_chatbot():
                     st.rerun()
                     
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Error: {str(e)}")
+                    st.session_state.pdf_chat_history.pop()
         
         # Sample questions
         st.markdown("---")
@@ -337,6 +381,11 @@ def ai_features_page():
         Powered by advanced AI to help you make better renovation decisions
     </p>
     """, unsafe_allow_html=True)
+    
+    if not LANGCHAIN_AVAILABLE:
+        st.warning("⚠️ AI packages are being installed. Please wait a few minutes and refresh the page.")
+        st.info("This happens only once during initial deployment.")
+        return
     
     # Tab selection
     tab1, tab2 = st.tabs(["💬 AI Chat Assistant", "📄 DPE Document Analyzer"])
