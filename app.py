@@ -16,6 +16,7 @@ import utils_styles
 import utils_charts
 import utils_animations as anim
 import utils_transitions as trans
+import ai_features
 
 # Run Premium Style Injections
 utils_styles.inject_premium_styles()
@@ -34,8 +35,8 @@ if "selected_scenario" not in st.session_state:
     st.session_state["selected_scenario"] = "Essential"
 if "selected_address_label" not in st.session_state:
     st.session_state["selected_address_label"] = None
-if "chat_open" not in st.session_state:
-    st.session_state["chat_open"] = False
+if "show_ai_features" not in st.session_state:
+    st.session_state["show_ai_features"] = False
 
 # Global Variables
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
@@ -55,14 +56,12 @@ CHAT_FILE = "chat_messages.json"
 def save_chat_message(name, email, message):
     """Save chat message to JSON file"""
     try:
-        # Load existing messages
         if os.path.exists(CHAT_FILE):
             with open(CHAT_FILE, "r", encoding="utf-8") as f:
                 messages = json.load(f)
         else:
             messages = []
         
-        # Add new message
         messages.append({
             "id": len(messages) + 1,
             "name": name,
@@ -72,10 +71,8 @@ def save_chat_message(name, email, message):
             "status": "unread"
         })
         
-        # Save back
         with open(CHAT_FILE, "w", encoding="utf-8") as f:
             json.dump(messages, f, indent=2, ensure_ascii=False)
-        
         return True
     except Exception as e:
         print(f"Save error: {e}")
@@ -124,66 +121,112 @@ def get_logo_html():
 
 
 # ─────────────────────────────────────────────
-# CHAT BOT FUNCTION (Floating)
+# PREMIUM CHAT BOT
 # ─────────────────────────────────────────────
 def chat_bot():
-    """Floating chat bot widget with JSON storage"""
+    """Premium floating chat bot with modern UI"""
     
-    # CSS for floating button
     st.markdown("""
     <style>
-    .floating-chat {
+    .zami-chat-btn {
         position: fixed;
         bottom: 30px;
         right: 30px;
-        z-index: 999;
-    }
-    .chat-btn {
+        width: 65px;
+        height: 65px;
         background: linear-gradient(135deg, #22c55e, #16a34a);
-        width: 60px;
-        height: 60px;
-        border-radius: 30px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 0 10px 25px rgba(34,197,94,0.3);
-        transition: all 0.3s;
-        border: none;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+        animation: pulse 2s infinite;
     }
-    .chat-btn:hover {
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    
+    .zami-chat-btn:hover {
         transform: scale(1.1);
+        box-shadow: 0 15px 35px rgba(34, 197, 94, 0.5);
     }
-    .chat-btn span {
-        font-size: 28px;
+    
+    .zami-chat-btn svg {
+        width: 30px;
+        height: 30px;
+        fill: white;
     }
     </style>
+    
+    <div class="zami-chat-btn" id="floatingChatBtn">
+        <svg viewBox="0 0 24 24" fill="white">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+        </svg>
+    </div>
+    
+    <script>
+        document.getElementById('floatingChatBtn').onclick = function() {
+            var chatWindow = window.parent.document.querySelector('[data-testid="stExpander"]');
+            if (chatWindow) {
+                chatWindow.click();
+            }
+        }
+    </script>
     """, unsafe_allow_html=True)
     
-    # Chat expander
-    with st.expander("💬 Chat with ZAMI Support", expanded=False):
-        st.markdown("### 💬 Need Help?")
-        st.markdown("Ask us anything about DPE, subsidies, or renovation!")
+    with st.expander("💬 ✨ ZAMI Assistant — Ask Us Anything", expanded=False):
+        st.markdown("""
+        <div style="text-align: center; padding: 10px 0;">
+            <span style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 5px 15px; border-radius: 50px; font-size: 12px; font-weight: 700;">✨ AI-Powered Support ✨</span>
+        </div>
         
-        with st.form("chat_form", clear_on_submit=True):
-            chat_name = st.text_input("Your Name *", placeholder="Jean Dupont")
-            chat_email = st.text_input("Your Email *", placeholder="jean@example.com")
-            chat_message = st.text_area("Your Message *", placeholder="I have a question about DPE G properties...", height=100)
-            
-            col1, col2 = st.columns([1, 1])
+        <div style="background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="font-size: 28px;">🤖</span>
+                <div>
+                    <strong style="color: #22c55e;">ZAMI Assistant</strong>
+                    <span style="font-size: 12px; color: #64748b;"> • Online</span>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #94a3b8; margin: 0;">
+                Hi there! 👋 I'm here to help you with:<br>
+                • 📊 DPE (Energy Performance Diagnosis)<br>
+                • 💰 MaPrimeRénov' subsidies calculation<br>
+                • 📈 ROI estimation for your renovation<br>
+                • 🔧 Finding certified RGE contractors
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("chat_form_premium", clear_on_submit=True):
+            col1, col2 = st.columns(2)
             with col1:
+                chat_name = st.text_input("👤 Your Name *", placeholder="Jean Dupont", key="chat_name_premium")
+            with col2:
+                chat_email = st.text_input("📧 Your Email *", placeholder="jean@example.com", key="chat_email_premium")
+            
+            chat_message = st.text_area("💬 Your Message *", placeholder="Tell us about your property or renovation project...", height=100, key="chat_msg_premium")
+            
+            col_btn1, col_btn2, col_btn3 = st.columns([2, 1, 1])
+            with col_btn1:
                 submitted = st.form_submit_button("📨 Send Message", type="primary", use_container_width=True)
             
             if submitted:
                 if chat_name and chat_email and chat_message:
                     success = save_chat_message(chat_name, chat_email, chat_message)
                     if success:
-                        st.success("✅ Message sent! We'll get back to you within 24 hours.")
+                        st.success("✅ Message sent successfully!")
                         st.balloons()
                     else:
-                        st.error("❌ Unable to save message. Please try again.")
+                        st.error("❌ Unable to send. Please try again.")
                 else:
-                    st.warning("Please fill all fields (*)")
+                    st.warning("⚠️ Please fill all required fields (*)")
 
 
 # ─────────────────────────────────────────────
@@ -347,7 +390,9 @@ LANG_DICT = {
         "search_method_dpe": "🔑 Recherche par numéro DPE (100% exact)",
         "dpe_number_label": "🔑 Numéro DPE", "dpe_number_help": "Trouvez le numéro sur votre certificat DPE",
         "dpe_not_found": "❌ Numéro DPE invalide", "exact_match_badge": "✅ Données 100% exactes",
-        "select_address_warning": "📍 Sélectionnez une adresse", "enter_input_warning": "⚠️ Entrez une adresse ou un numéro DPE"
+        "select_address_warning": "📍 Sélectionnez une adresse", "enter_input_warning": "⚠️ Entrez une adresse ou un numéro DPE",
+        "ai_assistant": "🤖 Assistant IA",
+        "pdf_analyzer": "📄 Analyseur DPE"
     },
     "EN": {
         "title": "Energy Property Portal", "subtitle": "Estimate your property value and renovation costs instantly",
@@ -380,7 +425,9 @@ LANG_DICT = {
         "search_method_dpe": "🔑 DPE number search (100% exact)",
         "dpe_number_label": "🔑 DPE Number", "dpe_number_help": "Find the number on your DPE certificate",
         "dpe_not_found": "❌ Invalid DPE number", "exact_match_badge": "✅ 100% exact data",
-        "select_address_warning": "📍 Please select an address", "enter_input_warning": "⚠️ Please enter address or DPE number"
+        "select_address_warning": "📍 Please select an address", "enter_input_warning": "⚠️ Please enter address or DPE number",
+        "ai_assistant": "🤖 AI Assistant",
+        "pdf_analyzer": "📄 DPE Analyzer"
     }
 }
 
@@ -388,33 +435,81 @@ LANG_DICT = {
 # ─────────────────────────────────────────────
 # HEADER (No Login)
 # ─────────────────────────────────────────────
-col_left, col_right = st.columns([1.6, 1.4])
+col_left, col_mid, col_right = st.columns([1.2, 1.5, 1.3])
 
 with col_left:
     st.markdown(get_logo_html(), unsafe_allow_html=True)
 
-with col_right:
+with col_mid:
     selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed", key="lang")
-    T = LANG_DICT[selected_lang]
+
+with col_right:
+    if st.button("🤖 AI Assistant", use_container_width=True, type="secondary"):
+        st.session_state.show_ai_features = not st.session_state.show_ai_features
+
+T = LANG_DICT[selected_lang]
 
 st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-bottom:2rem;">', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
-# MAIN CONTENT
+# AI FEATURES PAGE (When Toggled)
 # ─────────────────────────────────────────────
-if st.session_state["confirmed_owner_property"] is None:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+if st.session_state.show_ai_features:
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.02)); border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+        <h2 style="color: white; margin-bottom: 10px;">🤖 ZAMI AI Features</h2>
+        <p style="color: #94a3b8;">Powered by advanced AI to help you make better renovation decisions</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    col_text, col_anim = st.columns([2, 1])
-    with col_text:
-        st.markdown(f'<p class="section-label">🏠 ZAMI</p>', unsafe_allow_html=True)
-        st.markdown(f'<h1 class="owner-exclusive-title">{T["subtitle"]}</h1>', unsafe_allow_html=True)
-        st.markdown(f'<p style="color:#94a3b8;">Get your DPE, subsidies and ROI in 10 seconds</p>', unsafe_allow_html=True)
-    with col_anim:
-        anim.add_hero_animation()
+    # Tab selection for AI features
+    ai_tab1, ai_tab2 = st.tabs(["💬 AI Chat Assistant", "📄 DPE Document Analyzer"])
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    with ai_tab1:
+        ai_features.ai_chat_agent()
+    
+    with ai_tab2:
+        ai_features.pdf_qa_chatbot()
+    
+    if st.button("← Back to Property Analysis", use_container_width=True, type="secondary"):
+        st.session_state.show_ai_features = False
+        st.rerun()
+
+
+# ─────────────────────────────────────────────
+# MAIN CONTENT (Property Analysis)
+# ─────────────────────────────────────────────
+elif st.session_state["confirmed_owner_property"] is None:
+    # Enhanced Hero Section
+    st.markdown("""
+    <div style="text-align: center; padding: 2rem 0 1rem 0;">
+        <div style="display: inline-block; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05)); padding: 8px 20px; border-radius: 100px; margin-bottom: 1.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #22c55e;">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
+        </div>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Vérifiez si votre bien<br>est louable en 2025
+        </h1>
+        <p style="font-size: 1.1rem; color: #94a3b8; margin-top: 1rem;">
+            Obtenez votre DPE, subventions et ROI en 10 secondes
+        </p>
+    </div>
+    
+    <div style="display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">5.4M</div>
+            <div style="font-size: 0.7rem; color: #64748b;">Passoires thermiques</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">25K€</div>
+            <div style="font-size: 0.7rem; color: #64748b;">Subvention moyenne</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">+18%</div>
+            <div style="font-size: 0.7rem; color: #64748b;">Valeur après rénovation</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
@@ -676,7 +771,6 @@ if st.checkbox("🔐 Admin Panel", key="admin_panel"):
             st.metric("Unread Messages", unread)
             
             if messages:
-                # Messages per day
                 dates = {}
                 for msg in messages:
                     date = msg.get("time", "").split(" ")[0]
