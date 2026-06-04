@@ -12,7 +12,6 @@ if 'agency_logged_in' not in st.session_state:
     st.session_state['agency_logged_in'] = False
     st.session_state['agency_id'] = None
     st.session_state['agency_name'] = None
-    st.session_state['current_page'] = "Leads"
 
 # ─────────────────────────────────────────────
 # LOGIN / SIGNUP SECTION
@@ -68,81 +67,62 @@ if not st.session_state['agency_logged_in']:
                 st.warning("Please fill all required fields (*)")
 
 # ─────────────────────────────────────────────
-# AGENCY DASHBOARD WITH SIDEBAR
+# AGENCY DASHBOARD (NO SIDEBAR)
 # ─────────────────────────────────────────────
 else:
-    # ─── SIDEBAR NAVIGATION ───
-    with st.sidebar:
-        st.markdown(f"""
-        <div style="text-align: center; padding: 20px 0 10px 0;">
-            <div style="background: linear-gradient(135deg, #22c55e, #16a34a); width: 60px; height: 60px; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
-                <span style="font-size: 30px;">🏢</span>
-            </div>
-            <h3 style="color: white; margin-bottom: 5px;">{st.session_state['agency_name']}</h3>
-            <p style="color: #22c55e; font-size: 12px;">● Active</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Navigation menu
-        menu_options = ["📋 My Leads", "💬 Messages", "💰 Quotes", "📊 Statistics", "⚙️ Settings"]
-        menu_icons = ["📋", "💬", "💰", "📊", "⚙️"]
-        
-        for i, option in enumerate(menu_options):
-            if st.sidebar.button(f"{menu_icons[i]} {option}", key=f"nav_{option}", use_container_width=True):
-                st.session_state['current_page'] = option
-                st.rerun()
-        
-        st.markdown("---")
-        
-        # Agency stats in sidebar
-        leads = db.get_agency_leads(st.session_state['agency_id'])
-        total = len(leads)
-        pending = len([l for l in leads if l[9] == 'pending'])
-        accepted = len([l for l in leads if l[9] == 'accepted'])
-        
-        st.sidebar.markdown("### 📊 Quick Stats")
-        col1, col2, col3 = st.sidebar.columns(3)
-        col1.metric("Total", total)
-        col2.metric("Pending", pending)
-        col3.metric("Accepted", accepted)
-        
-        st.markdown("---")
-        
-        if st.sidebar.button("🚪 Logout", use_container_width=True, type="secondary"):
+    # Header with logout button on top right
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.markdown(f"## 🏢 Welcome, {st.session_state['agency_name']}")
+    with col2:
+        if st.button("🚪 Logout", use_container_width=True, type="secondary"):
             st.session_state['agency_logged_in'] = False
             st.session_state['agency_id'] = None
             st.session_state['agency_name'] = None
             st.rerun()
     
-    # ─── MAIN CONTENT AREA ───
-    current_page = st.session_state['current_page']
-    
-    # Header
-    st.markdown(f"""
-    <div style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.02)); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
-        <h1 style="color: white; margin-bottom: 5px;">{current_page}</h1>
-        <p style="color: #94a3b8;">Welcome back, {st.session_state['agency_name']}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
     
     # Get leads
     leads = db.get_agency_leads(st.session_state['agency_id'])
     
-    # ==========================================
-    # PAGE: MY LEADS
-    # ==========================================
-    if current_page == "📋 My Leads":
-        st.markdown("### 📋 Assigned Leads")
+    # Show statistics cards
+    if leads:
+        total = len(leads)
+        pending = len([l for l in leads if l[9] == 'pending'])
+        accepted = len([l for l in leads if l[9] == 'accepted'])
+        rejected = len([l for l in leads if l[9] == 'rejected'])
+        
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("📋 Total Leads", total)
+        col2.metric("🟡 Pending", pending)
+        col3.metric("🟢 Accepted", accepted)
+        col4.metric("🔴 Rejected", rejected)
+    
+    st.markdown("---")
+    
+    # Tabs for different sections
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 My Leads", "💬 Messages", "💰 Quotes", "📊 Statistics"])
+    
+    # ─────────────────────────────────────────
+    # TAB 1: MY LEADS
+    # ─────────────────────────────────────────
+    with tab1:
+        st.markdown("### Assigned Leads")
         
         if not leads:
             st.info("📭 No leads assigned yet. Check back soon!")
         else:
             # Filter by status
-            status_filter = st.selectbox("Filter by Status", ["All", "pending", "accepted", "rejected"])
+            status_filter = st.selectbox("Filter by Status", ["All", "Pending", "Accepted", "Rejected"], key="status_filter")
             
-            filtered_leads = leads if status_filter == "All" else [l for l in leads if l[9] == status_filter]
+            filter_map = {"All": "all", "Pending": "pending", "Accepted": "accepted", "Rejected": "rejected"}
+            filter_value = filter_map.get(status_filter, "all")
+            
+            if filter_value == "all":
+                filtered_leads = leads
+            else:
+                filtered_leads = [l for l in leads if l[9] == filter_value]
             
             for lead in filtered_leads:
                 lead_id = lead[0]
@@ -185,23 +165,21 @@ else:
                                     st.rerun()
                         elif status == 'accepted':
                             st.success("✅ Lead Accepted")
-                            if st.button(f"💬 Message Client", key=f"msg_{lead_id}"):
-                                st.session_state['current_page'] = "💬 Messages"
-                                st.rerun()
+                            st.info("You can now message the client using the Messages tab.")
     
-    # ==========================================
-    # PAGE: MESSAGES
-    # ==========================================
-    elif current_page == "💬 Messages":
-        st.markdown("### 💬 Messages")
+    # ─────────────────────────────────────────
+    # TAB 2: MESSAGES
+    # ─────────────────────────────────────────
+    with tab2:
+        st.markdown("### Messages")
         
         accepted_leads = [l for l in leads if l[9] == 'accepted']
         
         if not accepted_leads:
-            st.info("No accepted leads to message")
+            st.info("No accepted leads to message. Accept a lead first to start chatting.")
         else:
             lead_options = {f"{l[2]} - {l[6]}": l[0] for l in accepted_leads}
-            selected = st.selectbox("Select Client", list(lead_options.keys()))
+            selected = st.selectbox("Select Client", list(lead_options.keys()), key="client_select")
             selected_lead_id = lead_options[selected]
             
             st.markdown("---")
@@ -229,19 +207,19 @@ else:
                     st.success("Message sent!")
                     st.rerun()
     
-    # ==========================================
-    # PAGE: QUOTES
-    # ==========================================
-    elif current_page == "💰 Quotes":
-        st.markdown("### 💰 Quotes")
+    # ─────────────────────────────────────────
+    # TAB 3: QUOTES
+    # ─────────────────────────────────────────
+    with tab3:
+        st.markdown("### Quotes")
         
         accepted_leads = [l for l in leads if l[9] == 'accepted']
         
         if not accepted_leads:
-            st.info("No accepted leads to quote")
+            st.info("No accepted leads to quote. Accept a lead first.")
         else:
             lead_options = {f"{l[2]} - {l[6]}": l[0] for l in accepted_leads}
-            selected = st.selectbox("Select Client", list(lead_options.keys()))
+            selected = st.selectbox("Select Client", list(lead_options.keys()), key="quote_select")
             selected_lead_id = lead_options[selected]
             
             lead = next((l for l in accepted_leads if l[0] == selected_lead_id), None)
@@ -251,8 +229,8 @@ else:
             
             st.markdown("---")
             
-            quote_amount = st.number_input("Quote Amount (€)", min_value=0, step=500, value=25000)
-            quote_details = st.text_area("Quote Details", placeholder="Work included, timeline, warranty...", height=100)
+            quote_amount = st.number_input("Quote Amount (€)", min_value=0, step=500, value=25000, key="quote_amount")
+            quote_details = st.text_area("Quote Details", placeholder="Work included, timeline, warranty...", height=100, key="quote_details")
             
             if st.button("Submit Quote", type="primary"):
                 if quote_amount > 0 and quote_details:
@@ -267,11 +245,11 @@ else:
                 for q in quotes:
                     st.markdown(f"**€{q[3]:,.0f}** - {q[4][:100]}...")
     
-    # ==========================================
-    # PAGE: STATISTICS
-    # ==========================================
-    elif current_page == "📊 Statistics":
-        st.markdown("### 📊 Performance Statistics")
+    # ─────────────────────────────────────────
+    # TAB 4: STATISTICS
+    # ─────────────────────────────────────────
+    with tab4:
+        st.markdown("### Performance Statistics")
         
         if leads:
             total = len(leads)
@@ -279,39 +257,30 @@ else:
             accepted = len([l for l in leads if l[9] == 'accepted'])
             rejected = len([l for l in leads if l[9] == 'rejected'])
             
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("Total Leads", total)
-            col2.metric("Pending", pending, delta=f"{pending/total*100:.0f}%" if total > 0 else "0%")
-            col3.metric("Accepted", accepted, delta=f"{accepted/total*100:.0f}%" if total > 0 else "0%")
-            col4.metric("Rejected", rejected)
-            
             # Chart
             import plotly.graph_objects as go
             fig = go.Figure(data=[go.Pie(
                 labels=['Pending', 'Accepted', 'Rejected'],
                 values=[pending, accepted, rejected],
                 marker=dict(colors=['#eab308', '#22c55e', '#ef4444']),
-                hole=0.4
+                hole=0.4,
+                textinfo='label+percent'
             )])
-            fig.update_layout(height=400, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            fig.update_layout(
+                height=400, 
+                paper_bgcolor="rgba(0,0,0,0)", 
+                plot_bgcolor="rgba(0,0,0,0)",
+                title="Lead Status Distribution"
+            )
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Conversion rate
+            conversion_rate = (accepted / total * 100) if total > 0 else 0
+            st.metric("Conversion Rate", f"{conversion_rate:.1f}%")
             
         else:
             st.info("No data yet")
     
-    # ==========================================
-    # PAGE: SETTINGS
-    # ==========================================
-    elif current_page == "⚙️ Settings":
-        st.markdown("### ⚙️ Agency Settings")
-        st.info("Profile settings coming soon. You can update your contact information here.")
-        
-        st.markdown("---")
-        st.markdown("#### Contact Information")
-        st.text_input("Company Name", value=st.session_state['agency_name'])
-        st.text_input("Email")
-        st.text_input("Phone")
-        st.text_area("Address")
-        
-        if st.button("Save Changes", type="primary"):
-            st.success("Settings saved!")
+    # Footer
+    st.markdown("---")
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px;'>ZAMI Agency Portal - Manage your leads and communicate with clients</p>", unsafe_allow_html=True)
