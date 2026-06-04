@@ -25,6 +25,24 @@ trans.add_loading_spinner()
 
 
 # ─────────────────────────────────────────────
+# HIDE SIDEBAR COMPLETELY
+# ─────────────────────────────────────────────
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
 # STATE MANAGEMENT
 # ─────────────────────────────────────────────
 if "confirmed_owner_property" not in st.session_state:
@@ -433,7 +451,7 @@ LANG_DICT = {
 
 
 # ─────────────────────────────────────────────
-# HEADER (No Login)
+# HEADER (No Sidebar)
 # ─────────────────────────────────────────────
 col_left, col_mid, col_right = st.columns([1.2, 1.5, 1.3])
 
@@ -463,7 +481,6 @@ if st.session_state.show_ai_features:
     </div>
     """, unsafe_allow_html=True)
     
-    # Tab selection for AI features
     ai_tab1, ai_tab2 = st.tabs(["💬 AI Chat Assistant", "📄 DPE Document Analyzer"])
     
     with ai_tab1:
@@ -731,6 +748,16 @@ else:
         st.info("PDF report will be available soon")
     
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# AGENCY PORTAL BUTTON (Bottom of Main Page)
+# ─────────────────────────────────────────────
+st.markdown("---")
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if st.button("🏢 Agency Portal →", use_container_width=True, type="primary"):
+        st.switch_page("pages/agency_dashboard.py")
 
 
 # ─────────────────────────────────────────────
