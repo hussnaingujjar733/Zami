@@ -944,48 +944,53 @@ LANG_DICT = {
 # ─────────────────────────────────────────────
 # PREMIUM HERO SECTION
 # ─────────────────────────────────────────────
-def premium_hero_section():
+def hero_section():
     st.markdown("""
     <style>
-    .hero-premium {
-        background: linear-gradient(135deg, #0a0c15 0%, #0f1119 100%);
+    .hero-video-container {
+        position: relative;
+        border-radius: 32px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        min-height: 500px;
+    }
+    
+    .hero-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    
+    .hero-overlay {
+        position: relative;
+        background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(2,6,23,0.85));
         border-radius: 32px;
         padding: 60px 40px;
         text-align: center;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 40px;
-        border: 1px solid rgba(34, 197, 94, 0.1);
-    }
-    
-    .hero-premium::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
-        animation: heroRotate 25s linear infinite;
-    }
-    
-    @keyframes heroRotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        z-index: 1;
+        backdrop-filter: blur(3px);
     }
     
     .hero-badge {
         display: inline-block;
-        background: rgba(34, 197, 94, 0.12);
+        background: rgba(59,130,246,0.2);
         backdrop-filter: blur(10px);
         padding: 8px 20px;
         border-radius: 100px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(59,130,246,0.3);
+    }
+    
+    .hero-badge span {
         font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.1em;
-        color: #22c55e;
-        margin-bottom: 24px;
-        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #3B82F6;
         text-transform: uppercase;
     }
     
@@ -995,24 +1000,14 @@ def premium_hero_section():
         line-height: 1.2;
         margin-bottom: 20px;
         font-family: 'Space Grotesk', sans-serif;
-    }
-    
-    .hero-title .highlight {
-        background: linear-gradient(135deg, #22c55e, #16a34a, #22c55e);
+        background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-size: 200% 200%;
-        animation: textShine 3s ease infinite;
-    }
-    
-    @keyframes textShine {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
     }
     
     .hero-subtitle {
         font-size: 1.1rem;
-        color: #94a3b8;
+        color: #94A3B8;
         max-width: 600px;
         margin: 0 auto 32px;
         line-height: 1.6;
@@ -1021,18 +1016,18 @@ def premium_hero_section():
     .search-box-premium {
         max-width: 650px;
         margin: 0 auto;
-        background: rgba(15, 25, 45, 0.8);
+        background: rgba(15, 23, 42, 0.8);
         backdrop-filter: blur(12px);
         border-radius: 60px;
         padding: 8px;
         display: flex;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
     }
     
     .search-box-premium:hover {
-        border-color: rgba(34, 197, 94, 0.4);
-        box-shadow: 0 0 25px rgba(34, 197, 94, 0.12);
+        border-color: rgba(59, 130, 246, 0.6);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
         transform: translateY(-2px);
     }
     
@@ -1051,7 +1046,7 @@ def premium_hero_section():
     }
     
     .search-box-premium button {
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        background: linear-gradient(135deg, #3B82F6, #10B981);
         border: none;
         padding: 12px 36px;
         border-radius: 50px;
@@ -1060,16 +1055,22 @@ def premium_hero_section():
         font-size: 0.95rem;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
     }
     
     .search-box-premium button:hover {
         transform: scale(1.02);
-        box-shadow: 0 8px 25px rgba(34, 197, 94, 0.35);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
+    }
+    
+    .hero-footer {
+        font-size: 0.7rem;
+        color: #475569;
+        margin-top: 16px;
     }
     
     @media (max-width: 768px) {
-        .hero-premium {
+        .hero-overlay {
             padding: 40px 20px;
         }
         .hero-title {
@@ -1084,7 +1085,7 @@ def premium_hero_section():
             padding: 0;
         }
         .search-box-premium input {
-            background: rgba(15, 25, 45, 0.8);
+            background: rgba(15, 23, 42, 0.8);
             border-radius: 50px;
             margin-bottom: 12px;
             padding: 14px 20px;
@@ -1096,25 +1097,31 @@ def premium_hero_section():
     }
     </style>
     
-    <div class="hero-premium">
-        <div class="hero-badge">
-            ⚡ FRANCE'S #1 RENOVATION INTELLIGENCE
+    <div class="hero-video-container">
+        <video class="hero-video" autoplay loop muted playsinline>
+            <source src="assets/zamivideo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="hero-overlay">
+            <div class="hero-badge">
+                <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
+            </div>
+            <h1 class="hero-title">
+                Vérifiez si votre bien est<br>
+                louable en 2025
+            </h1>
+            <p class="hero-subtitle">
+                Obtenez votre DPE, le montant exact de MaPrimeRénov'<br>
+                et le ROI de votre rénovation en 10 secondes
+            </p>
+            <div class="search-box-premium">
+                <input type="text" placeholder="📍 Adresse complète (ex: 15 Rue de Rivoli, Paris)" id="premiumAddressInput">
+                <button id="premiumSearchBtn">Analyser gratuitement →</button>
+            </div>
+            <div class="hero-footer">
+                🔒 Gratuit • Aucune carte bancaire • Rapport instantané
+            </div>
         </div>
-        <h1 class="hero-title">
-            Vérifiez si votre bien est<br>
-            <span class="highlight">louable en 2025</span>
-        </h1>
-        <p class="hero-subtitle">
-            Obtenez votre DPE, le montant exact de MaPrimeRénov'<br>
-            et le ROI de votre rénovation en 10 secondes
-        </p>
-        <div class="search-box-premium">
-            <input type="text" placeholder="📍 Adresse complète (ex: 15 Rue de Rivoli, Paris)" id="premiumAddressInput">
-            <button id="premiumSearchBtn">Analyser gratuitement →</button>
-        </div>
-        <p style="font-size: 0.7rem; color: #475569; margin-top: 16px;">
-            🔒 Gratuit • Aucune carte bancaire • Rapport instantané
-        </p>
     </div>
     
     <script>
@@ -1134,7 +1141,6 @@ def premium_hero_section():
         };
     </script>
     """, unsafe_allow_html=True)
-
 
 # ─────────────────────────────────────────────
 # TRUST BADGES SECTION
