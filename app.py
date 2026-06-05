@@ -944,7 +944,7 @@ LANG_DICT = {
 # ─────────────────────────────────────────────
 # PREMIUM HERO SECTION
 # ─────────────────────────────────────────────
-def hero_section():
+def premium_hero_section():
     st.markdown("""
     <style>
     .hero-video-container {
