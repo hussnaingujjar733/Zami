@@ -947,16 +947,16 @@ LANG_DICT = {
 def hero_section():
     st.markdown("""
     <style>
-    .hero-video-container {
+    .hero-container {
         position: relative;
         border-radius: 32px;
         overflow: hidden;
         margin-bottom: 30px;
-        min-height: 500px;
+        min-height: 550px;
         background: linear-gradient(135deg, #0F172A, #020617);
     }
     
-    .hero-video {
+    .hero-iframe {
         position: absolute;
         top: 0;
         left: 0;
@@ -964,7 +964,8 @@ def hero_section():
         height: 100%;
         object-fit: cover;
         z-index: 0;
-        opacity: 0.6;
+        border: none;
+        pointer-events: none;
     }
     
     .hero-overlay {
@@ -974,6 +975,7 @@ def hero_section():
         padding: 60px 40px;
         text-align: center;
         z-index: 1;
+        backdrop-filter: blur(3px);
     }
     
     .hero-badge {
@@ -1097,10 +1099,13 @@ def hero_section():
     }
     </style>
     
-    <div class="hero-video-container">
-        <video class="hero-video" autoplay loop muted playsinline>
-            <source src="assets/zamivideo.mp4" type="video/mp4">
-        </video>
+    <div class="hero-container">
+        <iframe class="hero-iframe" 
+            src="https://www.youtube.com/embed/mCmjNwjYfqw?autoplay=1&loop=1&mute=1&controls=0&playlist=mCmjNwjYfqw&enablejsapi=1"
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
         <div class="hero-overlay">
             <div class="hero-badge">
                 <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
