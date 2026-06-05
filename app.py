@@ -1144,6 +1144,9 @@ def hero_section():
     </script>
     """, unsafe_allow_html=True)
 
+
+# Alias for backward compatibility
+premium_hero_section = hero_section
 # ─────────────────────────────────────────────
 # TRUST BADGES SECTION
 # ─────────────────────────────────────────────
