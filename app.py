@@ -66,6 +66,49 @@ _DPE_COLORS = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "
 _INCOME_SUBSIDY_MAP = {"Très Modeste (Bleu)": 0.75, "Modeste (Jaune)": 0.60, "Intermédiaire (Violet)": 0.40, "Supérieur (Rose)": 0.15}
 
 CHAT_FILE = "chat_messages.json"
+LEADS_FILE = "homeowner_leads.json"
+
+
+# ─────────────────────────────────────────────
+# LEAD FUNCTIONS (JSON Storage)
+# ─────────────────────────────────────────────
+def save_lead(email, address, dpe, subsidy, roi):
+    """Save homeowner lead to JSON file"""
+    try:
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                leads = json.load(f)
+        else:
+            leads = []
+        
+        leads.append({
+            "id": len(leads) + 1,
+            "email": email,
+            "address": address,
+            "dpe": dpe,
+            "subsidy": subsidy,
+            "roi": roi,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "status": "new"
+        })
+        
+        with open(LEADS_FILE, "w", encoding="utf-8") as f:
+            json.dump(leads, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Save error: {e}")
+        return False
+
+
+def get_all_leads():
+    """Get all homeowner leads"""
+    try:
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+    except:
+        return []
 
 
 # ─────────────────────────────────────────────
@@ -451,6 +494,434 @@ LANG_DICT = {
 
 
 # ─────────────────────────────────────────────
+# PREMIUM HERO SECTION
+# ─────────────────────────────────────────────
+def premium_hero_section():
+    st.markdown("""
+    <style>
+    .hero-premium {
+        background: linear-gradient(135deg, #0a0c15 0%, #0f1119 100%);
+        border-radius: 32px;
+        padding: 60px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 40px;
+        border: 1px solid rgba(34, 197, 94, 0.1);
+    }
+    
+    .hero-premium::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
+        animation: heroRotate 25s linear infinite;
+    }
+    
+    @keyframes heroRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .hero-badge {
+        display: inline-block;
+        background: rgba(34, 197, 94, 0.12);
+        backdrop-filter: blur(10px);
+        padding: 8px 20px;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: #22c55e;
+        margin-bottom: 24px;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        text-transform: uppercase;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 20px;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .hero-title .highlight {
+        background: linear-gradient(135deg, #22c55e, #16a34a, #22c55e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% 200%;
+        animation: textShine 3s ease infinite;
+    }
+    
+    @keyframes textShine {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        max-width: 600px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+    
+    .search-box-premium {
+        max-width: 650px;
+        margin: 0 auto;
+        background: rgba(15, 25, 45, 0.8);
+        backdrop-filter: blur(12px);
+        border-radius: 60px;
+        padding: 8px;
+        display: flex;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+    }
+    
+    .search-box-premium:hover {
+        border-color: rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.12);
+        transform: translateY(-2px);
+    }
+    
+    .search-box-premium input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        padding: 18px 24px;
+        font-size: 1rem;
+        color: white;
+        outline: none;
+    }
+    
+    .search-box-premium input::placeholder {
+        color: #475569;
+    }
+    
+    .search-box-premium button {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        border: none;
+        padding: 12px 36px;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+    }
+    
+    .search-box-premium button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(34, 197, 94, 0.35);
+    }
+    
+    @media (max-width: 768px) {
+        .hero-premium {
+            padding: 40px 20px;
+        }
+        .hero-title {
+            font-size: 2rem;
+        }
+        .hero-subtitle {
+            font-size: 0.9rem;
+        }
+        .search-box-premium {
+            flex-direction: column;
+            background: transparent;
+            padding: 0;
+        }
+        .search-box-premium input {
+            background: rgba(15, 25, 45, 0.8);
+            border-radius: 50px;
+            margin-bottom: 12px;
+            padding: 14px 20px;
+        }
+        .search-box-premium button {
+            width: 100%;
+            padding: 14px;
+        }
+    }
+    </style>
+    
+    <div class="hero-premium">
+        <div class="hero-badge">
+            ⚡ FRANCE'S #1 RENOVATION INTELLIGENCE
+        </div>
+        <h1 class="hero-title">
+            Vérifiez si votre bien est<br>
+            <span class="highlight">louable en 2025</span>
+        </h1>
+        <p class="hero-subtitle">
+            Obtenez votre DPE, le montant exact de MaPrimeRénov'<br>
+            et le ROI de votre rénovation en 10 secondes
+        </p>
+        <div class="search-box-premium">
+            <input type="text" placeholder="📍 Adresse complète (ex: 15 Rue de Rivoli, Paris)" id="premiumAddressInput">
+            <button id="premiumSearchBtn">Analyser gratuitement →</button>
+        </div>
+        <p style="font-size: 0.7rem; color: #475569; margin-top: 16px;">
+            🔒 Gratuit • Aucune carte bancaire • Rapport instantané
+        </p>
+    </div>
+    
+    <script>
+        document.getElementById('premiumSearchBtn').onclick = function() {
+            var address = document.getElementById('premiumAddressInput').value;
+            if (address) {
+                var input = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+                if (input) {
+                    input.value = address;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                var button = window.parent.document.querySelector('button[kind="primary"]');
+                if (button) {
+                    button.click();
+                }
+            }
+        };
+    </script>
+    """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# TRUST BADGES SECTION
+# ─────────────────────────────────────────────
+def trust_badges_section():
+    st.markdown("""
+    <style>
+    .trust-section {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin: 40px 0;
+        padding: 20px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 20px;
+    }
+    
+    .trust-item {
+        text-align: center;
+    }
+    
+    .trust-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+    
+    .trust-text {
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    .review-card {
+        background: rgba(255,255,255,0.03);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .review-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(34,197,94,0.3);
+    }
+    
+    .review-stars {
+        color: #fbbf24;
+        margin-bottom: 12px;
+    }
+    
+    .review-text {
+        font-size: 14px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+        font-style: italic;
+    }
+    
+    .review-author {
+        font-size: 12px;
+        color: #22c55e;
+        font-weight: 600;
+    }
+    </style>
+    
+    <div class="trust-section">
+        <div class="trust-item">
+            <div class="trust-icon">🔒</div>
+            <div class="trust-text">Données sécurisées</div>
+        </div>
+        <div class="trust-item">
+            <div class="trust-icon">⚡</div>
+            <div class="trust-text">Rapport en 10 secondes</div>
+        </div>
+        <div class="trust-item">
+            <div class="trust-icon">💰</div>
+            <div class="trust-text">Gratuit - Sans carte</div>
+        </div>
+        <div class="trust-item">
+            <div class="trust-icon">🏆</div>
+            <div class="trust-text">Données ADEME officielles</div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 40px 0;">
+        <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <div class="review-text">"J'ai découvert 8 500€ de subventions que je ne connaissais pas!"</div>
+            <div class="review-author">— Marc D., Propriétaire à Lyon</div>
+        </div>
+        <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <div class="review-text">"En 10 secondes, j'ai eu une vision claire du potentiel de mon bien."</div>
+            <div class="review-author">— Sophie M., Paris</div>
+        </div>
+        <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <div class="review-text">"Outil indispensable pour tout propriétaire bailleur!"</div>
+            <div class="review-author">— Thomas L., Investisseur</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# BEFORE/AFTER GALLERY SECTION
+# ─────────────────────────────────────────────
+def before_after_section():
+    st.markdown("""
+    <style>
+    .before-after-section {
+        background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.02));
+        border-radius: 32px;
+        padding: 40px;
+        margin: 40px 0;
+        text-align: center;
+    }
+    
+    .before-after-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    
+    .before-after-subtitle {
+        color: #64748b;
+        margin-bottom: 32px;
+    }
+    </style>
+    
+    <div class="before-after-section">
+        <div class="before-after-title">
+            🔄 Avant / Après Rénovation
+        </div>
+        <div class="before-after-subtitle">
+            Découvrez le potentiel caché de votre bien
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="background: #1e293b; border-radius: 20px; padding: 20px; width: 250px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🏚️</div>
+                    <div style="font-weight: 700;">DPE: G</div>
+                    <div style="font-size: 12px; color: #64748b;">Avant rénovation</div>
+                    <div style="margin-top: 10px;">Valeur: 280K€</div>
+                </div>
+            </div>
+            <div style="font-size: 32px; align-self: center;">→</div>
+            <div style="text-align: center;">
+                <div style="background: #064e3b; border-radius: 20px; padding: 20px; width: 250px; border: 1px solid #22c55e;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🏠✨</div>
+                    <div style="font-weight: 700; color: #22c55e;">DPE: C</div>
+                    <div style="font-size: 12px; color: #64748b;">Après rénovation</div>
+                    <div style="margin-top: 10px;">Valeur: 350K€</div>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 20px; font-size: 12px; color: #64748b;">+70K€ de valeur • Subvention: 12,500€</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# LIVE COUNTER SECTION
+# ─────────────────────────────────────────────
+def live_counter_section():
+    st.markdown("""
+    <style>
+    .counter-section {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin: 40px 0;
+        text-align: center;
+    }
+    
+    .counter-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #22c55e;
+    }
+    
+    .counter-label {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+    </style>
+    
+    <div class="counter-section" id="counterSection">
+        <div>
+            <div class="counter-number" id="counter1">0</div>
+            <div class="counter-label">Propriétés analysées</div>
+        </div>
+        <div>
+            <div class="counter-number" id="counter2">0</div>
+            <div class="counter-label">Subventions trouvées</div>
+        </div>
+        <div>
+            <div class="counter-number" id="counter3">0</div>
+            <div class="counter-label">Projets réalisés</div>
+        </div>
+    </div>
+    
+    <script>
+    function animateCounter(elementId, target, duration) {
+        let start = 0;
+        let increment = target / (duration / 16);
+        let counter = setInterval(() => {
+            start += increment;
+            if (start >= target) {
+                clearInterval(counter);
+                document.getElementById(elementId).innerText = target.toLocaleString();
+            } else {
+                document.getElementById(elementId).innerText = Math.floor(start).toLocaleString();
+            }
+        }, 16);
+    }
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter('counter1', 5432, 2000);
+                animateCounter('counter2', 8765, 2000);
+                animateCounter('counter3', 1234, 2000);
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+    
+    observer.observe(document.getElementById('counterSection'));
+    </script>
+    """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
 # HEADER (No Sidebar)
 # ─────────────────────────────────────────────
 col_left, col_mid, col_right = st.columns([1.2, 1.5, 1.3])
@@ -498,36 +969,19 @@ if st.session_state.show_ai_features:
 # MAIN CONTENT (Property Analysis)
 # ─────────────────────────────────────────────
 elif st.session_state["confirmed_owner_property"] is None:
-    # Enhanced Hero Section
-    st.markdown("""
-    <div style="text-align: center; padding: 2rem 0 1rem 0;">
-        <div style="display: inline-block; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05)); padding: 8px 20px; border-radius: 100px; margin-bottom: 1.5rem;">
-            <span style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: #22c55e;">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
-        </div>
-        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Vérifiez si votre bien<br>est louable en 2025
-        </h1>
-        <p style="font-size: 1.1rem; color: #94a3b8; margin-top: 1rem;">
-            Obtenez votre DPE, subventions et ROI en 10 secondes
-        </p>
-    </div>
+    # Show premium hero section
+    premium_hero_section()
     
-    <div style="display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
-        <div style="text-align: center;">
-            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">5.4M</div>
-            <div style="font-size: 0.7rem; color: #64748b;">Passoires thermiques</div>
-        </div>
-        <div style="text-align: center;">
-            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">25K€</div>
-            <div style="font-size: 0.7rem; color: #64748b;">Subvention moyenne</div>
-        </div>
-        <div style="text-align: center;">
-            <div style="font-size: 2rem; font-weight: 800; color: #22c55e;">+18%</div>
-            <div style="font-size: 0.7rem; color: #64748b;">Valeur après rénovation</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Show trust badges
+    trust_badges_section()
     
+    # Show before/after gallery
+    before_after_section()
+    
+    # Show live counter
+    live_counter_section()
+    
+    # Search card
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
@@ -717,6 +1171,8 @@ else:
             if st.form_submit_button(T["form_btn"]):
                 if name and phone and email:
                     st.success(T["form_success"])
+                    # Save lead
+                    save_lead(email, base_prop["address"], base_prop["dpe"], estimated_subsidy, active_roi)
                 else:
                     st.error(T["form_err"])
         st.markdown('</div>', unsafe_allow_html=True)
@@ -761,7 +1217,7 @@ with col2:
 
 
 # ─────────────────────────────────────────────
-# ADMIN SECTION (View Chat Messages)
+# ADMIN SECTION (View Leads & Chat Messages)
 # ─────────────────────────────────────────────
 st.markdown('<div class="card" style="background:none; border:none;">', unsafe_allow_html=True)
 if st.checkbox("🔐 Admin Panel", key="admin_panel"):
@@ -769,20 +1225,17 @@ if st.checkbox("🔐 Admin Panel", key="admin_panel"):
     if admin_pwd == "ZAMI2026":
         st.success("✅ Admin Access Granted")
         
-        tab1, tab2 = st.tabs(["💬 Chat Messages", "📊 Statistics"])
+        tab1, tab2, tab3 = st.tabs(["💬 Chat Messages", "📊 Homeowner Leads", "📈 Statistics"])
         
         with tab1:
             st.markdown("### 💬 Visitor Messages")
             messages = get_all_chat_messages()
-            
             if messages:
                 for msg in messages:
                     status_emoji = "🟢" if msg.get("status") == "unread" else "🔵"
                     with st.expander(f"{status_emoji} {msg['name']} - {msg['time']}"):
                         st.markdown(f"**Email:** {msg['email']}")
                         st.markdown(f"**Message:** {msg['message']}")
-                        st.markdown(f"**Status:** {msg.get('status', 'unknown')}")
-                        
                         if msg.get("status") == "unread":
                             if st.button(f"Mark as Read", key=f"mark_{msg['id']}"):
                                 mark_message_read(msg['id'])
@@ -791,19 +1244,27 @@ if st.checkbox("🔐 Admin Panel", key="admin_panel"):
                 st.info("No messages yet")
         
         with tab2:
-            st.markdown("### 📊 Statistics")
+            st.markdown("### 📊 Homeowner Leads")
+            leads = get_all_leads()
+            if leads:
+                # Convert to DataFrame for display
+                leads_df = pd.DataFrame(leads)
+                st.dataframe(leads_df, use_container_width=True)
+                
+                # Export button
+                csv = leads_df.to_csv(index=False)
+                st.download_button("📥 Export Leads to CSV", csv, "zami_leads.csv", "text/csv")
+            else:
+                st.info("No leads yet")
+        
+        with tab3:
+            st.markdown("### 📈 Statistics")
             messages = get_all_chat_messages()
-            st.metric("Total Messages", len(messages))
+            leads = get_all_leads()
+            st.metric("Total Chat Messages", len(messages))
+            st.metric("Total Homeowner Leads", len(leads))
             unread = len([m for m in messages if m.get("status") == "unread"])
             st.metric("Unread Messages", unread)
-            
-            if messages:
-                dates = {}
-                for msg in messages:
-                    date = msg.get("time", "").split(" ")[0]
-                    dates[date] = dates.get(date, 0) + 1
-                if dates:
-                    st.write("Messages by date:", dates)
     elif admin_pwd:
         st.error("❌ Access Denied")
 st.markdown('</div>', unsafe_allow_html=True)
