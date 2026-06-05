@@ -952,7 +952,7 @@ def hero_section():
         border-radius: 32px;
         overflow: hidden;
         margin-bottom: 30px;
-        min-height: 550px;
+        min-height: 400px;
         background: linear-gradient(135deg, #0F172A, #020617);
     }
     
@@ -970,12 +970,26 @@ def hero_section():
     
     .hero-overlay {
         position: relative;
-        background: linear-gradient(135deg, rgba(15,23,42,0.7), rgba(2,6,23,0.8));
+        background: linear-gradient(135deg, rgba(15,23,42,0.5), rgba(2,6,23,0.6));
         border-radius: 32px;
-        padding: 60px 40px;
+        padding: 80px 40px;
         text-align: center;
         z-index: 1;
-        backdrop-filter: blur(3px);
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .hero-logo {
+        font-size: 4rem;
+        font-weight: 800;
+        font-family: 'Space Grotesk', sans-serif;
+        background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 15px;
     }
     
     .hero-badge {
@@ -984,7 +998,6 @@ def hero_section():
         backdrop-filter: blur(10px);
         padding: 8px 20px;
         border-radius: 100px;
-        margin-bottom: 20px;
         border: 1px solid rgba(59,130,246,0.3);
     }
     
@@ -996,105 +1009,13 @@ def hero_section():
         text-transform: uppercase;
     }
     
-    .hero-title {
-        font-size: 3.5rem;
-        font-weight: 800;
-        line-height: 1.2;
-        margin-bottom: 20px;
-        font-family: 'Space Grotesk', sans-serif;
-        background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.1rem;
-        color: #94A3B8;
-        max-width: 600px;
-        margin: 0 auto 32px;
-        line-height: 1.6;
-    }
-    
-    .search-box-premium {
-        max-width: 650px;
-        margin: 0 auto;
-        background: rgba(15, 23, 42, 0.8);
-        backdrop-filter: blur(12px);
-        border-radius: 60px;
-        padding: 8px;
-        display: flex;
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
-    }
-    
-    .search-box-premium:hover {
-        border-color: rgba(59, 130, 246, 0.6);
-        box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
-        transform: translateY(-2px);
-    }
-    
-    .search-box-premium input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        padding: 18px 24px;
-        font-size: 1rem;
-        color: white;
-        outline: none;
-    }
-    
-    .search-box-premium input::placeholder {
-        color: #475569;
-    }
-    
-    .search-box-premium button {
-        background: linear-gradient(135deg, #3B82F6, #10B981);
-        border: none;
-        padding: 12px 36px;
-        border-radius: 50px;
-        color: white;
-        font-weight: 600;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
-    }
-    
-    .search-box-premium button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
-    }
-    
-    .hero-footer {
-        font-size: 0.7rem;
-        color: #475569;
-        margin-top: 16px;
-    }
-    
     @media (max-width: 768px) {
         .hero-overlay {
-            padding: 40px 20px;
+            padding: 60px 20px;
+            min-height: 350px;
         }
-        .hero-title {
-            font-size: 2rem;
-        }
-        .hero-subtitle {
-            font-size: 0.9rem;
-        }
-        .search-box-premium {
-            flex-direction: column;
-            background: transparent;
-            padding: 0;
-        }
-        .search-box-premium input {
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 50px;
-            margin-bottom: 12px;
-            padding: 14px 20px;
-        }
-        .search-box-premium button {
-            width: 100%;
-            padding: 14px;
+        .hero-logo {
+            font-size: 2.5rem;
         }
     }
     </style>
@@ -1107,43 +1028,12 @@ def hero_section():
             allowfullscreen>
         </iframe>
         <div class="hero-overlay">
+            <div class="hero-logo">ZAMI</div>
             <div class="hero-badge">
                 <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
             </div>
-            <h1 class="hero-title">
-                Vérifiez si votre bien est<br>
-                louable en 2025
-            </h1>
-            <p class="hero-subtitle">
-                Obtenez votre DPE, le montant exact de MaPrimeRénov'<br>
-                et le ROI de votre rénovation en 10 secondes
-            </p>
-            <div class="search-box-premium">
-                <input type="text" placeholder="📍 Adresse complète (ex: 15 Rue de Rivoli, Paris)" id="premiumAddressInput">
-                <button id="premiumSearchBtn">Analyser gratuitement →</button>
-            </div>
-            <div class="hero-footer">
-                🔒 Gratuit • Aucune carte bancaire • Rapport instantané
-            </div>
         </div>
     </div>
-    
-    <script>
-        document.getElementById('premiumSearchBtn').onclick = function() {
-            var address = document.getElementById('premiumAddressInput').value;
-            if (address) {
-                var input = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-                if (input) {
-                    input.value = address;
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-                var button = window.parent.document.querySelector('button[kind="primary"]');
-                if (button) {
-                    button.click();
-                }
-            }
-        };
-    </script>
     """, unsafe_allow_html=True)
 
 
