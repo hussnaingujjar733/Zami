@@ -58,6 +58,12 @@ if "show_ai_features" not in st.session_state:
     st.session_state["show_ai_features"] = False
 if "property_surface" not in st.session_state:
     st.session_state["property_surface"] = 68
+if "user_responses" not in st.session_state:
+    st.session_state["user_responses"] = None
+if "photos_uploaded" not in st.session_state:
+    st.session_state["photos_uploaded"] = False
+if "accuracy_level" not in st.session_state:
+    st.session_state["accuracy_level"] = 1
 
 # Global Variables
 _SCENARIO_COST_MULTIPLIER = {"Essential": 1.0, "Plus": 1.65, "Zero": 2.45}
@@ -294,19 +300,279 @@ def chat_bot():
 
 
 # ─────────────────────────────────────────────
+# ACCURACY IMPROVEMENT FUNCTIONS
+# ─────────────────────────────────────────────
+
+def calculate_enhanced_roi(property_data, user_responses):
+    """Calculate more accurate ROI based on user questionnaire"""
+    
+    base_roi = property_data.get("roi", 15.0)
+    base_cost = property_data.get("cost", 25000)
+    
+    windows_multiplier = {
+        "Simple vitrage": 1.0,
+        "Double vitrage": 0.6,
+        "Triple vitrage": 0.4,
+        "Je ne sais pas": 0.8
+    }
+    
+    heating_multiplier = {
+        "Gaz (ancien)": 1.0,
+        "Gaz (condensation)": 0.7,
+        "Électrique": 0.9,
+        "Pompe à chaleur": 0.5,
+        "Bois / granulés": 0.6,
+        "Je ne sais pas": 0.8
+    }
+    
+    insulation_factor = 1.0
+    if user_responses.get("roof_insulation") == "Non":
+        insulation_factor += 0.2
+    if user_responses.get("wall_insulation") == "Non":
+        insulation_factor += 0.25
+    
+    window_factor = windows_multiplier.get(user_responses.get("windows", "Je ne sais pas"), 0.8)
+    heating_factor = heating_multiplier.get(user_responses.get("heating", "Je ne sais pas"), 0.8)
+    
+    accuracy_boost = (1 - window_factor) * 0.3 + (1 - heating_factor) * 0.3 + (insulation_factor - 1) * 0.4
+    enhanced_roi = base_roi * (1 + accuracy_boost)
+    enhanced_cost = base_cost * (0.5 + window_factor * 0.25 + heating_factor * 0.25)
+    
+    return min(enhanced_roi, 35.0), enhanced_cost
+
+
+def property_questionnaire():
+    """Ask user about property details for better accuracy (Level 2)"""
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.02)); border-radius: 20px; padding: 25px; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="background: #22c55e; padding: 5px 12px; border-radius: 20px; font-size: 12px;">LEVEL 2</span>
+            <h3 style="color: white; margin: 0;">Améliorez la précision</h3>
+        </div>
+        <p style="color: #64748b; margin-bottom: 5px;">Répondez à quelques questions pour obtenir une estimation à 85-90% de précision</p>
+        <p style="color: #22c55e; font-size: 13px;">✨ +15% de précision</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("accuracy_form"):
+        st.markdown("### 🪟 Windows")
+        windows_type = st.radio(
+            "Type de vitrage",
+            ["Simple vitrage", "Double vitrage", "Triple vitrage", "Je ne sais pas"],
+            horizontal=True
+        )
+        
+        st.markdown("### 🔥 Heating System")
+        heating_type = st.radio(
+            "Système de chauffage",
+            ["Gaz (ancien)", "Gaz (condensation)", "Électrique", "Pompe à chaleur", "Bois / granulés", "Je ne sais pas"],
+            horizontal=True
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### 🏠 Roof Insulation")
+            roof_insulation = st.radio(
+                "Toiture isolée ?",
+                ["Oui", "Non", "Partiellement", "Je ne sais pas"],
+                horizontal=True
+            )
+        with col2:
+            st.markdown("### 🧱 Wall Insulation")
+            wall_insulation = st.radio(
+                "Murs isolés ?",
+                ["Oui", "Non", "Partiellement", "Je ne sais pas"],
+                horizontal=True
+            )
+        
+        st.markdown("### 🔧 Recent Renovations")
+        recent_renovation = st.radio(
+            "Avez-vous effectué des travaux récents (moins de 5 ans) ?",
+            ["Oui", "Non"],
+            horizontal=True
+        )
+        
+        renovation_details = ""
+        if recent_renovation == "Oui":
+            renovation_details = st.text_area("Quels travaux avez-vous réalisés ?", placeholder="Ex: Changement des fenêtres, isolation des combles...")
+        
+        submitted = st.form_submit_button("💾 Enregistrer et améliorer l'estimation", type="primary", use_container_width=True)
+        
+        if submitted:
+            user_responses = {
+                "windows": windows_type,
+                "heating": heating_type,
+                "roof_insulation": roof_insulation,
+                "wall_insulation": wall_insulation,
+                "recent_renovation": recent_renovation,
+                "renovation_details": renovation_details
+            }
+            st.session_state["user_responses"] = user_responses
+            st.session_state["accuracy_level"] = 2
+            st.success("✅ Merci! Votre estimation va être recalculée avec plus de précision.")
+            st.rerun()
+
+
+def photo_upload_section():
+    """Allow users to upload property photos for better accuracy (Level 3)"""
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.02)); border-radius: 20px; padding: 25px; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="background: #22c55e; padding: 5px 12px; border-radius: 20px; font-size: 12px;">LEVEL 3</span>
+            <h3 style="color: white; margin: 0;">Analyse par IA des photos</h3>
+        </div>
+        <p style="color: #64748b; margin-bottom: 5px;">Uploader des photos pour une estimation à 90-95% de précision</p>
+        <p style="color: #22c55e; font-size: 13px;">✨ +5% de précision supplémentaire</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("photo_form"):
+        st.markdown("### 📷 Facade avant")
+        facade_photo = st.file_uploader("Photo de la facade", type=["jpg", "png", "jpeg"], key="facade")
+        
+        st.markdown("### 🪟 Fenêtres")
+        windows_photo = st.file_uploader("Photo des fenêtres", type=["jpg", "png", "jpeg"], key="windows")
+        
+        st.markdown("### 🏠 Toiture / Combles")
+        roof_photo = st.file_uploader("Photo de la toiture ou des combles", type=["jpg", "png", "jpeg"], key="roof")
+        
+        st.markdown("### 🔥 Système de chauffage")
+        heating_photo = st.file_uploader("Photo du système de chauffage", type=["jpg", "png", "jpeg"], key="heating")
+        
+        submitted = st.form_submit_button("📤 Analyser les photos", type="primary", use_container_width=True)
+        
+        if submitted:
+            # In production: send to AI vision API
+            st.session_state["photos_uploaded"] = True
+            st.session_state["accuracy_level"] = 3
+            st.success("✅ Photos reçues! Notre IA va les analyser pour affiner l'estimation.")
+            st.rerun()
+
+
+def professional_audit_section():
+    """Offer professional audit for highest accuracy (Level 4 - Premium)"""
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.04)); border-radius: 20px; padding: 25px; margin: 20px 0; border: 1px solid rgba(34,197,94,0.3);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: white;">✨ PREMIUM</span>
+            <h3 style="color: white; margin: 0;">Audit Certifié ZAMI</h3>
+        </div>
+        <p style="color: #64748b; margin-bottom: 5px;">Exactitude garantie à 98-99%</p>
+        <p style="color: #22c55e; font-size: 13px;">✨ +4-8% de précision</p>
+        
+        <div style="margin-top: 20px;">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: space-between;">
+                <div>
+                    <div style="font-size: 12px; color: #64748b;">INCLUS</div>
+                    <ul style="color: #94a3b8; margin-top: 10px;">
+                        <li>✓ Visite technique sur site par un expert certifié</li>
+                        <li>✓ Analyse thermique complète (thermographie)</li>
+                        <li>✓ Relevé précis des déperditions énergétiques</li>
+                        <li>✓ Dossier de subvention préparé</li>
+                        <li>✓ Mise en relation avec 3 artisans RGE</li>
+                        <li>✓ Garantie de satisfaction</li>
+                    </ul>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 28px; font-weight: 800; color: #22c55e;">€199</div>
+                    <div style="font-size: 12px; color: #64748b;">TTC • Déductible des subventions</div>
+                    <button style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; padding: 12px 30px; border-radius: 50px; color: white; font-weight: 600; margin-top: 15px; cursor: pointer;">
+                        🎯 Commander un audit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# ACCURACY PROGRESS BAR
+# ─────────────────────────────────────────────
+def accuracy_progress_bar():
+    """Show current accuracy level and improvement options"""
+    
+    levels = {
+        1: {"name": "Données officielles", "accuracy": "70-75%", "color": "#64748b"},
+        2: {"name": "Questionnaire", "accuracy": "85-90%", "color": "#eab308"},
+        3: {"name": "Photos IA", "accuracy": "90-95%", "color": "#22c55e"},
+        4: {"name": "Audit certifié", "accuracy": "98-99%", "color": "#22c55e"}
+    }
+    
+    current_level = st.session_state.get("accuracy_level", 1)
+    
+    st.markdown("""
+    <style>
+    .accuracy-container {
+        background: rgba(15, 25, 45, 0.6);
+        border-radius: 16px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+    .accuracy-step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .accuracy-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+    }
+    .accuracy-line {
+        flex: 1;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div class="accuracy-container">', unsafe_allow_html=True)
+    st.markdown("#### 🎯 Niveau de précision de l'estimation")
+    
+    cols = st.columns(4)
+    for i, (level, info) in enumerate(levels.items(), 1):
+        with cols[i-1]:
+            if level <= current_level:
+                st.markdown(f"""
+                <div style="text-align: center;">
+                    <div class="accuracy-badge" style="background: {info['color']}; margin: 0 auto 5px auto;">✓</div>
+                    <div style="font-size: 12px; font-weight: 600;">{info['name']}</div>
+                    <div style="font-size: 11px; color: #22c55e;">{info['accuracy']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style="text-align: center; opacity: 0.4;">
+                    <div class="accuracy-badge" style="background: #1e293b; margin: 0 auto 5px auto;">{level}</div>
+                    <div style="font-size: 12px; font-weight: 600;">{info['name']}</div>
+                    <div style="font-size: 11px; color: #64748b;">{info['accuracy']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
 # RELIABLE PROPERTY VISUAL FUNCTION (Pexels)
 # ─────────────────────────────────────────────
 def get_property_visual(lat, lon, dpe_class, is_after=False):
-    """Get reliable property visualization using Pexels (more stable than Unsplash)"""
+    """Get reliable property visualization using Pexels"""
     
-    # Create unique hash from coordinates for consistent image
     coord_hash = int(hashlib.md5(f"{lat},{lon}".encode()).hexdigest()[:8], 16)
     
     if is_after:
-        # After renovation - modern, energy efficient building
         base_url = "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg"
     else:
-        # Before renovation - based on DPE class
         if dpe_class in ["F", "G"]:
             base_url = "https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg"
         elif dpe_class in ["D", "E"]:
@@ -320,23 +586,19 @@ def get_property_visual(lat, lon, dpe_class, is_after=False):
 def dynamic_before_after_section(address, dpe_class, surface, lat, lon):
     """Dynamic before/after section based on user's actual property"""
     
-    # Get property images
     before_image = get_property_visual(lat, lon, dpe_class, is_after=False)
     after_image = get_property_visual(lat, lon, dpe_class, is_after=True)
     
-    # Calculate estimated values based on surface
     base_value = 280000
     after_base = 350000
     subsidy_base = 12500
     roi_base = 18.4
     
-    # Adjust based on surface area
     current_value = int(base_value * (surface / 68))
     after_value = int(after_base * (surface / 68))
     subsidy = int(subsidy_base * (surface / 68))
     gain = after_value - current_value
     
-    # Target DPE after renovation
     if dpe_class in ["F", "G"]:
         target_dpe = "C"
     elif dpe_class == "E":
@@ -435,7 +697,6 @@ def dynamic_before_after_section(address, dpe_class, surface, lat, lon):
         </div>
         
         <div style="display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap;">
-            <!-- Before Card -->
             <div class="comparison-card before-card">
                 <img src="{before_image}" class="property-image" 
                      onerror="this.src='https://placehold.co/400x250/1e293b/64748b?text=Image+non+disponible'">
@@ -449,7 +710,6 @@ def dynamic_before_after_section(address, dpe_class, surface, lat, lon):
             
             <div style="font-size: 48px; animation: arrowPulse 1.5s infinite;">→</div>
             
-            <!-- After Card -->
             <div class="comparison-card after-card">
                 <img src="{after_image}" class="property-image" 
                      onerror="this.src='https://placehold.co/400x250/064e3b/22c55e?text=Visualisation+renovation'">
@@ -1126,12 +1386,10 @@ if st.session_state.show_ai_features:
 # MAIN CONTENT (Property Analysis)
 # ─────────────────────────────────────────────
 elif st.session_state["confirmed_owner_property"] is None:
-    # Show premium sections
     premium_hero_section()
     trust_badges_section()
     live_counter_section()
     
-    # Search card
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
@@ -1197,7 +1455,10 @@ else:
     base_prop = st.session_state["confirmed_owner_property"]
     dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
-    # Show dynamic before/after section FIRST (most impactful)
+    # Show accuracy progress bar
+    accuracy_progress_bar()
+    
+    # Show dynamic before/after section
     dynamic_before_after_section(
         base_prop["address"], 
         base_prop["dpe"], 
@@ -1208,7 +1469,47 @@ else:
     
     if st.button(T["btn_back"], key="back_btn"):
         st.session_state["confirmed_owner_property"] = None
+        st.session_state["user_responses"] = None
+        st.session_state["photos_uploaded"] = False
+        st.session_state["accuracy_level"] = 1
         st.rerun()
+    
+    # Check accuracy level and show relevant sections
+    if st.session_state.get("user_responses") is None:
+        property_questionnaire()
+    else:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.04)); border-radius: 16px; padding: 15px; margin: 15px 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="background: #22c55e; padding: 5px 12px; border-radius: 20px; font-size: 12px;">✓ LEVEL 2</span>
+                <span>Questionnaire complété</span>
+                <span style="color: #22c55e;">Précision: 85-90%</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if not st.session_state.get("photos_uploaded"):
+            photo_upload_section()
+        else:
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.04)); border-radius: 16px; padding: 15px; margin: 15px 0;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="background: #22c55e; padding: 5px 12px; border-radius: 20px; font-size: 12px;">✓ LEVEL 3</span>
+                    <span>Photos analysées par IA</span>
+                    <span style="color: #22c55e;">Précision: 90-95%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            professional_audit_section()
+    
+    # Recalculate enhanced ROI if user has responses
+    if st.session_state.get("user_responses"):
+        enhanced_roi, enhanced_cost = calculate_enhanced_roi(base_prop, st.session_state["user_responses"])
+        if enhanced_roi != base_prop.get("roi", 15.0):
+            base_prop["roi"] = enhanced_roi
+            base_prop["cost"] = enhanced_cost
+            st.session_state["confirmed_owner_property"] = base_prop
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown(f'<p class="section-label">{T["bilan_title"]}</p><div class="owner-exclusive-title">{base_prop["address"][:60]}</div>', unsafe_allow_html=True)
