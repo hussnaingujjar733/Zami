@@ -968,6 +968,11 @@ def hero_section():
         pointer-events: none;
     }
     
+    /* Hide YouTube logo and branding */
+    .hero-iframe {
+        clip-path: inset(0);
+    }
+    
     .hero-overlay {
         position: relative;
         background: linear-gradient(135deg, rgba(15,23,42,0.5), rgba(2,6,23,0.6));
@@ -1022,7 +1027,7 @@ def hero_section():
     
     <div class="hero-container">
         <iframe class="hero-iframe" 
-            src="https://www.youtube.com/embed/mCmjNwjYfqw?autoplay=1&loop=1&mute=1&controls=0&playlist=mCmjNwjYfqw&enablejsapi=1"
+            src="https://www.youtube.com/embed/mCmjNwjYfqw?autoplay=1&loop=1&mute=1&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1&playlist=mCmjNwjYfqw&enablejsapi=1"
             frameborder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen>
