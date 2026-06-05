@@ -945,23 +945,18 @@ LANG_DICT = {
 # PREMIUM HERO SECTION
 # ─────────────────────────────────────────────
 def hero_section():
-    import os
-    video_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "zamivideo.mp4")
-    video_exists = os.path.exists(video_path)
-    
-    st.markdown(f"""
+    st.markdown("""
     <style>
-    .hero-video-container {{
+    .hero-video-container {
         position: relative;
         border-radius: 32px;
         overflow: hidden;
         margin-bottom: 30px;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         min-height: 500px;
         background: linear-gradient(135deg, #0F172A, #020617);
-    }}
+    }
     
-    .hero-video {{
+    .hero-video {
         position: absolute;
         top: 0;
         left: 0;
@@ -969,19 +964,19 @@ def hero_section():
         height: 100%;
         object-fit: cover;
         z-index: 0;
-    }}
+        opacity: 0.6;
+    }
     
-    .hero-overlay {{
+    .hero-overlay {
         position: relative;
-        background: linear-gradient(135deg, rgba(15,23,42,0.75), rgba(2,6,23,0.85));
+        background: linear-gradient(135deg, rgba(15,23,42,0.7), rgba(2,6,23,0.8));
         border-radius: 32px;
         padding: 60px 40px;
         text-align: center;
         z-index: 1;
-        backdrop-filter: blur(3px);
-    }}
+    }
     
-    .hero-badge {{
+    .hero-badge {
         display: inline-block;
         background: rgba(59,130,246,0.2);
         backdrop-filter: blur(10px);
@@ -989,17 +984,17 @@ def hero_section():
         border-radius: 100px;
         margin-bottom: 20px;
         border: 1px solid rgba(59,130,246,0.3);
-    }}
+    }
     
-    .hero-badge span {{
+    .hero-badge span {
         font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.1em;
         color: #3B82F6;
         text-transform: uppercase;
-    }}
+    }
     
-    .hero-title {{
+    .hero-title {
         font-size: 3.5rem;
         font-weight: 800;
         line-height: 1.2;
@@ -1008,17 +1003,17 @@ def hero_section():
         background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }}
+    }
     
-    .hero-subtitle {{
+    .hero-subtitle {
         font-size: 1.1rem;
         color: #94A3B8;
         max-width: 600px;
         margin: 0 auto 32px;
         line-height: 1.6;
-    }}
+    }
     
-    .search-box-premium {{
+    .search-box-premium {
         max-width: 650px;
         margin: 0 auto;
         background: rgba(15, 23, 42, 0.8);
@@ -1028,15 +1023,15 @@ def hero_section():
         display: flex;
         border: 1px solid rgba(59, 130, 246, 0.3);
         transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
-    }}
+    }
     
-    .search-box-premium:hover {{
+    .search-box-premium:hover {
         border-color: rgba(59, 130, 246, 0.6);
         box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
         transform: translateY(-2px);
-    }}
+    }
     
-    .search-box-premium input {{
+    .search-box-premium input {
         flex: 1;
         background: transparent;
         border: none;
@@ -1044,13 +1039,13 @@ def hero_section():
         font-size: 1rem;
         color: white;
         outline: none;
-    }}
+    }
     
-    .search-box-premium input::placeholder {{
+    .search-box-premium input::placeholder {
         color: #475569;
-    }}
+    }
     
-    .search-box-premium button {{
+    .search-box-premium button {
         background: linear-gradient(135deg, #3B82F6, #10B981);
         border: none;
         padding: 12px 36px;
@@ -1061,49 +1056,51 @@ def hero_section():
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
-    }}
+    }
     
-    .search-box-premium button:hover {{
+    .search-box-premium button:hover {
         transform: scale(1.02);
         box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
-    }}
+    }
     
-    .hero-footer {{
+    .hero-footer {
         font-size: 0.7rem;
         color: #475569;
         margin-top: 16px;
-    }}
+    }
     
-    @media (max-width: 768px) {{
-        .hero-overlay {{
+    @media (max-width: 768px) {
+        .hero-overlay {
             padding: 40px 20px;
-        }}
-        .hero-title {{
+        }
+        .hero-title {
             font-size: 2rem;
-        }}
-        .hero-subtitle {{
+        }
+        .hero-subtitle {
             font-size: 0.9rem;
-        }}
-        .search-box-premium {{
+        }
+        .search-box-premium {
             flex-direction: column;
             background: transparent;
             padding: 0;
-        }}
-        .search-box-premium input {{
+        }
+        .search-box-premium input {
             background: rgba(15, 23, 42, 0.8);
             border-radius: 50px;
             margin-bottom: 12px;
             padding: 14px 20px;
-        }}
-        .search-box-premium button {{
+        }
+        .search-box-premium button {
             width: 100%;
             padding: 14px;
-        }}
-    }}
+        }
+    }
     </style>
     
     <div class="hero-video-container">
-        {'<video class="hero-video" autoplay loop muted playsinline><source src="assets/zamivideo.mp4" type="video/mp4"></video>' if video_exists else '<div style="position:absolute; top:0; left:0; width:100%; height:100%; background:url(https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg?auto=compress&w=800&h=500&fit=crop); background-size:cover; z-index:0;"></div>'}
+        <video class="hero-video" autoplay loop muted playsinline>
+            <source src="assets/zamivideo.mp4" type="video/mp4">
+        </video>
         <div class="hero-overlay">
             <div class="hero-badge">
                 <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
@@ -1127,25 +1124,24 @@ def hero_section():
     </div>
     
     <script>
-        document.getElementById('premiumSearchBtn').onclick = function() {{
+        document.getElementById('premiumSearchBtn').onclick = function() {
             var address = document.getElementById('premiumAddressInput').value;
-            if (address) {{
+            if (address) {
                 var input = window.parent.document.querySelector('input[data-testid="stTextInput"]');
-                if (input) {{
+                if (input) {
                     input.value = address;
-                    input.dispatchEvent(new Event('input', {{ bubbles: true }}));
-                }}
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
                 var button = window.parent.document.querySelector('button[kind="primary"]');
-                if (button) {{
+                if (button) {
                     button.click();
-                }}
-            }}
-        }};
+                }
+            }
+        };
     </script>
     """, unsafe_allow_html=True)
 
 
-# Alias for backward compatibility
 premium_hero_section = hero_section
 # ─────────────────────────────────────────────
 # TRUST BADGES SECTION
