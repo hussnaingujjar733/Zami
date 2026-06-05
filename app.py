@@ -294,28 +294,27 @@ def chat_bot():
 
 
 # ─────────────────────────────────────────────
-# DYNAMIC BEFORE/AFTER WITH AI IMAGES
+# RELIABLE PROPERTY VISUAL FUNCTION (Pexels)
 # ─────────────────────────────────────────────
 def get_property_visual(lat, lon, dpe_class, is_after=False):
-    """Get property visualization based on location and DPE"""
+    """Get reliable property visualization using Pexels (more stable than Unsplash)"""
     
     # Create unique hash from coordinates for consistent image
     coord_hash = int(hashlib.md5(f"{lat},{lon}".encode()).hexdigest()[:8], 16)
     
     if is_after:
-        # After renovation - modern, energy efficient keywords
-        keywords = "modern+building+energy+efficient+solar+panels+renovated"
+        # After renovation - modern, energy efficient building
+        base_url = "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg"
     else:
         # Before renovation - based on DPE class
         if dpe_class in ["F", "G"]:
-            keywords = "old+run-down+building+facade+dilapidated"
+            base_url = "https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg"
         elif dpe_class in ["D", "E"]:
-            keywords = "average+building+facade+needs+renovation"
+            base_url = "https://images.pexels.com/photos/1643384/pexels-photo-1643384.jpeg"
         else:
-            keywords = "modern+building+facade+good+condition"
+            base_url = "https://images.pexels.com/photos/2587054/pexels-photo-2587054.jpeg"
     
-    # Use Unsplash for free, location-based images
-    return f"https://source.unsplash.com/featured/400x300?{keywords}&sig={coord_hash}"
+    return f"{base_url}?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop&sig={coord_hash}"
 
 
 def dynamic_before_after_section(address, dpe_class, surface, lat, lon):
