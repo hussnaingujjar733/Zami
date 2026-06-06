@@ -1,6 +1,5 @@
 """
 reportlab_generator.py — ZAMI Premium Institutional Report Generator
-ReportLab based - McKinsey/Deloitte/JLL/CBRE/BNP Paribas Grade
 """
 
 import io
@@ -9,24 +8,14 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
     PageBreak
 )
 from reportlab.graphics.shapes import Drawing, Rect, Circle, String
-from reportlab.graphics.charts.linecharts import HorizontalLineChart
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-# Register fonts (using standard fonts for compatibility)
-try:
-    pdfmetrics.registerFont(TTFont('HelveticaNeue', 'Helvetica'))
-    pdfmetrics.registerFont(TTFont('HelveticaNeue-Bold', 'Helvetica-Bold'))
-except:
-    pass
-
-# Color Palette - Institutional Premium
+# Color Palette
 COLORS = {
     'primary': colors.HexColor('#0F172A'),
     'secondary': colors.HexColor('#1E293B'),
@@ -38,91 +27,17 @@ COLORS = {
     'gray_mid': colors.HexColor('#CBD5E1'),
     'gray_dark': colors.HexColor('#475569'),
     'white': colors.HexColor('#FFFFFF'),
-    'black': colors.HexColor('#1E293B'),
 }
-
-
-class ReportStyles:
-    def __init__(self):
-        self.styles = getSampleStyleSheet()
-        self._create_custom_styles()
-    
-    def _create_custom_styles(self):
-        self.styles.add(ParagraphStyle(
-            name='CoverTitle',
-            fontName='Helvetica-Bold',
-            fontSize=42,
-            textColor=COLORS['white'],
-            alignment=TA_CENTER,
-            spaceAfter=30,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='CoverSubtitle',
-            fontName='Helvetica',
-            fontSize=12,
-            textColor=colors.HexColor('#CBD5E1'),
-            alignment=TA_CENTER,
-            spaceAfter=40,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='SectionHeader',
-            fontName='Helvetica-Bold',
-            fontSize=18,
-            textColor=COLORS['primary'],
-            spaceBefore=20,
-            spaceAfter=10,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='SectionHeaderLine',
-            fontName='Helvetica-Bold',
-            fontSize=16,
-            textColor=COLORS['accent_blue'],
-            spaceBefore=15,
-            spaceAfter=8,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='KPILarge',
-            fontName='Helvetica-Bold',
-            fontSize=24,
-            textColor=COLORS['primary'],
-            alignment=TA_CENTER,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='KPIMedium',
-            fontName='Helvetica-Bold',
-            fontSize=16,
-            textColor=COLORS['primary'],
-            alignment=TA_CENTER,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='BodyText',
-            fontName='Helvetica',
-            fontSize=10,
-            textColor=COLORS['gray_dark'],
-            alignment=TA_LEFT,
-            spaceAfter=6,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='MetricLabel',
-            fontName='Helvetica',
-            fontSize=8,
-            textColor=COLORS['gray_mid'],
-            alignment=TA_CENTER,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='ScoreValue',
-            fontName='Helvetica-Bold',
-            fontSize=36,
-            textColor=COLORS['accent_blue'],
-            alignment=TA_CENTER,
-        ))
 
 
 class PremiumZamiReport:
     def __init__(self, property_data):
         self.property_data = property_data
-        self.styles = ReportStyles().styles
         self.buffer = io.BytesIO()
+        
+        # Get base styles
+        self.styles = getSampleStyleSheet()
+        self._add_custom_styles()
         
         # Calculate derived values
         self.surface = property_data.get('surface', 75.0)
@@ -160,6 +75,86 @@ class PremiumZamiReport:
         
         self.zami_score = int((self.energy_score + self.compliance_score + 
                                self.investment_score + self.market_score) / 4)
+    
+    def _add_custom_styles(self):
+        """Add custom styles without duplicates"""
+        # Only add if not exists
+        style_names = [s.name for s in self.styles]
+        
+        if 'CoverTitle' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='CoverTitle',
+                parent=self.styles['Title'],
+                fontName='Helvetica-Bold',
+                fontSize=42,
+                textColor=COLORS['white'],
+                alignment=TA_CENTER,
+                spaceAfter=30,
+            ))
+        
+        if 'CoverSubtitle' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='CoverSubtitle',
+                parent=self.styles['Normal'],
+                fontName='Helvetica',
+                fontSize=12,
+                textColor=colors.HexColor('#CBD5E1'),
+                alignment=TA_CENTER,
+                spaceAfter=40,
+            ))
+        
+        if 'SectionHeader' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='SectionHeader',
+                parent=self.styles['Heading1'],
+                fontName='Helvetica-Bold',
+                fontSize=18,
+                textColor=COLORS['primary'],
+                spaceBefore=20,
+                spaceAfter=10,
+            ))
+        
+        if 'SectionHeaderLine' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='SectionHeaderLine',
+                parent=self.styles['Heading2'],
+                fontName='Helvetica-Bold',
+                fontSize=16,
+                textColor=COLORS['accent_blue'],
+                spaceBefore=15,
+                spaceAfter=8,
+            ))
+        
+        if 'KPILarge' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='KPILarge',
+                parent=self.styles['Normal'],
+                fontName='Helvetica-Bold',
+                fontSize=24,
+                textColor=COLORS['primary'],
+                alignment=TA_CENTER,
+            ))
+        
+        if 'MetricLabel' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='MetricLabel',
+                parent=self.styles['Normal'],
+                fontName='Helvetica',
+                fontSize=8,
+                textColor=COLORS['gray_mid'],
+                alignment=TA_CENTER,
+            ))
+        
+        if 'BodyTextStyle' not in style_names:
+            self.styles.add(ParagraphStyle(
+                name='BodyTextStyle',
+                parent=self.styles['Normal'],
+                fontName='Helvetica',
+                fontSize=10,
+                textColor=COLORS['gray_dark'],
+                alignment=TA_LEFT,
+                spaceAfter=6,
+            ))
     
     def _draw_dpe_badge(self, canvas, x, y, size, dpe):
         colors_map = {
@@ -225,7 +220,7 @@ class PremiumZamiReport:
         story.append(Spacer(1, 5))
         story.append(Paragraph(
             'This report provides a comprehensive analysis of the property\'s energy renovation potential.',
-            self.styles['BodyText']
+            self.styles['BodyTextStyle']
         ))
         story.append(Spacer(1, 20))
         
@@ -333,7 +328,7 @@ class PremiumZamiReport:
         else:
             interpretation = 'Attention required. Immediate renovation recommended to capture value.'
         story.append(Spacer(1, 10))
-        story.append(Paragraph(interpretation, self.styles['BodyText']))
+        story.append(Paragraph(interpretation, self.styles['BodyTextStyle']))
         return story
     
     def create_renovation_roadmap(self):
@@ -396,16 +391,16 @@ class PremiumZamiReport:
         story.append(Paragraph(
             'Our certified experts will validate this analysis, identify additional subsidies, '
             'and connect you with trusted RGE contractors.',
-            self.styles['BodyText']
+            self.styles['BodyTextStyle']
         ))
         story.append(Spacer(1, 20))
-        story.append(Paragraph('<b>Contact our team:</b>', self.styles['BodyText']))
-        story.append(Paragraph('📧 experts@thezami.com', self.styles['BodyText']))
-        story.append(Paragraph('📞 +33 (0)1 23 45 67 89', self.styles['BodyText']))
+        story.append(Paragraph('<b>Contact our team:</b>', self.styles['BodyTextStyle']))
+        story.append(Paragraph(' experts@thezami.com', self.styles['BodyTextStyle']))
+        story.append(Paragraph(' +33 (0)1 23 45 67 89', self.styles['BodyTextStyle']))
         story.append(Spacer(1, 30))
         story.append(Paragraph(
             '<i>This report is a preliminary analysis. Final figures require on-site technical audit.</i>',
-            self.styles['BodyText']
+            self.styles['BodyTextStyle']
         ))
         return story
     
