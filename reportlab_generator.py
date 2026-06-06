@@ -78,8 +78,9 @@ def create_styles():
         spaceAfter=40
     ))
     
+    # Changed names to avoid conflict with ReportLab defaults
     styles.add(ParagraphStyle(
-        name='Heading1',
+        name='ZamiHeading1',
         fontName='Helvetica-Bold',
         fontSize=18,
         textColor=DARK_SLATE,
@@ -90,7 +91,7 @@ def create_styles():
     ))
     
     styles.add(ParagraphStyle(
-        name='Heading2',
+        name='ZamiHeading2',
         fontName='Helvetica-Bold',
         fontSize=14,
         textColor=ZAMI_GREEN,
@@ -168,7 +169,7 @@ def generer_rapport(property_data):
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BACKGROUND', (0,0), (-1,-1), dpe_color),
-        ('ROUNDEDCORNERS', [20, 20, 20, 20]), # If reportlab supports it, otherwise clean box
+        ('ROUNDEDCORNERS', [20, 20, 20, 20]),
     ]))
     
     # Centering the DPE table
@@ -186,7 +187,7 @@ def generer_rapport(property_data):
     # ==========================================
     # PAGE 2: RESUME EXECUTIF & KPIs
     # ==========================================
-    elements.append(Paragraph("Résumé Exécutif", styles['Heading1']))
+    elements.append(Paragraph("Résumé Exécutif", styles['ZamiHeading1']))
     elements.append(Paragraph(
         "Ce rapport exclusif analyse le potentiel de rénovation énergétique de votre bien. "
         "Basé sur les données de l'ADEME et les prix du marché (DVF), il détaille les coûts, "
@@ -195,7 +196,7 @@ def generer_rapport(property_data):
     ))
     elements.append(Spacer(1, 10*mm))
     
-    # KPI Grid using Table (2 Columns, 3 Rows)
+    # KPI Grid
     kpi_data = [
         [
             Paragraph(f"<font color='#64748B' size=9>Valeur Actuelle</font><br/><font size=14><b>€ {valeur_actuelle:,}</b></font>"),
@@ -223,13 +224,13 @@ def generer_rapport(property_data):
     elements.append(kpi_table)
     elements.append(Spacer(1, 15*mm))
     
-    elements.append(Paragraph("Gain Net Estimé Après Rénovation", styles['Heading2']))
-    elements.append(Paragraph(f"<b><font size=20>+€ {gain:,}</font></b>", styles['Heading1']))
+    elements.append(Paragraph("Gain Net Estimé Après Rénovation", styles['ZamiHeading2']))
+    elements.append(Paragraph(f"<b><font size=20>+€ {gain:,}</font></b>", styles['ZamiHeading1']))
     
     # ==========================================
     # PAGE 3: CARACTÉRISTIQUES & FINANCES
     # ==========================================
-    elements.append(Paragraph("Caractéristiques & Analyse Financière", styles['Heading1']))
+    elements.append(Paragraph("Caractéristiques & Analyse Financière", styles['ZamiHeading1']))
     
     # Property Details Table
     details_data = [
@@ -251,7 +252,7 @@ def generer_rapport(property_data):
     elements.append(t_details)
     elements.append(Spacer(1, 15*mm))
     
-    elements.append(Paragraph("Détail de l'Investissement", styles['Heading2']))
+    elements.append(Paragraph("Détail de l'Investissement", styles['ZamiHeading2']))
     finance_data = [
         ["Investissement Travaux", f"- € {cout:,}"],
         ["Subventions Publiques", f"+ € {subvention:,}"],
@@ -264,8 +265,8 @@ def generer_rapport(property_data):
         ('FONTNAME', (1,0), (1,-1), 'Helvetica-Bold'),
         ('TEXTCOLOR', (0,0), (0,-1), COOL_GREY),
         ('TEXTCOLOR', (1,0), (1,-1), DARK_SLATE),
-        ('TEXTCOLOR', (1,1), (1,1), ZAMI_GREEN), # Subsidy in green
-        ('TEXTCOLOR', (1,3), (1,3), ZAMI_GREEN), # Plus value in green
+        ('TEXTCOLOR', (1,1), (1,1), ZAMI_GREEN),
+        ('TEXTCOLOR', (1,3), (1,3), ZAMI_GREEN),
         ('LINEBELOW', (0,0), (-1,-1), 0.5, colors.HexColor("#E2E8F0")),
         ('BOTTOMPADDING', (0,0), (-1,-1), 8),
         ('TOPPADDING', (0,0), (-1,-1), 8),
@@ -277,7 +278,7 @@ def generer_rapport(property_data):
     # ==========================================
     # PAGE 4: RECOMMANDATIONS
     # ==========================================
-    elements.append(Paragraph("Plan d'Action & Recommandations", styles['Heading1']))
+    elements.append(Paragraph("Plan d'Action & Recommandations", styles['ZamiHeading1']))
     
     recommandations = [
         ['Ordre', 'Action Recommandée', 'Coût Estimé', 'Délai'],
@@ -293,7 +294,7 @@ def generer_rapport(property_data):
         ('TEXTCOLOR', (0,0), (-1,0), WHITE),
         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
         ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('ALIGN', (0,0), (0,-1), 'CENTER'), # Center priority numbers
+        ('ALIGN', (0,0), (0,-1), 'CENTER'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 10),
         ('TOPPADDING', (0,0), (-1,-1), 10),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG]),
@@ -302,7 +303,7 @@ def generer_rapport(property_data):
     elements.append(t_reco)
     elements.append(Spacer(1, 15*mm))
     
-    elements.append(Paragraph("Prochaines Étapes", styles['Heading2']))
+    elements.append(Paragraph("Prochaines Étapes", styles['ZamiHeading2']))
     steps = [
         "Réaliser un audit sur site par un artisan certifié RGE.",
         "Déposer le dossier MaPrimeRénov' avant le début des travaux.",
