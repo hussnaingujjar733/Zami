@@ -140,6 +140,10 @@ def hero_section():
         font-size: 0.8rem;
         color: #CBD5E1;
     }
+    @media (max-width: 768px) {
+        .hero-logo-text { font-size: 2.2rem; }
+        .hero-title-fr { font-size: 1.3rem; }
+    }
     </style>
     
     <div class="hero-small">
@@ -213,9 +217,9 @@ elif st.session_state.step == "questions":
         st.session_state.step = "report"
         st.rerun()
 
-# Step 3: PDF Generation with Premium Report
+# Step 3: PDF Generation
 elif st.session_state.step == "report":
-    st.markdown("### 📄 Votre rapport institutionnel est prêt")
+    st.markdown("### 📄 Votre rapport est prêt")
     
     prop = st.session_state.property_data
     
@@ -228,30 +232,30 @@ elif st.session_state.step == "report":
     **ROI projeté:** +{prop['roi']:.1f}%
     """)
     
-    # Generate Premium Report
+    # Generate PDF
     try:
-        from reportlab_generator import generate_premium_report
+        from reportlab_generator import generer_rapport
         
-        with st.spinner("📄 Génération du rapport institutionnel..."):
-            pdf_bytes = generate_premium_report(prop)
+        with st.spinner("📄 Génération du rapport..."):
+            pdf_bytes = generer_rapport(prop)
         
         if pdf_bytes and len(pdf_bytes) > 1000:
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 st.download_button(
-                    label="⬇️ Télécharger le rapport institutionnel",
+                    label="⬇️ Télécharger le rapport PDF",
                     data=pdf_bytes,
-                    file_name=f"ZAMI_Institutional_Report_{prop['zipcode']}.pdf",
+                    file_name=f"ZAMI_Rapport_{prop['zipcode']}.pdf",
                     mime="application/pdf",
                     use_container_width=True,
                     type="primary"
                 )
-            st.success(f"✅ Rapport généré avec succès !")
+            st.success("✅ Rapport généré avec succès !")
         else:
-            st.error(f"Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0})")
+            st.error(f"Erreur: PDF vide")
             
-    except ImportError as e:
-        st.error(f"Module ReportLab non installé. Exécutez: pip install reportlab")
+    except ImportError:
+        st.error("Module reportlab non installé. Exécutez: pip install reportlab")
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
     
