@@ -1,189 +1,159 @@
 """
-reportlab_generator.py — ZAMI Simple PDF Generator
-No complex styles, just works
+reportlab_generator.py — ZAMI Simple PDF
+Uses FPDF - reliable on Streamlit Cloud
 """
 
-import io
+from fpdf import FPDF
 from datetime import datetime
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-)
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from reportlab.lib import colors
-
-# Colors
-DARK_BLUE = colors.HexColor('#0F172A')
-LIGHT_BLUE = colors.HexColor('#3B82F6')
-GREEN = colors.HexColor('#22C55E')
-GRAY_LIGHT = colors.HexColor('#F1F5F9')
-GRAY_MID = colors.HexColor('#CBD5E1')
-GRAY_TEXT = colors.HexColor('#475569')
-WHITE = colors.white
 
 
-def make_report(property_data):
-    """Generate PDF report - simple and working"""
+def generer_rapport(property_data):
+    """Generate PDF report using FPDF"""
     
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        leftMargin=15*mm,
-        rightMargin=15*mm,
-        topMargin=15*mm,
-        bottomMargin=15*mm,
-    )
+    pdf = FPDF()
+    pdf.add_page()
     
-    styles = getSampleStyleSheet()
-    normal_style = styles['Normal']
-    heading_style = styles['Heading2']
+    # Colors
+    DARK_BLUE = (15, 23, 42)
+    LIGHT_BLUE = (59, 130, 246)
+    GREEN = (34, 197, 94)
+    GRAY_LIGHT = (241, 245, 249)
+    
+    # Background
+    pdf.set_fill_color(*DARK_BLUE)
+    pdf.rect(0, 0, 210, 297, 'F')
+    
+    # Top bar
+    pdf.set_fill_color(*LIGHT_BLUE)
+    pdf.rect(0, 0, 210, 6, 'F')
+    
+    # Title
+    pdf.set_font('Helvetica', 'B', 36)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(0, 30, 'ZAMI', ln=True, align='C')
+    pdf.set_font('Helvetica', '', 9)
+    pdf.cell(0, 8, 'RAPPORT D\'ANALYSE', ln=True, align='C')
+    pdf.ln(10)
+    
+    # DPE Badge
+    dpe = property_data.get('dpe', 'E')
+    dpe_colors = {'A': (34,197,94), 'B': (74,222,128), 'C': (163,230,53), 
+                  'D': (250,204,21), 'E': (251,146,60), 'F': (249,115,22), 
+                  'G': (239,68,68)}
+    color = dpe_colors.get(dpe, (100,100,100))
+    pdf.set_fill_color(*color)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Helvetica', 'B', 60)
+    pdf.set_x(210/2 - 30)
+    pdf.cell(60, 60, dpe, border=0, align='C', fill=True)
+    pdf.ln(20)
+    
+    # Address
+    pdf.set_font('Helvetica', 'B', 12)
+    address = property_data.get('address', 'Adresse')[:55]
+    pdf.cell(0, 8, address, ln=True, align='C')
+    pdf.ln(15)
+    
+    # Score
+    dpe_scores = {'A': 95, 'B': 85, 'C': 70, 'D': 55, 'E': 40, 'F': 25, 'G': 10}
+    score = dpe_scores.get(dpe, 40)
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(150, 150, 150)
+    pdf.cell(0, 8, 'POTENTIEL DE RENOVATION', ln=True, align='C')
+    pdf.set_font('Helvetica', 'B', 40)
+    pdf.set_text_color(*GREEN)
+    pdf.cell(0, 20, str(score), ln=True, align='C')
+    pdf.set_font('Helvetica', '', 8)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 6, 'sur 100', ln=True, align='C')
+    
+    # Date
+    pdf.set_y(260)
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 6, datetime.now().strftime("%d/%m/%Y"), ln=True, align='C')
+    
+    # Page 2: Summary
+    pdf.add_page()
+    pdf.set_fill_color(255, 255, 255)
+    pdf.rect(0, 0, 210, 297, 'F')
+    
+    # Title
+    pdf.set_font('Helvetica', 'B', 18)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 15, 'SYNTHESE', ln=True)
+    pdf.line(10, pdf.get_y(), 60, pdf.get_y())
+    pdf.ln(10)
     
     # Get values
     surface = property_data.get('surface', 75)
-    dpe = property_data.get('dpe', 'E')
     cost = property_data.get('cost', 46500)
     roi = property_data.get('roi', 13.1)
-    
     current_val = 280000
     subsidy = int(12500 * (surface / 68))
     net = cost - subsidy
     future_val = int(current_val * (1 + roi / 100))
     gain = future_val - current_val - net
     
-    # Score
-    dpe_scores = {'A': 95, 'B': 85, 'C': 70, 'D': 55, 'E': 40, 'F': 25, 'G': 10}
-    score = dpe_scores.get(dpe, 40)
-    
-    story = []
-    
-    # ========== COVER PAGE (using callback) ==========
-    def cover_page(canvas, doc):
-        canvas.saveState()
-        
-        # Background
-        canvas.setFillColor(DARK_BLUE)
-        canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
-        
-        # Top bar
-        canvas.setFillColor(LIGHT_BLUE)
-        canvas.rect(0, A4[1] - 5, A4[0], 5, fill=1, stroke=0)
-        
-        # Logo
-        canvas.setFillColor(WHITE)
-        canvas.setFont('Helvetica-Bold', 48)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 100, 'ZAMI')
-        canvas.setFont('Helvetica', 9)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 120, 'RAPPORT D\'ANALYSE')
-        
-        # DPE badge
-        dpe_colors = {
-            'A': (0.13, 0.77, 0.37), 'B': (0.29, 0.87, 0.50),
-            'C': (0.64, 0.90, 0.21), 'D': (0.98, 0.80, 0.08),
-            'E': (0.98, 0.57, 0.24), 'F': (0.98, 0.45, 0.09),
-            'G': (0.94, 0.27, 0.27)
-        }
-        r, g, b = dpe_colors.get(dpe, (0.5, 0.5, 0.5))
-        canvas.setFillColorRGB(r, g, b)
-        canvas.roundRect(A4[0]/2 - 35, A4[1] - 250, 70, 70, 15, fill=1, stroke=0)
-        canvas.setFillColor(WHITE)
-        canvas.setFont('Helvetica-Bold', 32)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 220, dpe)
-        
-        # Address
-        canvas.setFont('Helvetica-Bold', 12)
-        addr = property_data.get('address', 'Adresse')[:55]
-        canvas.drawCentredString(A4[0]/2, A4[1] - 350, addr)
-        
-        # Score
-        canvas.setFont('Helvetica', 9)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 390, 'POTENTIEL')
-        canvas.setFont('Helvetica-Bold', 40)
-        canvas.setFillColor(GREEN)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 440, str(score))
-        
-        # Date
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(GRAY_TEXT)
-        canvas.drawCentredString(A4[0]/2, A4[1] - 510, datetime.now().strftime("%d/%m/%Y"))
-        
-        canvas.restoreState()
-    
-    # ========== PAGE 1: Summary ==========
-    story.append(Paragraph('SYNTHESE', heading_style))
-    story.append(Spacer(1, 5))
-    story.append(Paragraph(
-        "Analyse du potentiel de renovation energetique du bien.",
-        normal_style
-    ))
-    story.append(Spacer(1, 20))
-    
-    # KPI table
-    kpi_data = [
-        ['Valeur actuelle', f'{current_val:,} €'],
-        ['Cout travaux', f'{cost:,} €'],
-        ['Subventions', f'{subsidy:,} €'],
-        ['Valeur finale', f'{future_val:,} €'],
-        ['Investissement net', f'{net:,} €'],
-        ['ROI', f'+{roi:.1f}%'],
+    # KPIs
+    kpis = [
+        ('Valeur actuelle', f'{current_val:,} €'),
+        ('Coût travaux', f'{cost:,} €'),
+        ('Subventions', f'{subsidy:,} €'),
+        ('Valeur finale', f'{future_val:,} €'),
+        ('Invest. net', f'{net:,} €'),
+        ('ROI', f'+{roi:.1f}%'),
     ]
     
-    # 3 columns layout
-    table_data = [
-        [kpi_data[0][0], kpi_data[1][0], kpi_data[2][0]],
-        [kpi_data[0][1], kpi_data[1][1], kpi_data[2][1]],
-        ['', '', ''],
-        [kpi_data[3][0], kpi_data[4][0], kpi_data[5][0]],
-        [kpi_data[3][1], kpi_data[4][1], kpi_data[5][1]],
-    ]
+    y = pdf.get_y()
+    for i, (label, value) in enumerate(kpis):
+        x = 20 + (i % 3) * 60
+        if i % 3 == 0 and i > 0:
+            y += 45
+        pdf.set_xy(x, y)
+        pdf.set_font('Helvetica', '', 8)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(50, 6, label, ln=False, align='C')
+        pdf.set_xy(x, y + 7)
+        pdf.set_font('Helvetica', 'B', 14)
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(50, 8, value, ln=False, align='C')
     
-    t = Table(table_data, colWidths=[A4[0]/3 - 15] * 3)
-    t.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 8),
-        ('FONT', (0, 1), (-1, 1), 'Helvetica-Bold', 16),
-        ('FONT', (0, 3), (-1, 3), 'Helvetica-Bold', 8),
-        ('FONT', (0, 4), (-1, 4), 'Helvetica-Bold', 16),
-        ('TEXTCOLOR', (0, 4), (-1, 4), GREEN),
-        ('BACKGROUND', (0, 1), (-1, 1), GRAY_LIGHT),
-        ('BACKGROUND', (0, 4), (-1, 4), GRAY_LIGHT),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(t)
-    story.append(Spacer(1, 20))
-    story.append(Paragraph(f'Gain net estime: {gain:,} €', heading_style))
+    pdf.ln(50)
+    pdf.set_font('Helvetica', 'B', 12)
+    pdf.set_text_color(*GREEN)
+    pdf.cell(0, 10, f'Gain net estime: {gain:,} €', ln=True, align='C')
     
-    # ========== PAGE 2: Property details ==========
-    story.append(PageBreak())
-    story.append(Paragraph('CARACTERISTIQUES', heading_style))
-    story.append(Spacer(1, 10))
+    # Page 3: Details
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 18)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 15, 'CARACTERISTIQUES', ln=True)
+    pdf.line(10, pdf.get_y(), 70, pdf.get_y())
+    pdf.ln(10)
     
     details = [
-        ['Adresse', property_data.get('address', 'N/A')[:65]],
-        ['Surface', f'{int(surface)} m²'],
-        ['DPE', dpe],
-        ['Construction', 'Avant 1975' if dpe in ['F','G'] else '1980-2000'],
+        ('Adresse', property_data.get('address', 'N/A')[:60]),
+        ('Surface', f'{int(surface)} m²'),
+        ('DPE', dpe),
+        ('Construction', 'Avant 1975' if dpe in ['F','G'] else '1980-2000'),
     ]
     
-    t2 = Table(details, colWidths=[50, A4[0] - 85])
-    t2.setStyle(TableStyle([
-        ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 10),
-        ('FONT', (1, 0), (1, -1), 'Helvetica', 10),
-        ('BACKGROUND', (0, 0), (-1, -1), GRAY_LIGHT),
-        ('GRID', (0, 0), (-1, -1), 0.5, GRAY_MID),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-    ]))
-    story.append(t2)
+    for label, value in details:
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.set_text_color(59, 130, 246)
+        pdf.cell(50, 10, label, ln=False)
+        pdf.set_font('Helvetica', '', 10)
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(0, 10, value, ln=True)
+        pdf.ln(2)
     
-    # ========== PAGE 3: Recommendations ==========
-    story.append(PageBreak())
-    story.append(Paragraph('RECOMMANDATIONS', heading_style))
-    story.append(Spacer(1, 10))
+    # Page 4: Recommendations
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 18)
+    pdf.cell(0, 15, 'RECOMMANDATIONS', ln=True)
+    pdf.line(10, pdf.get_y(), 85, pdf.get_y())
+    pdf.ln(10)
     
     recos = [
         '1. Realiser un audit energetique complet',
@@ -191,29 +161,34 @@ def make_report(property_data):
         '3. Contacter des artisans certifies RGE',
         '4. Planifier les travaux par priorite',
     ]
+    
+    pdf.set_font('Helvetica', '', 10)
     for rec in recos:
-        story.append(Paragraph(rec, normal_style))
-        story.append(Spacer(1, 5))
+        pdf.cell(0, 8, rec, ln=True)
+        pdf.ln(2)
     
-    # ========== PAGE 4: Contact ==========
-    story.append(PageBreak())
-    story.append(Spacer(1, 80))
-    story.append(Paragraph('CONTACTEZ NOS EXPERTS', heading_style))
-    story.append(Spacer(1, 15))
-    story.append(Paragraph(' experts@thezami.com', normal_style))
-    story.append(Paragraph(' +33 1 23 45 67 89', normal_style))
-    story.append(Spacer(1, 30))
-    story.append(Paragraph(
-        "Rapport preliminaire - validation sur site recommandee",
-        normal_style
-    ))
+    # Page 5: Contact
+    pdf.add_page()
+    pdf.set_y(100)
+    pdf.set_font('Helvetica', 'B', 16)
+    pdf.cell(0, 10, 'Besoin d\'accompagnement ?', ln=True, align='C')
+    pdf.ln(15)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 8, ' experts@thezami.com', ln=True, align='C')
+    pdf.cell(0, 8, ' +33 1 23 45 67 89', ln=True, align='C')
+    pdf.ln(30)
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 6, 'Rapport preliminaire - validation sur site recommandee', ln=True, align='C')
     
-    # Build document
-    doc.build(story, onFirstPage=cover_page, onLaterPages=lambda c, d: None)
+    # Footer
+    pdf.set_y(280)
+    pdf.set_font('Helvetica', 'I', 7)
+    pdf.set_text_color(150, 150, 150)
+    pdf.cell(0, 6, 'ZAMI - Intelligence Renovation Energetique', ln=True, align='C')
     
-    return buffer.getvalue()
+    return pdf.output(dest='S')
 
 
-def generer_rapport(property_data):
-    """Main function to generate PDF report"""
-    return make_report(property_data)
+def make_report(data):
+    return generer_rapport(data)
