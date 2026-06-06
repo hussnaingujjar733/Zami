@@ -70,14 +70,13 @@ def generer_rapport(property_data):
     pdf.multi_cell(0, 7, address, align='C')
     pdf.ln(8)
     
-    # DPE Badge (Fixed - using RGB values correctly)
+    # DPE Badge
     dpe_colors = {
         'A': (34, 197, 94), 'B': (74, 222, 128), 'C': (163, 230, 53),
         'D': (250, 204, 21), 'E': (251, 146, 60), 'F': (249, 115, 22),
         'G': (239, 68, 68)
     }
     color = dpe_colors.get(dpe, (100, 100, 100))
-    # Convert RGB to 0-1 range for set_fill_color
     pdf.set_fill_color(color[0], color[1], color[2])
     pdf.set_text_color(255, 255, 255)
     pdf.set_font('Helvetica', 'B', 52)
@@ -99,7 +98,7 @@ def generer_rapport(property_data):
     
     # Metrics in 2 rows x 3 columns
     metrics = [
-        ('SURFACE', f"{int(surface)} m²"),
+        ('SURFACE', f"{int(surface)} m2"),
         ('CURRENT DPE', dpe),
         ('RENOVATION COST', f"EUR {cost:,}"),
         ('SUBSIDY', f"EUR {subsidy:,}"),
@@ -261,11 +260,11 @@ def generer_rapport(property_data):
     pdf.ln(5)
     
     services = [
-        '✓ Validate this analysis with on-site audit',
-        '✓ Identify additional subsidies and financing options',
-        '✓ Connect you with trusted RGE-certified contractors',
-        '✓ Prepare complete subsidy application files',
-        '✓ Project management and quality control',
+        '- Validate this analysis with on-site audit',
+        '- Identify additional subsidies and financing options',
+        '- Connect you with trusted RGE-certified contractors',
+        '- Prepare complete subsidy application files',
+        '- Project management and quality control',
     ]
     
     pdf.set_font('Helvetica', '', 10)
@@ -281,14 +280,14 @@ def generer_rapport(property_data):
     pdf.ln(5)
     pdf.set_font('Helvetica', '', 11)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, ' experts@thezami.com', ln=True, align='C')
-    pdf.cell(0, 7, ' +33 (0)1 23 45 67 89', ln=True, align='C')
-    pdf.cell(0, 7, ' thezami.com', ln=True, align='C')
+    pdf.cell(0, 7, 'Email: experts@thezami.com', ln=True, align='C')
+    pdf.cell(0, 7, 'Phone: +33 (0)1 23 45 67 89', ln=True, align='C')
+    pdf.cell(0, 7, 'Web: thezami.com', ln=True, align='C')
     
     # Return PDF as bytes
     output = pdf.output(dest='S')
     if isinstance(output, str):
-        output = output.encode('latin-1')
+        output = output.encode('latin-1', errors='replace')
     
     return output
 
