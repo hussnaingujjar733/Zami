@@ -1,75 +1,60 @@
-"""
-reportlab_generator.py — ZAMI Simple PDF
-"""
-
 from fpdf import FPDF
 from datetime import datetime
 
-
-def generer_rapport(property_data):
-    """Generate PDF report"""
-    
+def generer_rapport(data):
     pdf = FPDF()
     pdf.add_page()
     
     # Title
-    pdf.set_font('Helvetica', 'B', 24)
-    pdf.cell(0, 15, 'ZAMI PROPERTY REPORT', ln=True, align='C')
+    pdf.set_font('Helvetica', 'B', 20)
+    pdf.cell(0, 15, 'ZAMI REPORT', ln=True, align='C')
     
     # Date
     pdf.set_font('Helvetica', '', 10)
-    pdf.cell(0, 8, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
+    pdf.cell(0, 8, datetime.now().strftime("%d/%m/%Y"), ln=True, align='R')
     pdf.ln(5)
     
     # Address
-    pdf.set_font('Helvetica', 'B', 12)
-    address = property_data.get('address', 'Address')[:60]
-    pdf.multi_cell(0, 8, address, align='C')
-    pdf.ln(8)
-    
-    # DPE
-    dpe = property_data.get('dpe', 'E')
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.cell(0, 10, f'Current DPE: {dpe}', ln=True, align='C')
+    pdf.set_font('Helvetica', 'B', 11)
+    addr = data.get('address', 'Address')[:50]
+    pdf.multi_cell(0, 7, addr)
     pdf.ln(5)
     
+    # DPE
+    dpe = data.get('dpe', 'E')
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.cell(0, 10, f'DPE: {dpe}', ln=True)
+    pdf.ln(3)
+    
     # Surface
-    surface = property_data.get('surface', 75)
-    pdf.set_font('Helvetica', '', 11)
-    pdf.cell(0, 8, f'Surface: {int(surface)} m2', ln=True, align='C')
+    surf = data.get('surface', 75)
+    pdf.cell(0, 8, f'Surface: {int(surf)} m2', ln=True)
     pdf.ln(3)
     
     # Cost
-    cost = property_data.get('cost', 46500)
-    pdf.cell(0, 8, f'Estimated Cost: EUR {int(cost):,}', ln=True, align='C')
+    cost = data.get('cost', 46500)
+    pdf.cell(0, 8, f'Cost: EUR {int(cost):,}', ln=True)
     pdf.ln(3)
     
     # ROI
-    roi = property_data.get('roi', 13.1)
-    pdf.cell(0, 8, f'Expected ROI: +{roi:.1f}%', ln=True, align='C')
-    pdf.ln(8)
+    roi = data.get('roi', 13.1)
+    pdf.cell(0, 8, f'ROI: +{roi:.1f}%', ln=True)
+    pdf.ln(5)
     
     # Subsidy
-    surface_val = surface
-    subsidy = int(12500 * (surface_val / 68))
-    pdf.cell(0, 8, f'Estimated Subsidy: EUR {subsidy:,}', ln=True, align='C')
-    pdf.ln(8)
+    subsidy = int(12500 * (surf / 68))
+    pdf.cell(0, 8, f'Subsidy: EUR {subsidy:,}', ln=True)
+    pdf.ln(5)
     
     # Value gain
-    current_val = 280000
-    after_val = int(350000 * (surface_val / 68))
-    gain = after_val - current_val
-    pdf.cell(0, 8, f'Estimated Value Gain: EUR {gain:,}', ln=True, align='C')
+    after_val = int(350000 * (surf / 68))
+    gain = after_val - 280000
+    pdf.cell(0, 8, f'Value Gain: EUR {gain:,}', ln=True)
     pdf.ln(15)
     
     # Footer
-    pdf.set_y(-30)
-    pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
+    pdf.set_y(-25)
+    pdf.set_font('Helvetica', 'I', 7)
+    pdf.cell(0, 8, 'ZAMI - Property Intelligence', ln=True, align='C')
     
     return pdf.output(dest='S')
-
-
-def make_report(data):
-    return generer_rapport(data)
