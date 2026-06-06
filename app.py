@@ -88,25 +88,19 @@ def fetch_base_property_data(selected_address):
 # PDF GENERATION (FIXED)
 # ─────────────────────────────────────────────
 def generate_pdf_bytes(property_data):
-    """Generate premium, visually stunning PDF report"""
+    """Generate premium PDF report - no Unicode issues"""
     pdf = FPDF()
     pdf.add_page()
     
-    # ============================================
-    # BACKGROUND COLOR
-    # ============================================
-    pdf.set_fill_color(15, 23, 42)  # Dark blue
+    # Background
+    pdf.set_fill_color(15, 23, 42)
     pdf.rect(0, 0, 210, 297, 'F')
     
-    # ============================================
-    # TOP GRADIENT BAR (Simplified)
-    # ============================================
+    # Top bar
     pdf.set_fill_color(59, 130, 246)
     pdf.rect(0, 0, 210, 6, 'F')
     
-    # ============================================
-    # HEADER SECTION
-    # ============================================
+    # Header
     pdf.set_font('Helvetica', 'B', 32)
     pdf.set_text_color(255, 255, 255)
     pdf.cell(0, 20, 'ZAMI', ln=True, align='C')
@@ -123,18 +117,16 @@ def generate_pdf_bytes(property_data):
     pdf.cell(0, 5, f'GENERATED: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
     pdf.ln(5)
     
-    # ============================================
-    # ADDRESS SECTION
-    # ============================================
+    # Address
     pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(255, 255, 255)
     address = property_data.get('address', 'Address not available')[:55]
+    # Remove any problematic chars
+    address = address.replace('é', 'e').replace('è', 'e').replace('ê', 'e').replace('à', 'a').replace('ç', 'c')
     pdf.multi_cell(0, 6, address, align='L')
     pdf.ln(5)
     
-    # ============================================
-    # DPE BADGE (Large, Color-Coded)
-    # ============================================
+    # DPE Badge
     dpe = property_data.get('dpe', 'E')
     dpe_colors = {
         "A": (34, 197, 94), "B": (74, 222, 128),
@@ -147,8 +139,6 @@ def generate_pdf_bytes(property_data):
     pdf.set_fill_color(color[0], color[1], color[2])
     pdf.set_text_color(255, 255, 255)
     pdf.set_font('Helvetica', 'B', 70)
-    
-    # Center the DPE badge
     pdf.set_x(210/2 - 30)
     pdf.cell(60, 60, dpe, border=0, align='C', fill=True)
     pdf.ln(15)
@@ -158,9 +148,6 @@ def generate_pdf_bytes(property_data):
     pdf.cell(0, 5, 'ENERGY PERFORMANCE RATING', ln=True, align='C')
     pdf.ln(12)
     
-    # ============================================
-    # KEY METRICS
-    # ============================================
     # Surface
     pdf.set_fill_color(30, 41, 59)
     pdf.rect(15, pdf.get_y(), 85, 35, 'F')
@@ -213,15 +200,12 @@ def generate_pdf_bytes(property_data):
     
     pdf.ln(40)
     
-    # ============================================
-    # ROI GAUGE VISUALIZATION
-    # ============================================
+    # ROI bar
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
     pdf.cell(0, 8, 'ROI PROJECTION', ln=True, align='L')
     pdf.ln(3)
     
-    # ROI bar (visual)
     roi_percent = min(100, roi * 2)
     pdf.set_fill_color(30, 41, 59)
     pdf.rect(15, pdf.get_y(), 180, 15, 'F')
@@ -233,9 +217,7 @@ def generate_pdf_bytes(property_data):
     pdf.cell(0, 5, f"{roi:.0f}%", ln=False)
     pdf.ln(20)
     
-    # ============================================
-    # VALUE PROJECTION
-    # ============================================
+    # Value Projection
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
     pdf.cell(0, 8, 'VALUE PROJECTION', ln=True, align='L')
@@ -257,11 +239,11 @@ def generate_pdf_bytes(property_data):
     pdf.set_text_color(255, 255, 255)
     pdf.cell(0, 8, f"EUR {current_val:,}", ln=True)
     
-    # Arrow
+    # Arrow using hyphen
     pdf.set_xy(108, pdf.get_y() - 15)
     pdf.set_font('Helvetica', 'B', 16)
     pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 5, '→', ln=False)
+    pdf.cell(0, 5, '->', ln=False)
     
     # After
     pdf.set_xy(125, pdf.get_y() - 30)
@@ -282,9 +264,7 @@ def generate_pdf_bytes(property_data):
     pdf.cell(0, 8, f"+EUR {gain:,} VALUE GAIN", ln=True, align='C')
     pdf.ln(10)
     
-    # ============================================
-    # SUBSIDY SECTION
-    # ============================================
+    # Subsidy
     subsidy = int(12500 * (surface_val / 68))
     pdf.set_fill_color(30, 41, 59)
     pdf.rect(15, pdf.get_y(), 180, 30, 'F')
@@ -302,19 +282,17 @@ def generate_pdf_bytes(property_data):
     pdf.cell(0, 4, 'MaPrimeRenov Estimate', ln=True)
     pdf.ln(40)
     
-    # ============================================
-    # FOOTER
-    # ============================================
+    # Footer
     pdf.set_y(-25)
     pdf.set_font('Helvetica', 'I', 7)
     pdf.set_text_color(71, 85, 105)
     pdf.cell(0, 5, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
     pdf.cell(0, 5, 'This is an AI-generated estimate. Consult certified professionals.', ln=True, align='C')
     
-    # Convert to bytes properly
+    # Convert to bytes
     output = pdf.output(dest='S')
     if isinstance(output, str):
-        output = output.encode('latin-1')
+        output = output.encode('latin-1', errors='replace')
     return output
 # ─────────────────────────────────────────────
 # HERO SECTION
