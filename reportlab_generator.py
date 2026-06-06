@@ -1,30 +1,27 @@
 """
-reportlab_generator.py — ZAMI Clean Layout PDF
-Properly organized text, professional spacing, clean design
+reportlab_generator.py — ZAMI Rapport Français
+French version, perfect alignment, clean layout
 """
 
 from fpdf import FPDF
 from datetime import datetime
 
 
-class CleanPDF(FPDF):
+class FrenchPDF(FPDF):
     def __init__(self):
         super().__init__()
         self.set_auto_page_break(auto=True, margin=25)
     
     def header(self):
-        # Top decorative line
         self.set_draw_color(34, 197, 94)
         self.set_line_width(1)
         self.line(10, 15, 200, 15)
         
-        # Logo
         self.set_font('Helvetica', 'B', 18)
         self.set_text_color(34, 197, 94)
         self.set_xy(15, 6)
         self.cell(0, 6, 'ZAMI', ln=False)
         
-        # Page number
         self.set_font('Helvetica', '', 8)
         self.set_text_color(128, 128, 128)
         self.set_xy(180, 7)
@@ -36,49 +33,37 @@ class CleanPDF(FPDF):
         self.set_y(-22)
         self.set_font('Helvetica', 'I', 7)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 4, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
+        self.cell(0, 4, 'ZAMI - Intelligence Rénovation', ln=True, align='C')
     
-    def title1(self, text):
+    def titre1(self, texte):
         self.set_font('Helvetica', 'B', 16)
         self.set_text_color(0, 0, 0)
-        self.cell(0, 10, text, ln=True)
+        self.cell(0, 10, texte, ln=True)
         self.set_draw_color(34, 197, 94)
-        self.line(10, self.get_y(), 45, self.get_y())
+        self.line(10, self.get_y(), 50, self.get_y())
         self.ln(6)
     
-    def title2(self, text):
+    def titre2(self, texte):
         self.set_font('Helvetica', 'B', 12)
         self.set_text_color(34, 197, 94)
-        self.cell(0, 8, text, ln=True)
+        self.cell(0, 8, texte, ln=True)
         self.ln(3)
     
-    def text_normal(self, text):
+    def texte(self, texte):
         self.set_font('Helvetica', '', 10)
         self.set_text_color(80, 80, 80)
-        self.multi_cell(0, 6, text, align='L')
+        self.multi_cell(0, 6, texte, align='L')
         self.ln(2)
     
-    def two_cols(self, left_text, right_text):
+    def ligne_deux(self, gauche, droite):
         self.set_font('Helvetica', '', 10)
         self.set_text_color(80, 80, 80)
-        self.cell(70, 7, left_text, ln=False)
+        self.cell(70, 7, gauche, ln=False)
         self.set_font('Helvetica', 'B', 10)
         self.set_text_color(0, 0, 0)
-        self.cell(0, 7, right_text, ln=True)
+        self.cell(0, 7, droite, ln=True)
     
-    def three_cols(self, col1, col2, col3):
-        self.set_font('Helvetica', '', 9)
-        self.set_text_color(80, 80, 80)
-        self.cell(60, 7, col1, ln=False)
-        self.cell(60, 7, col2, ln=False)
-        self.set_font('Helvetica', 'B', 9)
-        self.set_text_color(0, 0, 0)
-        self.cell(0, 7, col3, ln=True)
-    
-    def line_break(self):
-        self.ln(4)
-    
-    def card(self, x, y, label, value):
+    def carte(self, x, y, label, valeur):
         self.set_xy(x, y)
         self.set_fill_color(248, 250, 252)
         self.rect(x, y, 55, 32, 'F')
@@ -86,35 +71,35 @@ class CleanPDF(FPDF):
         self.set_text_color(100, 100, 100)
         self.set_xy(x + 5, y + 5)
         self.cell(0, 4, label)
-        self.set_font('Helvetica', 'B', 13)
+        self.set_font('Helvetica', 'B', 12)
         self.set_text_color(0, 0, 0)
         self.set_xy(x + 5, y + 15)
-        self.cell(0, 6, value)
+        self.cell(0, 6, valeur)
 
 
 def generer_rapport(property_data):
-    """Generate clean, properly organized PDF report"""
+    """Generate French PDF report with perfect alignment"""
     
-    # Calculate values
+    # Calcul des valeurs
     surface = property_data.get('surface', 75)
     dpe = property_data.get('dpe', 'E')
-    cost = property_data.get('cost', 46500)
+    cout = property_data.get('cost', 46500)
     roi = property_data.get('roi', 13.1)
     
-    current_val = 280000
-    subsidy = int(12500 * (surface / 68))
-    net = cost - subsidy
-    future_val = int(current_val * (1 + roi / 100))
-    gain = future_val - current_val - net
+    valeur_actuelle = 280000
+    subvention = int(12500 * (surface / 68))
+    investissement_net = cout - subvention
+    valeur_finale = int(valeur_actuelle * (1 + roi / 100))
+    gain = valeur_finale - valeur_actuelle - investissement_net
     
-    # Scores
-    dpe_scores = {'A': 95, 'B': 85, 'C': 70, 'D': 55, 'E': 40, 'F': 25, 'G': 10}
-    total_score = dpe_scores.get(dpe, 40)
+    # Score
+    scores_dpe = {'A': 95, 'B': 85, 'C': 70, 'D': 55, 'E': 40, 'F': 25, 'G': 10}
+    score_total = scores_dpe.get(dpe, 40)
     
-    pdf = CleanPDF()
+    pdf = FrenchPDF()
     
     # ============================================
-    # COVER PAGE
+    # PAGE DE COUVERTURE
     # ============================================
     pdf.add_page()
     
@@ -125,24 +110,24 @@ def generer_rapport(property_data):
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 8, 'PROPERTY INTELLIGENCE REPORT', ln=True, align='C')
+    pdf.cell(0, 8, 'RAPPORT D\'ANALYSE', ln=True, align='C')
     pdf.ln(15)
     
-    # Address
-    address = property_data.get('address', 'Property Address')[:60]
+    # Adresse
+    adresse = property_data.get('address', 'Adresse non disponible')[:60]
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 7, address, align='C')
+    pdf.multi_cell(0, 7, adresse, align='C')
     pdf.ln(10)
     
-    # DPE Badge
-    dpe_colors = {
+    # Badge DPE
+    couleurs_dpe = {
         'A': (34, 197, 94), 'B': (74, 222, 128), 'C': (163, 230, 53),
         'D': (250, 204, 21), 'E': (251, 146, 60), 'F': (249, 115, 22),
         'G': (239, 68, 68)
     }
-    color = dpe_colors.get(dpe, (100, 100, 100))
-    pdf.set_fill_color(color[0], color[1], color[2])
+    couleur = couleurs_dpe.get(dpe, (100, 100, 100))
+    pdf.set_fill_color(couleur[0], couleur[1], couleur[2])
     pdf.set_text_color(255, 255, 255)
     pdf.set_font('Helvetica', 'B', 48)
     pdf.set_x(210/2 - 25)
@@ -151,7 +136,7 @@ def generer_rapport(property_data):
     
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 6, f'ZAMI SCORE: {total_score}/100', ln=True, align='C')
+    pdf.cell(0, 6, f'SCORE ZAMI: {score_total}/100', ln=True, align='C')
     pdf.ln(5)
     
     pdf.set_font('Helvetica', '', 8)
@@ -159,123 +144,122 @@ def generer_rapport(property_data):
     pdf.cell(0, 5, datetime.now().strftime("%d %B %Y"), ln=True, align='C')
     
     # ============================================
-    # PAGE 1: EXECUTIVE SUMMARY
+    # PAGE 1: RESUME
     # ============================================
     pdf.add_page()
-    pdf.title1('Executive Summary')
-    pdf.text_normal('This report provides a comprehensive analysis of the property\'s energy renovation potential, including financial projections, subsidy eligibility, and strategic recommendations.')
+    pdf.titre1('Résumé Exécutif')
+    pdf.texte('Ce rapport analyse le potentiel de rénovation énergétique de votre bien, incluant les projections financières, les subventions disponibles et les recommandations stratégiques.')
     
     pdf.ln(8)
     
-    # KPI Cards
-    start_y = pdf.get_y()
-    cards = [
-        ('Current Value', f'EUR {current_val:,}'),
-        ('Renovation Cost', f'EUR {cost:,}'),
-        ('Subsidy', f'EUR {subsidy:,}'),
-        ('Future Value', f'EUR {future_val:,}'),
-        ('Net Investment', f'EUR {net:,}'),
+    # Cartes KPI
+    debut_y = pdf.get_y()
+    cartes = [
+        ('Valeur Actuelle', f'EUR {valeur_actuelle:,}'),
+        ('Coût des Travaux', f'EUR {cout:,}'),
+        ('Subvention', f'EUR {subvention:,}'),
+        ('Valeur Future', f'EUR {valeur_finale:,}'),
+        ('Invest. Net', f'EUR {investissement_net:,}'),
         ('ROI', f'+{roi:.1f}%'),
     ]
     
-    for i, (label, value) in enumerate(cards):
+    for i, (label, valeur) in enumerate(cartes):
         x = 15 + (i % 3) * 60
-        y = start_y + (i // 3) * 38
-        pdf.card(x, y, label, value)
+        y = debut_y + (i // 3) * 38
+        pdf.carte(x, y, label, valeur)
     
     pdf.ln(80)
     
-    # Net Gain
-    pdf.title2('Estimated Net Gain After Renovation')
+    pdf.titre2('Gain Net Estimé Après Rénovation')
     pdf.set_font('Helvetica', 'B', 15)
     pdf.set_text_color(34, 197, 94)
     pdf.cell(0, 8, f'+EUR {gain:,}', ln=True)
     
     # ============================================
-    # PAGE 2: PROPERTY DETAILS
+    # PAGE 2: CARACTERISTIQUES
     # ============================================
     pdf.add_page()
-    pdf.title1('Property Details')
+    pdf.titre1('Caractéristiques du Bien')
     
-    pdf.two_cols('Address:', property_data.get('address', 'N/A')[:50])
-    pdf.two_cols('Surface Area:', f'{int(surface)} m2')
-    pdf.two_cols('Current DPE Rating:', dpe)
+    pdf.ligne_deux('Adresse:', property_data.get('address', 'N/A')[:50])
+    pdf.ligne_deux('Surface:', f'{int(surface)} m²')
+    pdf.ligne_deux('DPE Actuel:', dpe)
     
-    year_text = 'Pre-1975 (estimated)' if dpe in ['F','G'] else '1980-2000 (estimated)'
-    pdf.two_cols('Construction Year:', year_text)
+    annee = 'Avant 1975 (estimé)' if dpe in ['F','G'] else '1980-2000 (estimé)'
+    pdf.ligne_deux('Année de Construction:', annee)
     
-    pdf.two_cols('Energy Consumption:', 'Estimated 250-350 kWh/m2/year')
-    pdf.two_cols('CO2 Emissions:', 'Estimated 45-65 kg/m2/year')
+    pdf.ligne_deux('Consommation Énergétique:', 'Estimée 250-350 kWh/m²/an')
+    pdf.ligne_deux('Émissions CO2:', 'Estimées 45-65 kg/m²/an')
     
     pdf.ln(8)
-    pdf.title1('ZAMI Score Breakdown')
+    pdf.titre1('Détail du Score ZAMI')
     
-    pdf.three_cols('Energy Performance', f'{total_score}/100', 'Based on DPE rating')
-    pdf.three_cols('Investment Potential', f'{roi:.1f}% ROI', 'Based on projected return')
-    pdf.three_cols('Market Conditions', 'Standard', 'Location-based assessment')
+    pdf.ligne_deux('Performance Énergétique:', f'{score_total}/100')
+    pdf.ligne_deux('Potentiel d\'Investissement:', f'{roi:.1f}% de ROI')
+    pdf.ligne_deux('Conditions du Marché:', 'Standard')
     
     # ============================================
-    # PAGE 3: FINANCIAL ANALYSIS
+    # PAGE 3: ANALYSE FINANCIERE
     # ============================================
     pdf.add_page()
-    pdf.title1('Financial Analysis')
+    pdf.titre1('Analyse Financière')
     
-    pdf.title2('Investment Waterfall')
-    pdf.two_cols('Current Property Value:', f'EUR {current_val:,}')
-    pdf.two_cols('Renovation Investment:', f'-EUR {cost:,}')
-    pdf.two_cols('Government Subsidies:', f'+EUR {subsidy:,}')
-    pdf.two_cols('Net Investment:', f'EUR {net:,}')
-    pdf.two_cols('Value Appreciation:', f'+EUR {future_val - current_val:,}')
-    pdf.two_cols('Future Property Value:', f'EUR {future_val:,}')
-    pdf.two_cols('Net Gain:', f'+EUR {gain:,}')
+    pdf.titre2('Détail de l\'Investissement')
+    pdf.ligne_deux('Valeur Actuelle du Bien:', f'EUR {valeur_actuelle:,}')
+    pdf.ligne_deux('Investissement Travaux:', f'-EUR {cout:,}')
+    pdf.ligne_deux('Subventions Publiques:', f'+EUR {subvention:,}')
+    pdf.ligne_deux('Investissement Net:', f'EUR {investissement_net:,}')
+    pdf.ligne_deux('Plus-Value Estimée:', f'+EUR {valeur_finale - valeur_actuelle:,}')
+    pdf.ligne_deux('Valeur Après Travaux:', f'EUR {valeur_finale:,}')
+    pdf.ligne_deux('Gain Total:', f'+EUR {gain:,}')
     
     pdf.ln(8)
-    pdf.title2('Subsidy Details')
-    pdf.text_normal(f'Estimated MaPrimeRenev Subsidy: EUR {subsidy:,}')
-    pdf.text_normal('Additional regional subsidies may be available depending on location.')
+    pdf.titre2('Détail des Subventions')
+    pdf.texte(f'Subvention MaPrimeRénov\' estimée: EUR {subvention:,}')
+    pdf.texte('Des aides régionales supplémentaires peuvent être disponibles selon la localisation.')
     
     # ============================================
-    # PAGE 4: RECOMMENDATIONS
+    # PAGE 4: RECOMMANDATIONS
     # ============================================
     pdf.add_page()
-    pdf.title1('Renovation Recommendations')
+    pdf.titre1('Recommandations de Rénovation')
     
     if dpe in ['F', 'G']:
-        recos = [
-            ('Priority 1', 'Energy Audit', 'EUR 500-1,000', 'Week 1'),
-            ('Priority 2', 'Wall Insulation', 'EUR 12,000-18,000', 'Week 2-4'),
-            ('Priority 3', 'Attic Insulation', 'EUR 8,000-12,000', 'Week 4-5'),
-            ('Priority 4', 'Heating System', 'EUR 10,000-15,000', 'Week 6-8'),
-            ('Priority 5', 'Final Audit', 'EUR 500-1,000', 'Week 9'),
+        recommandations = [
+            ('Priorité 1', 'Audit Énergétique', 'EUR 500-1 000', 'Semaine 1'),
+            ('Priorité 2', 'Isolation des Murs', 'EUR 12 000-18 000', 'Semaines 2-4'),
+            ('Priorité 3', 'Isolation des Combles', 'EUR 8 000-12 000', 'Semaines 4-5'),
+            ('Priorité 4', 'Remplacement Chauffage', 'EUR 10 000-15 000', 'Semaines 6-8'),
+            ('Priorité 5', 'Audit Final', 'EUR 500-1 000', 'Semaine 9'),
         ]
     elif dpe == 'E':
-        recos = [
-            ('Priority 1', 'Heating Upgrade', 'EUR 10,000-15,000', 'Week 1-3'),
-            ('Priority 2', 'Window Replacement', 'EUR 8,000-12,000', 'Week 3-5'),
-            ('Priority 3', 'Ventilation', 'EUR 4,000-7,000', 'Week 5-6'),
+        recommandations = [
+            ('Priorité 1', 'Remplacement Chauffage', 'EUR 10 000-15 000', 'Semaines 1-3'),
+            ('Priorité 2', 'Remplacement Fenêtres', 'EUR 8 000-12 000', 'Semaines 3-5'),
+            ('Priorité 3', 'Ventilation', 'EUR 4 000-7 000', 'Semaines 5-6'),
         ]
     else:
-        recos = [
-            ('Priority 1', 'Heating Optimization', 'EUR 500-2,000', 'Week 1'),
-            ('Priority 2', 'Window Upgrade', 'EUR 6,000-10,000', 'Week 2-3'),
-            ('Priority 3', 'Solar Assessment', 'EUR 500', 'Week 3-4'),
+        recommandations = [
+            ('Priorité 1', 'Optimisation Chauffage', 'EUR 500-2 000', 'Semaine 1'),
+            ('Priorité 2', 'Remplacement Fenêtres', 'EUR 6 000-10 000', 'Semaines 2-3'),
+            ('Priorité 3', 'Étude Solaire', 'EUR 500', 'Semaine 3-4'),
         ]
     
-    # Table header
+    # En-tête du tableau
     pdf.set_font('Helvetica', 'B', 9)
     pdf.set_fill_color(34, 197, 94)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(30, 8, 'Priority', border=1, align='C', fill=True)
+    pdf.cell(30, 8, 'Priorité', border=1, align='C', fill=True)
     pdf.cell(60, 8, 'Action', border=1, align='C', fill=True)
-    pdf.cell(45, 8, 'Cost Range', border=1, align='C', fill=True)
-    pdf.cell(45, 8, 'Timeline', border=1, align='C', fill=True)
+    pdf.cell(45, 8, 'Coût Estimé', border=1, align='C', fill=True)
+    pdf.cell(45, 8, 'Délai', border=1, align='C', fill=True)
     pdf.ln()
     
-    # Table rows
+    # Lignes du tableau
     pdf.set_text_color(0, 0, 0)
     pdf.set_font('Helvetica', '', 9)
     fill = False
-    for rec in recos:
+    for rec in recommandations:
         pdf.cell(30, 7, rec[0], border=1, align='L', fill=fill)
         pdf.cell(60, 7, rec[1], border=1, align='L', fill=fill)
         pdf.cell(45, 7, rec[2], border=1, align='L', fill=fill)
@@ -288,47 +272,47 @@ def generer_rapport(property_data):
     if dpe in ['F', 'G']:
         pdf.set_font('Helvetica', 'B', 10)
         pdf.set_text_color(239, 68, 68)
-        pdf.cell(0, 6, 'IMPORTANT: This property faces rental restrictions starting 2025.', ln=True)
+        pdf.cell(0, 6, 'URGENT: Ce bien risque l\'interdiction de location dès 2025.', ln=True)
         pdf.set_font('Helvetica', '', 10)
         pdf.set_text_color(80, 80, 80)
-        pdf.multi_cell(0, 6, 'Immediate renovation is recommended to maintain asset value and rental income.')
+        pdf.multi_cell(0, 6, 'Une rénovation immédiate est recommandée pour maintenir la valeur du bien et les revenus locatifs.')
     
     # ============================================
-    # PAGE 5: NEXT STEPS
+    # PAGE 5: PROCHAINES ETAPES
     # ============================================
     pdf.add_page()
-    pdf.title1('Next Steps')
+    pdf.titre1('Prochaines Étapes')
     
-    steps = [
-        '1. Schedule an on-site energy audit with a certified professional',
-        '2. Submit MaPrimeRenev subsidy application (processing: 4-6 weeks)',
-        '3. Obtain at least 3 quotes from RGE-certified contractors',
-        '4. Review financing options (Eco-PTZ, bank loans, local grants)',
-        '5. Plan renovation work according to priority order',
-        '6. Schedule post-renovation audit to validate DPE improvement',
+    etapes = [
+        '1. Réaliser un audit énergétique sur site par un professionnel certifié',
+        '2. Déposer une demande de subvention MaPrimeRénov\' (délai: 4-6 semaines)',
+        '3. Obtenir au moins 3 devis d\'artisans certifiés RGE',
+        '4. Étudier les options de financement (Eco-PTZ, prêts bancaires)',
+        '5. Planifier les travaux selon l\'ordre de priorité',
+        '6. Réaliser un audit post-travaux pour valider l\'amélioration du DPE',
     ]
     
-    for step in steps:
+    for etape in etapes:
         pdf.set_font('Helvetica', '', 10)
         pdf.set_text_color(80, 80, 80)
-        pdf.multi_cell(0, 7, step, align='L')
+        pdf.multi_cell(0, 7, etape, align='L')
         pdf.ln(2)
     
     pdf.ln(15)
     
-    pdf.title1('Contact Information')
+    pdf.titre1('Contactez nos Experts')
     pdf.set_font('Helvetica', '', 11)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(0, 7, 'Email: experts@thezami.com', ln=True, align='C')
-    pdf.cell(0, 7, 'Phone: +33 (0)1 23 45 67 89', ln=True, align='C')
-    pdf.cell(0, 7, 'Website: thezami.com', ln=True, align='C')
+    pdf.cell(0, 7, 'Téléphone: +33 (0)1 23 45 67 89', ln=True, align='C')
+    pdf.cell(0, 7, 'Site Web: thezami.com', ln=True, align='C')
     
     pdf.ln(10)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 5, 'This report is an AI-generated estimate. Final figures require on-site technical audit.', ln=True, align='C')
+    pdf.cell(0, 5, 'Ce rapport est une estimation générée par IA. Un audit technique sur site est recommandé.', ln=True, align='C')
     
-    # Return PDF bytes
+    # Retourner le PDF
     output = pdf.output(dest='S')
     if isinstance(output, str):
         output = output.encode('latin-1', errors='replace')
