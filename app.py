@@ -24,8 +24,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # State
+if "property_data" not in st.session_state:
+    st.session_state.property_data = None
+if "address_selected" not in st.session_state:
+    st.session_state.address_selected = None
+if "address_suggestions" not in st.session_state:
+    st.session_state.address_suggestions = []
+if "user_responses" not in st.session_state:
+    st.session_state.user_responses = None
 if "report_generated" not in st.session_state:
     st.session_state.report_generated = False
+if "step" not in st.session_state:
+    st.session_state.step = "address"  # address, questions, report
 
 # Global Variables
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
@@ -42,7 +52,7 @@ def safe_get(url, params=None):
     except:
         return None
 
-def ban_search(query: str, limit: int = 1):
+def ban_search(query: str, limit: int = 5):
     if not query or len(query.strip()) < 3:
         return []
     data = safe_get("https://api-adresse.data.gouv.fr/search/", {"q": query, "limit": limit})
@@ -57,17 +67,13 @@ def ban_search(query: str, limit: int = 1):
             "city": p.get("city", ""),
             "lon": c[0],
             "lat": c[1],
+            "citycode": p.get("citycode", ""),
         })
     return results
 
-def fetch_property_data(address):
-    """Fetch DPE data for given address"""
-    geo = ban_search(address, 1)
-    if not geo:
-        return None
-    
-    # Estimate DPE based on postcode
-    zipcode = geo[0]["postcode"]
+def fetch_base_property_data(selected_address):
+    """Fetch basic DPE data based on address"""
+    zipcode = selected_address["postcode"]
     region = str(zipcode)[:2]
     dpe_by_region = {"75": "E", "92": "E", "93": "F", "94": "E", "69": "D", "13": "D", "31": "D"}
     dpe = dpe_by_region.get(region, "E")
@@ -76,55 +82,76 @@ def fetch_property_data(address):
     roi = _FALLBACK_UPLIFT.get(dpe, 13.1)
     
     return {
-        "address": geo[0]["label"],
+        "address": selected_address["label"],
         "dpe": dpe,
         "surface": surface,
         "cost": cost,
         "roi": roi,
         "zipcode": zipcode,
-        "lat": geo[0]["lat"],
-        "lon": geo[0]["lon"],
+        "lat": selected_address["lat"],
+        "lon": selected_address["lon"],
     }
+
+def calculate_enhanced_roi(property_data, user_responses):
+    """Calculate more accurate ROI based on user answers"""
+    base_roi = property_data.get("roi", 15.0)
+    
+    windows_multiplier = {"Simple vitrage": 1.0, "Double vitrage": 0.6, "Triple vitrage": 0.4, "Je ne sais pas": 0.8}
+    heating_multiplier = {"Gaz (ancien)": 1.0, "Gaz (condensation)": 0.7, "Électrique": 0.9, "Pompe à chaleur": 0.5, "Bois / granulés": 0.6, "Je ne sais pas": 0.8}
+    
+    insulation_factor = 1.0
+    if user_responses.get("roof_insulation") == "Non":
+        insulation_factor += 0.2
+    if user_responses.get("wall_insulation") == "Non":
+        insulation_factor += 0.25
+    
+    window_factor = windows_multiplier.get(user_responses.get("windows", "Je ne sais pas"), 0.8)
+    heating_factor = heating_multiplier.get(user_responses.get("heating", "Je ne sais pas"), 0.8)
+    
+    accuracy_boost = (1 - window_factor) * 0.3 + (1 - heating_factor) * 0.3 + (insulation_factor - 1) * 0.4
+    enhanced_roi = base_roi * (1 + accuracy_boost)
+    enhanced_cost = property_data.get("cost", 25000) * (0.5 + window_factor * 0.25 + heating_factor * 0.25)
+    
+    return min(enhanced_roi, 35.0), enhanced_cost
 
 
 # ─────────────────────────────────────────────
 # BEAUTIFUL PDF GENERATION
 # ─────────────────────────────────────────────
-def generate_beautiful_pdf(property_data):
-    """Generate premium PDF report"""
+def generate_beautiful_pdf(property_data, user_responses):
+    """Generate premium PDF report with accuracy data"""
     pdf = FPDF()
     pdf.add_page()
     
-    # Background color
+    # Background
     pdf.set_fill_color(15, 23, 42)
     pdf.rect(0, 0, 210, 297, 'F')
     
     # Top gradient bar
     pdf.set_fill_color(59, 130, 246)
-    pdf.rect(0, 0, 210, 8, 'F')
+    pdf.rect(0, 0, 210, 6, 'F')
     
-    # Title
+    # Logo
     pdf.set_font('Helvetica', 'B', 28)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 30, 'ZAMI', ln=True, align='C')
+    pdf.cell(0, 25, 'ZAMI', ln=True, align='C')
     
-    # Subtitle
-    pdf.set_font('Helvetica', '', 10)
+    pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(100, 100, 100)
     pdf.cell(0, 5, 'PROPERTY INTELLIGENCE REPORT', ln=True, align='C')
-    pdf.ln(10)
+    pdf.ln(5)
     
     # Date
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
+    pdf.cell(0, 5, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
     pdf.ln(5)
     
     # Address
-    pdf.set_font('Helvetica', 'B', 14)
+    pdf.set_font('Helvetica', 'B', 12)
     pdf.set_text_color(255, 255, 255)
-    pdf.multi_cell(0, 8, property_data['address'], align='C')
-    pdf.ln(10)
+    pdf.multi_cell(0, 7, property_data['address'], align='C')
+    pdf.ln(8)
     
     # DPE Badge
     dpe = property_data['dpe']
@@ -132,112 +159,121 @@ def generate_beautiful_pdf(property_data):
     color = dpe_colors.get(dpe, (100,100,100))
     pdf.set_fill_color(*color)
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font('Helvetica', 'B', 72)
+    pdf.set_font('Helvetica', 'B', 65)
     
-    # Center DPE badge
-    pdf.set_x(210/2 - 30)
-    pdf.cell(60, 60, dpe, border=0, align='C', fill=True)
-    pdf.ln(15)
+    pdf.set_x(210/2 - 25)
+    pdf.cell(50, 50, dpe, border=0, align='C', fill=True)
+    pdf.ln(12)
     
-    # DPE label
-    pdf.set_font('Helvetica', '', 10)
+    pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(180, 180, 180)
     pdf.cell(0, 5, 'Energy Performance Rating', ln=True, align='C')
-    pdf.ln(15)
+    pdf.ln(12)
     
-    # Key Metrics Table
-    pdf.set_font('Helvetica', 'B', 12)
+    # Key Metrics
+    pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, 'KEY METRICS', ln=True, align='L')
-    pdf.ln(5)
-    
-    # Line
+    pdf.cell(0, 8, 'KEY METRICS', ln=True, align='L')
+    pdf.ln(3)
     pdf.set_draw_color(59, 130, 246)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(8)
+    pdf.ln(6)
     
-    # Metrics rows
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    
-    # Surface
-    pdf.cell(80, 10, 'Surface Area:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Surface Area:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, f"{property_data['surface']} m²", ln=True)
+    pdf.cell(0, 8, f"{property_data['surface']:.0f} m²", ln=True)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'Current DPE:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Current DPE:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, f"Class {property_data['dpe']}", ln=True)
+    pdf.cell(0, 8, f"Class {property_data['dpe']}", ln=True)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'Renovation Cost:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Renovation Cost:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, f"€{property_data['cost']:,}", ln=True)
+    pdf.cell(0, 8, f"€{property_data['cost']:,.0f}", ln=True)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'Expected ROI:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Expected ROI:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 10, f"+{property_data['roi']}%", ln=True)
+    pdf.cell(0, 8, f"+{property_data['roi']:.1f}%", ln=True)
     
-    pdf.ln(15)
+    pdf.ln(10)
     
-    # Estimated Value Increase
+    # Value Projection
     current_val = 280000
     after_val = int(350000 * (property_data['surface'] / 68))
     gain = after_val - current_val
     
-    pdf.set_font('Helvetica', 'B', 12)
+    pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, 'VALUE PROJECTION', ln=True, align='L')
-    pdf.ln(5)
+    pdf.cell(0, 8, 'VALUE PROJECTION', ln=True, align='L')
+    pdf.ln(3)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(8)
+    pdf.ln(6)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'Current Value:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Current Value:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, f"€{current_val:,}", ln=True)
+    pdf.cell(0, 8, f"€{current_val:,}", ln=True)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'After Renovation:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'After Renovation:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 10, f"€{after_val:,}", ln=True)
+    pdf.cell(0, 8, f"€{after_val:,}", ln=True)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(80, 10, 'Value Gain:', ln=False)
-    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(70, 8, 'Value Gain:', ln=False)
+    pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 10, f"+€{gain:,}", ln=True)
+    pdf.cell(0, 8, f"+€{gain:,}", ln=True)
     
-    pdf.ln(15)
+    pdf.ln(10)
     
-    # Subsidy estimate
+    # Subsidy
     subsidy = int(12500 * (property_data['surface'] / 68))
-    pdf.set_font('Helvetica', 'B', 12)
+    pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 10, 'SUBSIDY ELIGIBILITY', ln=True, align='L')
-    pdf.ln(5)
+    pdf.cell(0, 8, 'SUBSIDY ELIGIBILITY', ln=True, align='L')
+    pdf.ln(3)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(8)
+    pdf.ln(6)
     
-    pdf.set_font('Helvetica', '', 11)
+    pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(0, 10, f"MaPrimeRénov' Estimate: €{subsidy:,}", ln=True, align='C')
+    pdf.cell(0, 8, f"MaPrimeRénov' Estimate: €{subsidy:,}", ln=True, align='C')
     
-    pdf.ln(15)
+    pdf.ln(10)
+    
+    # Accuracy Section (if user answered questions)
+    if user_responses:
+        pdf.set_font('Helvetica', 'B', 11)
+        pdf.set_text_color(255, 255, 255)
+        pdf.cell(0, 8, 'PROPERTY DETAILS', ln=True, align='L')
+        pdf.ln(3)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(6)
+        
+        pdf.set_font('Helvetica', '', 9)
+        pdf.set_text_color(180, 180, 180)
+        pdf.cell(0, 6, f"Windows: {user_responses.get('windows', 'N/A')}", ln=True)
+        pdf.cell(0, 6, f"Heating: {user_responses.get('heating', 'N/A')}", ln=True)
+        pdf.cell(0, 6, f"Roof Insulation: {user_responses.get('roof_insulation', 'N/A')}", ln=True)
+        pdf.cell(0, 6, f"Wall Insulation: {user_responses.get('wall_insulation', 'N/A')}", ln=True)
     
     # Footer
     pdf.set_y(-30)
@@ -317,7 +353,7 @@ def hero_section():
         <div class="hero-logo-text">ZAMI</div>
         <div class="hero-tagline">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</div>
         <div class="hero-title-fr">L'avenir de la rénovation immobilière</div>
-        <div class="hero-subtitle-fr">Entrez votre adresse et recevez votre rapport instantanément</div>
+        <div class="hero-subtitle-fr">Entrez votre adresse et recevez votre rapport personnalisé</div>
         <div class="hero-features">
             <span class="hero-feature">✓ Subventions disponibles</span>
             <span class="hero-feature">✓ ROI de rénovation</span>
@@ -335,37 +371,123 @@ hero_section()
 
 st.markdown('<div class="card">', unsafe_allow_html=True)
 
-address = st.text_input("📍 Adresse complète", placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil")
+# Step 1: Address Selection with Autocomplete
+if st.session_state.step == "address":
+    st.markdown("### 📍 Étape 1 : Entrez votre adresse")
+    
+    search_query = st.text_input("Adresse", placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="address_input")
+    
+    if search_query and len(search_query.strip()) >= 3:
+        suggestions = ban_search(search_query)
+        st.session_state.address_suggestions = suggestions
+    
+    if st.session_state.address_suggestions:
+        labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in st.session_state.address_suggestions]
+        selected_label = st.selectbox("Sélectionnez votre adresse", labels, key="address_select")
+        
+        if st.button("✅ Valider cette adresse", type="primary", use_container_width=True):
+            # Find selected address
+            for s in st.session_state.address_suggestions:
+                if f"{s['label']} ({s['postcode']} {s['city']})" == selected_label:
+                    st.session_state.address_selected = s
+                    st.session_state.property_data = fetch_base_property_data(s)
+                    st.session_state.step = "questions"
+                    st.rerun()
 
-if st.button("📊 Générer mon rapport", type="primary", use_container_width=True):
-    if address and len(address.strip()) >= 5:
-        with st.spinner("🔍 Analyse en cours..."):
-            property_data = fetch_property_data(address)
-            if property_data:
-                pdf_bytes = generate_beautiful_pdf(property_data)
-                st.success("✅ Rapport prêt !")
-                
-                # Direct download button
-                st.download_button(
-                    label="⬇️ Télécharger mon rapport PDF",
-                    data=pdf_bytes,
-                    file_name=f"ZAMI_Report_{property_data['zipcode']}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
-                )
-                
-                # Show preview message
-                st.markdown("""
-                <div style="background:rgba(34,197,94,0.1); border-radius:12px; padding:15px; text-align:center; margin-top:15px;">
-                    ✨ Votre rapport professionnel est prêt à être téléchargé !<br>
-                    <span style="font-size:12px; color:#64748b;">DPE: {}</span>
-                </div>
-                """.format(property_data['dpe']), unsafe_allow_html=True)
-            else:
-                st.error("Adresse non trouvée. Veuillez réessayer.")
-    else:
-        st.warning("Veuillez entrer une adresse valide")
+# Step 2: Accuracy Questions
+elif st.session_state.step == "questions":
+    st.markdown("### 📋 Étape 2 : Améliorez la précision de votre estimation")
+    st.markdown("Répondez à quelques questions pour un résultat plus précis (optionnel mais recommandé)")
+    
+    with st.form("accuracy_form"):
+        st.markdown("#### 🪟 Type de vitrage")
+        windows = st.radio("", ["Simple vitrage", "Double vitrage", "Triple vitrage", "Je ne sais pas"], horizontal=True)
+        
+        st.markdown("#### 🔥 Système de chauffage")
+        heating = st.radio("", ["Gaz (ancien)", "Gaz (condensation)", "Électrique", "Pompe à chaleur", "Je ne sais pas"], horizontal=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("#### 🏠 Toiture")
+            roof = st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
+        with col2:
+            st.markdown("#### 🧱 Murs")
+            wall = st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
+        
+        st.markdown("---")
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+        with col_btn2:
+            submitted = st.form_submit_button("📊 Générer mon rapport", type="primary", use_container_width=True)
+        
+        if submitted:
+            st.session_state.user_responses = {
+                "windows": windows, "heating": heating,
+                "roof_insulation": roof, "wall_insulation": wall
+            }
+            
+            # Calculate enhanced ROI if user provided answers
+            if windows != "Je ne sais pas" or heating != "Je ne sais pas":
+                enhanced_roi, enhanced_cost = calculate_enhanced_roi(st.session_state.property_data, st.session_state.user_responses)
+                st.session_state.property_data["roi"] = enhanced_roi
+                st.session_state.property_data["cost"] = enhanced_cost
+            
+            st.session_state.step = "report"
+            st.rerun()
+    
+    # Skip option
+    st.markdown("---")
+    if st.button("⏩ Passer les questions (estimation standard)", use_container_width=True):
+        st.session_state.user_responses = None
+        st.session_state.step = "report"
+        st.rerun()
+
+# Step 3: PDF Generation
+elif st.session_state.step == "report":
+    st.markdown("### 📄 Votre rapport est prêt !")
+    
+    # Show property summary
+    prop = st.session_state.property_data
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.05)); border-radius:16px; padding:15px; margin-bottom:20px;">
+        <table style="width:100%; color:#CBD5E1;">
+            <tr><td>📍 Adresse</td><td style="text-align:right;"><strong>{prop['address'][:60]}</strong></td></tr>
+            <tr><td>📊 DPE Actuel</td><td style="text-align:right;"><strong style="color:#22c55e;">{prop['dpe']}</strong></td></tr>
+            <tr><td>📐 Surface</td><td style="text-align:right;"><strong>{prop['surface']:.0f} m²</strong></td></tr>
+            <tr><td>💰 Budget estimé</td><td style="text-align:right;"><strong>€{prop['cost']:,.0f}</strong></td></tr>
+            <tr><td>📈 ROI projeté</td><td style="text-align:right;"><strong style="color:#22c55e;">+{prop['roi']:.1f}%</strong></td></tr>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate PDF
+    pdf_bytes = generate_beautiful_pdf(prop, st.session_state.user_responses)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.download_button(
+            label="⬇️ Télécharger mon rapport PDF",
+            data=pdf_bytes,
+            file_name=f"ZAMI_Report_{prop['zipcode']}.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+            type="primary"
+        )
+    
+    st.markdown("""
+    <div style="background:rgba(34,197,94,0.1); border-radius:12px; padding:15px; text-align:center; margin-top:20px;">
+        ✨ Votre rapport professionnel a été généré !<br>
+        <span style="font-size:12px; color:#64748b;">Téléchargez-le et partagez-le avec des artisans certifiés RGE</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # New report button
+    if st.button("🔍 Nouvelle analyse", use_container_width=True):
+        st.session_state.step = "address"
+        st.session_state.property_data = None
+        st.session_state.address_selected = None
+        st.session_state.address_suggestions = []
+        st.session_state.user_responses = None
+        st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
 
