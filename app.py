@@ -3,6 +3,7 @@ import json
 import requests
 import streamlit as st
 from datetime import datetime
+import html_pdf
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -237,7 +238,7 @@ elif st.session_state.step == "report":
         from reportlab_generator import generer_rapport
         
         with st.spinner("📄 Génération du rapport..."):
-            pdf_bytes = generer_rapport(prop)
+            pdf_bytes = html_pdf.generer_rapport(prop)
         
         if pdf_bytes and len(pdf_bytes) > 1000:
             col1, col2, col3 = st.columns([1, 2, 1])
