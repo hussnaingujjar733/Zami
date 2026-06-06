@@ -248,6 +248,10 @@ if st.session_state.step == "address":
 elif st.session_state.step == "questions":
     st.markdown("### 📋 Étape 2 : Améliorez la précision")
     
+    # Initialize user_responses dict safely if it doesn't exist
+    if st.session_state.user_responses is None:
+        st.session_state.user_responses = {}
+        
     # Custom animated progress bar
     progress = st.session_state.wizard_step / 3
     st.progress(progress)
@@ -257,17 +261,20 @@ elif st.session_state.step == "questions":
     # Wizard Step 1
     if st.session_state.wizard_step == 1:
         st.markdown("#### 🪟 Quel type de vitrage possède le bien ?")
-        st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], key="q_win")
+        win_val = st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"])
         st.markdown("<br>", unsafe_allow_html=True)
+        
         if st.button("Suivant ➡️", type="primary", use_container_width=True):
+            st.session_state.user_responses["windows"] = win_val
             st.session_state.wizard_step = 2
             st.rerun()
             
     # Wizard Step 2
     elif st.session_state.wizard_step == 2:
         st.markdown("#### 🔥 Quel est le système de chauffage principal ?")
-        st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"], key="q_heat")
+        heat_val = st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"])
         st.markdown("<br>", unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         with col1:
             if st.button("⬅️ Retour", use_container_width=True):
@@ -275,6 +282,7 @@ elif st.session_state.step == "questions":
                 st.rerun()
         with col2:
             if st.button("Suivant ➡️", type="primary", use_container_width=True):
+                st.session_state.user_responses["heating"] = heat_val
                 st.session_state.wizard_step = 3
                 st.rerun()
 
@@ -283,11 +291,12 @@ elif st.session_state.step == "questions":
         st.markdown("#### 🧱 Comment est l'isolation actuelle ?")
         colA, colB = st.columns(2)
         with colA:
-            st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"], key="q_roof")
+            roof_val = st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"])
         with colB:
-            st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"], key="q_wall")
+            wall_val = st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"])
             
         st.markdown("<br>", unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         with col1:
             if st.button("⬅️ Retour", use_container_width=True):
@@ -295,12 +304,8 @@ elif st.session_state.step == "questions":
                 st.rerun()
         with col2:
             if st.button("📊 Générer mon rapport", type="primary", use_container_width=True):
-                st.session_state.user_responses = {
-                    "windows": st.session_state.q_win, 
-                    "heating": st.session_state.q_heat,
-                    "roof_insulation": st.session_state.q_roof, 
-                    "wall_insulation": st.session_state.q_wall
-                }
+                st.session_state.user_responses["roof_insulation"] = roof_val
+                st.session_state.user_responses["wall_insulation"] = wall_val
                 st.session_state.step = "report"
                 st.rerun()
                 
