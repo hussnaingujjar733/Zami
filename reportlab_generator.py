@@ -1,9 +1,15 @@
+"""
+reportlab_generator.py — ZAMI PDF Generator
+Fixed: Always returns bytes for Streamlit download button
+"""
+
 from fpdf import FPDF
 from datetime import datetime
+import io
 
 
 def generer_rapport(property_data):
-    """Generate PDF report - guaranteed working"""
+    """Generate PDF report - returns bytes properly"""
     
     # Calculate values
     surface = property_data.get('surface', 75)
@@ -37,36 +43,29 @@ def generer_rapport(property_data):
     pdf.ln(5)
     
     # DPE
-    dpe = property_data.get('dpe', 'E')
     pdf.set_font('Helvetica', 'B', 14)
     pdf.cell(0, 10, f'Current DPE: {dpe}', ln=True)
     pdf.ln(3)
     
     # Surface
-    surface = property_data.get('surface', 75)
     pdf.set_font('Helvetica', '', 11)
     pdf.cell(0, 8, f'Surface: {int(surface)} m2', ln=True)
     pdf.ln(3)
     
     # Cost
-    cost = property_data.get('cost', 46500)
     pdf.cell(0, 8, f'Estimated Cost: EUR {int(cost):,}', ln=True)
     pdf.ln(3)
     
     # ROI
-    roi = property_data.get('roi', 13.1)
     pdf.cell(0, 8, f'Expected ROI: +{roi:.1f}%', ln=True)
     pdf.ln(5)
     
     # Subsidy
-    subsidy = int(12500 * (surface / 68))
     pdf.cell(0, 8, f'Estimated Subsidy: EUR {subsidy:,}', ln=True)
     pdf.ln(5)
     
     # Value gain
-    after_val = int(350000 * (surface / 68))
-    gain = after_val - 280000
-    pdf.cell(0, 8, f'Estimated Value Gain: EUR {gain:,}', ln=True)
+    pdf.cell(0, 8, f'Value Gain: EUR {gain:,}', ln=True)
     pdf.ln(10)
     
     # Footer
@@ -75,9 +74,16 @@ def generer_rapport(property_data):
     pdf.set_text_color(128, 128, 128)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
     
+    # CRITICAL FIX: Convert to bytes properly
+    output = pdf.output(dest='S')
+    
+    # If it's string, convert to bytes
+    if isinstance(output, str):
+        output = output.encode('latin-1')
+    
     # Return as bytes
-    return pdf.output(dest='S')
+    return output
 
 
-# Make sure function is accessible
+# Alias for compatibility
 make_report = generer_rapport
