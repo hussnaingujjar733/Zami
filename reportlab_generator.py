@@ -12,15 +12,18 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-COLOR_BLUE = (0.22, 0.51, 0.96)  # #3B82F6
-COLOR_GREEN = (0.13, 0.77, 0.37)  # #22C55E
-COLOR_DARK = (0.06, 0.09, 0.16)   # #0F172A
+# Colors
+COLOR_BLUE = (0.22, 0.51, 0.96)
+COLOR_GREEN = (0.13, 0.77, 0.37)
+COLOR_DARK = (0.06, 0.09, 0.16)
 
 
 class SimpleReport:
     def __init__(self, data):
         self.data = data
         self.buffer = io.BytesIO()
+        
+        # Use existing styles
         self.styles = getSampleStyleSheet()
         
         # Values
@@ -39,49 +42,56 @@ class SimpleReport:
         dpe_scores = {'A': 95, 'B': 85, 'C': 70, 'D': 55, 'E': 40, 'F': 25, 'G': 10}
         self.score = dpe_scores.get(self.dpe, 40)
         
-        self._create_styles()
+        # Add custom styles (with unique names)
+        self._add_styles()
     
-    def _create_styles(self):
-        self.styles.add(ParagraphStyle(
-            name='Title',
-            parent=self.styles['Title'],
-            fontSize=32,
-            alignment=TA_CENTER,
-            spaceAfter=20,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='Section',
-            parent=self.styles['Heading1'],
-            fontSize=18,
-            spaceBefore=15,
-            spaceAfter=10,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='Subsection',
-            parent=self.styles['Heading2'],
-            fontSize=14,
-            spaceBefore=12,
-            spaceAfter=6,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='KPIValue',
-            parent=self.styles['Normal'],
-            fontSize=20,
-            alignment=TA_CENTER,
-            spaceAfter=2,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='KPILabel',
-            parent=self.styles['Normal'],
-            fontSize=8,
-            alignment=TA_CENTER,
-        ))
-        self.styles.add(ParagraphStyle(
-            name='Normal',
-            parent=self.styles['Normal'],
-            fontSize=10,
-            spaceAfter=6,
-        ))
+    def _add_styles(self):
+        # Check if style already exists before adding
+        existing = [s.name for s in self.styles]
+        
+        if 'CustomTitle' not in existing:
+            self.styles.add(ParagraphStyle(
+                name='CustomTitle',
+                parent=self.styles['Normal'],
+                fontSize=32,
+                alignment=TA_CENTER,
+                spaceAfter=20,
+            ))
+        
+        if 'CustomSection' not in existing:
+            self.styles.add(ParagraphStyle(
+                name='CustomSection',
+                parent=self.styles['Normal'],
+                fontSize=18,
+                spaceBefore=15,
+                spaceAfter=10,
+            ))
+        
+        if 'CustomSubsection' not in existing:
+            self.styles.add(ParagraphStyle(
+                name='CustomSubsection',
+                parent=self.styles['Normal'],
+                fontSize=14,
+                spaceBefore=12,
+                spaceAfter=6,
+            ))
+        
+        if 'CustomKPIValue' not in existing:
+            self.styles.add(ParagraphStyle(
+                name='CustomKPIValue',
+                parent=self.styles['Normal'],
+                fontSize=20,
+                alignment=TA_CENTER,
+                spaceAfter=2,
+            ))
+        
+        if 'CustomKPILabel' not in existing:
+            self.styles.add(ParagraphStyle(
+                name='CustomKPILabel',
+                parent=self.styles['Normal'],
+                fontSize=8,
+                alignment=TA_CENTER,
+            ))
     
     def _dpe_color(self, dpe):
         colors = {
@@ -132,7 +142,7 @@ class SimpleReport:
         
         # Date
         canvas.setFont('Helvetica', 8)
-        canvas.setFillColorRGB(0.4, 0.4, 0.4)
+        canvas.setFillColorRGB(0.5, 0.5, 0.5)
         canvas.drawCentredString(A4[0]/2, A4[1] - 510, datetime.now().strftime("%d/%m/%Y"))
         
         canvas.restoreState()
@@ -150,7 +160,7 @@ class SimpleReport:
         story = []
         
         # Page 1: Summary
-        story.append(Paragraph('Synthèse', self.styles['Section']))
+        story.append(Paragraph('Synthèse', self.styles['CustomSection']))
         story.append(Spacer(1, 5))
         story.append(Paragraph(
             "Analyse du potentiel de rénovation énergétique.",
@@ -171,8 +181,8 @@ class SimpleReport:
         data = []
         row = []
         for i, (label, val) in enumerate(kpis):
-            row.append([Paragraph(label, self.styles['KPILabel']),
-                       Paragraph(val, self.styles['KPIValue'])])
+            row.append([Paragraph(label, self.styles['CustomKPILabel']),
+                       Paragraph(val, self.styles['CustomKPIValue'])])
             if (i + 1) % 3 == 0:
                 data.append(row)
                 row = []
@@ -187,11 +197,11 @@ class SimpleReport:
         ]))
         story.append(t)
         story.append(Spacer(1, 20))
-        story.append(Paragraph(f'Gain net estimé: {self.gain:,} €', self.styles['Subsection']))
+        story.append(Paragraph(f'Gain net estimé: {self.gain:,} €', self.styles['CustomSubsection']))
         
         # Page 2: Property details
         story.append(PageBreak())
-        story.append(Paragraph('Caractéristiques', self.styles['Section']))
+        story.append(Paragraph('Caractéristiques', self.styles['CustomSection']))
         story.append(Spacer(1, 10))
         
         details = [
@@ -214,7 +224,7 @@ class SimpleReport:
         
         # Page 3: Recommendations
         story.append(PageBreak())
-        story.append(Paragraph('Recommandations', self.styles['Section']))
+        story.append(Paragraph('Recommandations', self.styles['CustomSection']))
         story.append(Spacer(1, 5))
         
         recos = [
@@ -230,7 +240,7 @@ class SimpleReport:
         # Page 4: Contact
         story.append(PageBreak())
         story.append(Spacer(1, 80))
-        story.append(Paragraph('Contactez nos experts', self.styles['Section']))
+        story.append(Paragraph('Contactez nos experts', self.styles['CustomSection']))
         story.append(Spacer(1, 10))
         story.append(Paragraph('📧 experts@thezami.com', self.styles['Normal']))
         story.append(Paragraph('📞 +33 1 23 45 67 89', self.styles['Normal']))
