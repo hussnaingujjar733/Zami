@@ -119,7 +119,42 @@ def calculate_enhanced_roi(property_data, user_responses):
 # BEAUTIFUL PDF GENERATION
 # ─────────────────────────────────────────────
 def generate_beautiful_pdf(property_data, user_responses):
-    """Generate premium PDF report with accuracy data"""
+    """Generate premium PDF report with Unicode support"""
+    
+    # Helper function to clean text
+    def clean_text(text):
+        if not text:
+            return ""
+        # Replace special characters
+        replacements = {
+            'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+            'à': 'a', 'â': 'a', 'ä': 'a',
+            'ô': 'o', 'ö': 'o', 'û': 'u', 'ü': 'u',
+            'ï': 'i', 'î': 'i', 'ç': 'c',
+            '€': 'EUR', '°': 'deg',
+            '✓': '[OK]', '•': '-',
+            '—': '-', '…': '...',
+            'é': 'e', 'É': 'E',
+            'è': 'e', 'È': 'E',
+            'ù': 'u', 'Ù': 'U',
+            'œ': 'oe', 'Œ': 'OE',
+            'æ': 'ae', 'Æ': 'AE'
+        }
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        # Remove emojis
+        import re
+        emoji_pattern = re.compile("["
+            u"\U0001F600-\U0001F64F"
+            u"\U0001F300-\U0001F5FF"
+            u"\U0001F680-\U0001F6FF"
+            u"\U0001F1E0-\U0001F1FF"
+            u"\U00002702-\U000027B0"
+            u"\U000024C2-\U0001F251"
+            "]+", flags=re.UNICODE)
+        text = emoji_pattern.sub(r'', text)
+        return text.encode('latin-1', errors='replace').decode('latin-1')
+    
     pdf = FPDF()
     pdf.add_page()
     
@@ -147,10 +182,11 @@ def generate_beautiful_pdf(property_data, user_responses):
     pdf.cell(0, 5, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
     pdf.ln(5)
     
-    # Address
-    pdf.set_font('Helvetica', 'B', 12)
+    # Address (cleaned)
+    clean_address = clean_text(property_data['address'])
+    pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(255, 255, 255)
-    pdf.multi_cell(0, 7, property_data['address'], align='C')
+    pdf.multi_cell(0, 6, clean_address, align='C')
     pdf.ln(8)
     
     # DPE Badge
@@ -184,7 +220,7 @@ def generate_beautiful_pdf(property_data, user_responses):
     pdf.cell(70, 8, 'Surface Area:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"{property_data['surface']:.0f} m²", ln=True)
+    pdf.cell(0, 8, f"{property_data['surface']:.0f} m2", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
@@ -198,7 +234,7 @@ def generate_beautiful_pdf(property_data, user_responses):
     pdf.cell(70, 8, 'Renovation Cost:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"€{property_data['cost']:,.0f}", ln=True)
+    pdf.cell(0, 8, f"EUR {property_data['cost']:,.0f}", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
@@ -226,21 +262,21 @@ def generate_beautiful_pdf(property_data, user_responses):
     pdf.cell(70, 8, 'Current Value:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"€{current_val:,}", ln=True)
+    pdf.cell(0, 8, f"EUR {current_val:,}", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
     pdf.cell(70, 8, 'After Renovation:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 8, f"€{after_val:,}", ln=True)
+    pdf.cell(0, 8, f"EUR {after_val:,}", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
     pdf.cell(70, 8, 'Value Gain:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 8, f"+€{gain:,}", ln=True)
+    pdf.cell(0, 8, f"+EUR {gain:,}", ln=True)
     
     pdf.ln(10)
     
@@ -255,11 +291,11 @@ def generate_beautiful_pdf(property_data, user_responses):
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(200, 200, 200)
-    pdf.cell(0, 8, f"MaPrimeRénov' Estimate: €{subsidy:,}", ln=True, align='C')
+    pdf.cell(0, 8, f"MaPrimeRenevi Estimate: EUR {subsidy:,}", ln=True, align='C')
     
     pdf.ln(10)
     
-    # Accuracy Section (if user answered questions)
+    # Accuracy Section
     if user_responses:
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_text_color(255, 255, 255)
@@ -270,10 +306,16 @@ def generate_beautiful_pdf(property_data, user_responses):
         
         pdf.set_font('Helvetica', '', 9)
         pdf.set_text_color(180, 180, 180)
-        pdf.cell(0, 6, f"Windows: {user_responses.get('windows', 'N/A')}", ln=True)
-        pdf.cell(0, 6, f"Heating: {user_responses.get('heating', 'N/A')}", ln=True)
-        pdf.cell(0, 6, f"Roof Insulation: {user_responses.get('roof_insulation', 'N/A')}", ln=True)
-        pdf.cell(0, 6, f"Wall Insulation: {user_responses.get('wall_insulation', 'N/A')}", ln=True)
+        
+        windows_text = clean_text(user_responses.get('windows', 'N/A'))
+        heating_text = clean_text(user_responses.get('heating', 'N/A'))
+        roof_text = clean_text(user_responses.get('roof_insulation', 'N/A'))
+        wall_text = clean_text(user_responses.get('wall_insulation', 'N/A'))
+        
+        pdf.cell(0, 6, f"Windows: {windows_text}", ln=True)
+        pdf.cell(0, 6, f"Heating: {heating_text}", ln=True)
+        pdf.cell(0, 6, f"Roof Insulation: {roof_text}", ln=True)
+        pdf.cell(0, 6, f"Wall Insulation: {wall_text}", ln=True)
     
     # Footer
     pdf.set_y(-30)
@@ -283,8 +325,6 @@ def generate_beautiful_pdf(property_data, user_responses):
     pdf.cell(0, 5, 'This is an estimate. Consult certified professionals.', ln=True, align='C')
     
     return pdf.output(dest='S')
-
-
 # ─────────────────────────────────────────────
 # HERO SECTION
 # ─────────────────────────────────────────────
