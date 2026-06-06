@@ -384,27 +384,13 @@ def hero_section():
     <div class="hero-small">
         <div class="hero-logo-text">ZAMI</div>
         <div class="hero-tagline">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</div>
-        
-        <div class="hero-title-fr">
-            L'avenir de la rénovation immobilière
-        </div>
-        <div class="hero-subtitle-fr">
-            Découvrez en 30 secondes le potentiel caché de votre bien
-        </div>
-        
+        <div class="hero-title-fr">L'avenir de la rénovation immobilière</div>
+        <div class="hero-subtitle-fr">Découvrez en 30 secondes le potentiel caché de votre bien</div>
         <div class="hero-features">
-            <div class="hero-feature">
-                <span>✓</span> <span>Subventions disponibles</span>
-            </div>
-            <div class="hero-feature">
-                <span>✓</span> <span>ROI de rénovation</span>
-            </div>
-            <div class="hero-feature">
-                <span>✓</span> <span>Conformité légale</span>
-            </div>
-            <div class="hero-feature">
-                <span>✓</span> <span>Plus-value immobilière</span>
-            </div>
+            <div class="hero-feature"><span>✓</span> <span>Subventions disponibles</span></div>
+            <div class="hero-feature"><span>✓</span> <span>ROI de rénovation</span></div>
+            <div class="hero-feature"><span>✓</span> <span>Conformité légale</span></div>
+            <div class="hero-feature"><span>✓</span> <span>Plus-value immobilière</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
