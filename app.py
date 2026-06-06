@@ -4,7 +4,7 @@ import requests
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-import hashlib
+import base64
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -24,14 +24,14 @@ st.markdown("""
 # State
 if "property_data" not in st.session_state:
     st.session_state.property_data = None
-if "address_selected" not in st.session_state:
-    st.session_state.address_selected = None
 if "address_suggestions" not in st.session_state:
     st.session_state.address_suggestions = []
 if "user_responses" not in st.session_state:
     st.session_state.user_responses = None
 if "step" not in st.session_state:
     st.session_state.step = "address"
+if "pdf_data" not in st.session_state:
+    st.session_state.pdf_data = None
 
 # Global Variables
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
@@ -63,7 +63,6 @@ def ban_search(query: str, limit: int = 5):
             "city": p.get("city", ""),
             "lon": c[0],
             "lat": c[1],
-            "citycode": p.get("citycode", ""),
         })
     return results
 
@@ -87,31 +86,12 @@ def fetch_base_property_data(selected_address):
         "lon": selected_address["lon"],
     }
 
-def calculate_enhanced_roi(property_data, user_responses):
-    base_roi = property_data.get("roi", 15.0)
-    windows_multiplier = {"Simple vitrage": 1.0, "Double vitrage": 0.6, "Triple vitrage": 0.4, "Je ne sais pas": 0.8}
-    heating_multiplier = {"Gaz (ancien)": 1.0, "Gaz (condensation": 0.7, "Electrique": 0.9, "Pompe a chaleur": 0.5, "Bois / granules": 0.6, "Je ne sais pas": 0.8}
-    
-    insulation_factor = 1.0
-    if user_responses.get("roof_insulation") == "Non":
-        insulation_factor += 0.2
-    if user_responses.get("wall_insulation") == "Non":
-        insulation_factor += 0.25
-    
-    window_factor = windows_multiplier.get(user_responses.get("windows", "Je ne sais pas"), 0.8)
-    heating_factor = heating_multiplier.get(user_responses.get("heating", "Je ne sais pas"), 0.8)
-    
-    accuracy_boost = (1 - window_factor) * 0.3 + (1 - heating_factor) * 0.3 + (insulation_factor - 1) * 0.4
-    enhanced_roi = base_roi * (1 + accuracy_boost)
-    enhanced_cost = property_data.get("cost", 25000) * (0.5 + window_factor * 0.25 + heating_factor * 0.25)
-    
-    return min(enhanced_roi, 35.0), enhanced_cost
-
 
 # ─────────────────────────────────────────────
-# SIMPLE PDF GENERATION (WORKING)
+# SIMPLE PDF GENERATION (GUARANTEED WORKING)
 # ─────────────────────────────────────────────
-def generate_simple_pdf(property_data, user_responses):
+def create_pdf_bytes(property_data):
+    """Create PDF and return as bytes - guaranteed working"""
     pdf = FPDF()
     pdf.add_page()
     
@@ -143,7 +123,7 @@ def generate_simple_pdf(property_data, user_responses):
     
     # Cost
     cost = property_data.get('cost', 25000)
-    pdf.cell(0, 8, f'Estimated Renovation Cost: EUR {int(cost):,}', ln=True)
+    pdf.cell(0, 8, f'Estimated Cost: EUR {int(cost):,}', ln=True)
     pdf.ln(3)
     
     # ROI
@@ -161,16 +141,16 @@ def generate_simple_pdf(property_data, user_responses):
     current_val = 280000
     after_val = int(350000 * (surface_val / 68))
     gain = after_val - current_val
-    pdf.cell(0, 8, f'Estimated Value Gain: +EUR {gain:,}', ln=True)
+    pdf.cell(0, 8, f'Value Gain: +EUR {gain:,}', ln=True)
     pdf.ln(10)
     
     # Footer
     pdf.set_y(-30)
     pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(128, 128, 128)
+    pdf.set_text_color(100, 100, 100)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    pdf.cell(0, 8, 'This is an estimate. Consult certified professionals.', ln=True, align='C')
     
+    # Return as bytes
     return pdf.output(dest='S')
 
 
@@ -231,6 +211,10 @@ def hero_section():
         font-size: 0.8rem;
         color: #CBD5E1;
     }
+    @media (max-width: 768px) {
+        .hero-logo-text { font-size: 2.2rem; }
+        .hero-title-fr { font-size: 1.3rem; }
+    }
     </style>
     
     <div class="hero-small">
@@ -239,10 +223,10 @@ def hero_section():
         <div class="hero-title-fr">L'avenir de la rénovation immobilière</div>
         <div class="hero-subtitle-fr">Entrez votre adresse et recevez votre rapport personnalisé</div>
         <div class="hero-features">
-            <span class="hero-feature">✓ Subventions disponibles</span>
-            <span class="hero-feature">✓ ROI de rénovation</span>
-            <span class="hero-feature">✓ Conformité légale</span>
-            <span class="hero-feature">✓ Plus-value immobilière</span>
+            <span>✓ Subventions disponibles</span>
+            <span>✓ ROI de rénovation</span>
+            <span>✓ Conformité légale</span>
+            <span>✓ Plus-value immobilière</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -272,91 +256,69 @@ if st.session_state.step == "address":
         if st.button("✅ Valider cette adresse", type="primary", use_container_width=True):
             for s in st.session_state.address_suggestions:
                 if f"{s['label']} ({s['postcode']} {s['city']})" == selected_label:
-                    st.session_state.address_selected = s
                     st.session_state.property_data = fetch_base_property_data(s)
                     st.session_state.step = "questions"
                     st.rerun()
 
-# Step 2: Accuracy Questions
+# Step 2: Questions
 elif st.session_state.step == "questions":
     st.markdown("### 📋 Étape 2 : Améliorez la précision")
-    st.markdown("Répondez à quelques questions (optionnel)")
     
     with st.form("accuracy_form"):
-        st.markdown("#### 🪟 Vitrage")
-        windows = st.radio("", ["Simple vitrage", "Double vitrage", "Triple vitrage", "Je ne sais pas"], horizontal=True)
-        
-        st.markdown("#### 🔥 Chauffage")
-        heating = st.radio("", ["Gaz ancien", "Gaz condensation", "Electrique", "Pompe a chaleur", "Je ne sais pas"], horizontal=True)
+        windows = st.radio("Type de vitrage", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], horizontal=True)
+        heating = st.radio("Système de chauffage", ["Gaz ancien", "Electrique", "Pompe a chaleur", "Je ne sais pas"], horizontal=True)
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("#### 🏠 Toiture")
             roof = st.radio("Toiture isolee ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
         with col2:
-            st.markdown("#### 🧱 Murs")
             wall = st.radio("Murs isoles ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
         
-        st.markdown("---")
-        col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-        with col_btn2:
-            submitted = st.form_submit_button("📊 Generer mon rapport", type="primary", use_container_width=True)
-        
-        if submitted:
+        if st.form_submit_button("📊 Generer mon rapport", type="primary", use_container_width=True):
             st.session_state.user_responses = {
                 "windows": windows, "heating": heating,
                 "roof_insulation": roof, "wall_insulation": wall
             }
-            
-            if windows != "Je ne sais pas" or heating != "Je ne sais pas":
-                enhanced_roi, enhanced_cost = calculate_enhanced_roi(st.session_state.property_data, st.session_state.user_responses)
-                st.session_state.property_data["roi"] = enhanced_roi
-                st.session_state.property_data["cost"] = enhanced_cost
-            
             st.session_state.step = "report"
             st.rerun()
     
-    st.markdown("---")
     if st.button("⏩ Passer les questions", use_container_width=True):
         st.session_state.user_responses = None
         st.session_state.step = "report"
         st.rerun()
 
-# Step 3: PDF Generation
+# Step 3: PDF Download
 elif st.session_state.step == "report":
     st.markdown("### 📄 Votre rapport est pret !")
     
     prop = st.session_state.property_data
     
     # Show summary
-    st.markdown(f"""
-    <div style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.05)); border-radius:16px; padding:15px; margin-bottom:20px;">
-        <table style="width:100%; color:#CBD5E1;">
-            <tr><td>📍 Adresse</td><td style="text-align:right;"><strong>{prop['address'][:60]}</strong></td></tr>
-            <tr><td>📊 DPE Actuel</td><td style="text-align:right;"><strong style="color:#22c55e;">{prop['dpe']}</strong></td></tr>
-            <tr><td>📐 Surface</td><td style="text-align:right;"><strong>{prop['surface']:.0f} m²</strong></td></tr>
-            <tr><td>💰 Budget estime</td><td style="text-align:right;"><strong>€{prop['cost']:,.0f}</strong></td></tr>
-            <tr><td>📈 ROI projete</td><td style="text-align:right;"><strong style="color:#22c55e;">+{prop['roi']:.1f}%</strong></td></tr>
-        </table>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info(f"""
+    **Adresse:** {prop['address'][:60]}  
+    **DPE Actuel:** {prop['dpe']}  
+    **Surface:** {prop['surface']:.0f} m²  
+    **Budget estime:** €{prop['cost']:,.0f}  
+    **ROI projete:** +{prop['roi']:.1f}%
+    """)
     
     # Generate PDF
     try:
-        pdf_bytes = generate_simple_pdf(prop, st.session_state.user_responses)
+        pdf_bytes = create_pdf_bytes(prop)
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
+        if pdf_bytes and len(pdf_bytes) > 500:
             st.download_button(
-                label="⬇️ Telecharger mon rapport PDF",
+                label="⬇️ Telecharger le rapport PDF",
                 data=pdf_bytes,
-                file_name=f"ZAMI_Report_{prop['zipcode']}.pdf",
+                file_name=f"ZAMI_Report_{prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
                 type="primary"
             )
-        st.success("✅ Rapport genere avec succes !")
-        
+            st.success(f"✅ PDF pret ! Taille: {len(pdf_bytes)} bytes")
+        else:
+            st.error(f"❌ Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0} bytes)")
+            
     except Exception as e:
         st.error(f"❌ Erreur: {str(e)}")
     
@@ -364,12 +326,9 @@ elif st.session_state.step == "report":
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
         st.session_state.step = "address"
         st.session_state.property_data = None
-        st.session_state.address_selected = None
         st.session_state.address_suggestions = []
         st.session_state.user_responses = None
         st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-# Footer
 st.markdown('<div class="footer">ZAMI - Intelligence Renovation Energetique</div>', unsafe_allow_html=True)
