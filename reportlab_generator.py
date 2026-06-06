@@ -77,84 +77,74 @@ class PremiumZamiReport:
                                self.investment_score + self.market_score) / 4)
     
     def _add_custom_styles(self):
-        """Add custom styles without duplicates"""
-        # Only add if not exists
-        style_names = [s.name for s in self.styles]
+        """Add custom styles"""
+        self.styles.add(ParagraphStyle(
+            name='CoverTitle',
+            parent=self.styles['Title'],
+            fontName='Helvetica-Bold',
+            fontSize=42,
+            textColor=COLORS['white'],
+            alignment=TA_CENTER,
+            spaceAfter=30,
+        ))
         
-        if 'CoverTitle' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='CoverTitle',
-                parent=self.styles['Title'],
-                fontName='Helvetica-Bold',
-                fontSize=42,
-                textColor=COLORS['white'],
-                alignment=TA_CENTER,
-                spaceAfter=30,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='CoverSubtitle',
+            parent=self.styles['Normal'],
+            fontName='Helvetica',
+            fontSize=12,
+            textColor=colors.HexColor('#CBD5E1'),
+            alignment=TA_CENTER,
+            spaceAfter=40,
+        ))
         
-        if 'CoverSubtitle' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='CoverSubtitle',
-                parent=self.styles['Normal'],
-                fontName='Helvetica',
-                fontSize=12,
-                textColor=colors.HexColor('#CBD5E1'),
-                alignment=TA_CENTER,
-                spaceAfter=40,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='SectionHeader',
+            parent=self.styles['Heading1'],
+            fontName='Helvetica-Bold',
+            fontSize=18,
+            textColor=COLORS['primary'],
+            spaceBefore=20,
+            spaceAfter=10,
+        ))
         
-        if 'SectionHeader' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='SectionHeader',
-                parent=self.styles['Heading1'],
-                fontName='Helvetica-Bold',
-                fontSize=18,
-                textColor=COLORS['primary'],
-                spaceBefore=20,
-                spaceAfter=10,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='SectionHeaderLine',
+            parent=self.styles['Heading2'],
+            fontName='Helvetica-Bold',
+            fontSize=16,
+            textColor=COLORS['accent_blue'],
+            spaceBefore=15,
+            spaceAfter=8,
+        ))
         
-        if 'SectionHeaderLine' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='SectionHeaderLine',
-                parent=self.styles['Heading2'],
-                fontName='Helvetica-Bold',
-                fontSize=16,
-                textColor=COLORS['accent_blue'],
-                spaceBefore=15,
-                spaceAfter=8,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='KPILarge',
+            parent=self.styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=24,
+            textColor=COLORS['primary'],
+            alignment=TA_CENTER,
+        ))
         
-        if 'KPILarge' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='KPILarge',
-                parent=self.styles['Normal'],
-                fontName='Helvetica-Bold',
-                fontSize=24,
-                textColor=COLORS['primary'],
-                alignment=TA_CENTER,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='MetricLabel',
+            parent=self.styles['Normal'],
+            fontName='Helvetica',
+            fontSize=8,
+            textColor=COLORS['gray_mid'],
+            alignment=TA_CENTER,
+        ))
         
-        if 'MetricLabel' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='MetricLabel',
-                parent=self.styles['Normal'],
-                fontName='Helvetica',
-                fontSize=8,
-                textColor=COLORS['gray_mid'],
-                alignment=TA_CENTER,
-            ))
-        
-        if 'BodyTextStyle' not in style_names:
-            self.styles.add(ParagraphStyle(
-                name='BodyTextStyle',
-                parent=self.styles['Normal'],
-                fontName='Helvetica',
-                fontSize=10,
-                textColor=COLORS['gray_dark'],
-                alignment=TA_LEFT,
-                spaceAfter=6,
-            ))
+        self.styles.add(ParagraphStyle(
+            name='BodyTextStyle',
+            parent=self.styles['Normal'],
+            fontName='Helvetica',
+            fontSize=10,
+            textColor=COLORS['gray_dark'],
+            alignment=TA_LEFT,
+            spaceAfter=6,
+        ))
     
     def _draw_dpe_badge(self, canvas, x, y, size, dpe):
         colors_map = {
@@ -231,7 +221,7 @@ class PremiumZamiReport:
             [Paragraph(f'€{self.current_value:,}', self.styles['KPILarge']),
              Paragraph(f'€{self.renovation_cost:,}', self.styles['KPILarge']),
              Paragraph(f'€{self.subsidy:,}', self.styles['KPILarge'])],
-            [Spacer(1, 5), Spacer(1, 5), Spacer(1, 5)],
+            ['', '', ''],
             [Paragraph('Expected Value', self.styles['MetricLabel']),
              Paragraph('Net Investment', self.styles['MetricLabel']),
              Paragraph('Total ROI', self.styles['MetricLabel'])],
@@ -246,8 +236,8 @@ class PremiumZamiReport:
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('BACKGROUND', (0, 1), (-1, 1), COLORS['gray_light']),
             ('BACKGROUND', (0, 4), (-1, 4), COLORS['gray_light']),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
         ]))
         story.append(kpi_table)
         story.append(Spacer(1, 30))
@@ -339,28 +329,30 @@ class PremiumZamiReport:
         
         if self.dpe in ['F', 'G']:
             priorities = [
-                ('1. Wall Insulation', '€12,000 - €18,000', '25-30% reduction', '+8-10% ROI'),
-                ('2. Roof/Attic Insulation', '€8,000 - €12,000', '20-25% reduction', '+6-8% ROI'),
-                ('3. Heating System Upgrade', '€10,000 - €15,000', '30-35% reduction', '+10-12% ROI'),
+                ('1. Wall Insulation', '12,000 - 18,000 EUR', '25-30% reduction', '+8-10% ROI'),
+                ('2. Roof/Attic Insulation', '8,000 - 12,000 EUR', '20-25% reduction', '+6-8% ROI'),
+                ('3. Heating System Upgrade', '10,000 - 15,000 EUR', '30-35% reduction', '+10-12% ROI'),
             ]
         elif self.dpe == 'E':
             priorities = [
-                ('1. Heating System Upgrade', '€10,000 - €15,000', '30-35% reduction', '+10-12% ROI'),
-                ('2. Window Replacement', '€8,000 - €12,000', '15-20% reduction', '+5-7% ROI'),
-                ('3. Ventilation System', '€4,000 - €7,000', '10-15% reduction', '+3-5% ROI'),
+                ('1. Heating System Upgrade', '10,000 - 15,000 EUR', '30-35% reduction', '+10-12% ROI'),
+                ('2. Window Replacement', '8,000 - 12,000 EUR', '15-20% reduction', '+5-7% ROI'),
+                ('3. Ventilation System', '4,000 - 7,000 EUR', '10-15% reduction', '+3-5% ROI'),
             ]
         else:
             priorities = [
-                ('1. Window Optimization', '€6,000 - €10,000', '10-15% reduction', '+4-6% ROI'),
-                ('2. Smart Thermostat', '€500 - €1,500', '8-12% reduction', '+2-3% ROI'),
-                ('3. Lighting Upgrade', '€2,000 - €4,000', '5-8% reduction', '+1-2% ROI'),
+                ('1. Window Optimization', '6,000 - 10,000 EUR', '10-15% reduction', '+4-6% ROI'),
+                ('2. Smart Thermostat', '500 - 1,500 EUR', '8-12% reduction', '+2-3% ROI'),
+                ('3. Lighting Upgrade', '2,000 - 4,000 EUR', '5-8% reduction', '+1-2% ROI'),
             ]
         
         for priority in priorities:
             story.append(Spacer(1, 10))
             story.append(Paragraph(f'<b>{priority[0]}</b>', self.styles['SectionHeaderLine']))
-            metrics = [['Estimated Cost', 'Energy Impact', 'ROI Contribution'],
-                       [priority[1], priority[2], priority[3]]]
+            metrics = [
+                ['Estimated Cost', 'Energy Impact', 'ROI Contribution'],
+                [priority[1], priority[2], priority[3]],
+            ]
             metrics_table = Table(metrics, colWidths=[120, 130, 130])
             metrics_table.setStyle(TableStyle([
                 ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 9),
@@ -377,7 +369,7 @@ class PremiumZamiReport:
         
         story.append(Spacer(1, 20))
         story.append(Paragraph(
-            f'<b>Total Recommended Investment: €{self.renovation_cost:,}</b>',
+            f'<b>Total Recommended Investment: {self.renovation_cost:,} EUR</b>',
             self.styles['SectionHeaderLine']
         ))
         return story
