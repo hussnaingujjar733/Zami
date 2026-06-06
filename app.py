@@ -275,83 +275,52 @@ def generate_pdf(property_data, scenario, target_dpe, active_cost, net_cost, sub
 
 
 # ─────────────────────────────────────────────
-# HERO SECTION (Top, No Logo, Only Video + Badge)
+# HERO SECTION (Small, No Video, Beautiful ZAMI Text)
 # ─────────────────────────────────────────────
 def hero_section():
     st.markdown("""
     <style>
-    .hero-container {
-        position: relative;
-        border-radius: 32px;
-        overflow: hidden;
-        margin-bottom: 30px;
-        min-height: 350px;
+    .hero-small {
         background: linear-gradient(135deg, #0F172A, #020617);
-    }
-    
-    .hero-iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        z-index: 0;
-        border: none;
-        pointer-events: none;
-    }
-    
-    .hero-overlay {
-        position: relative;
-        background: linear-gradient(135deg, rgba(15,23,42,0.5), rgba(2,6,23,0.6));
-        border-radius: 32px;
-        padding: 80px 40px;
+        border-radius: 24px;
+        padding: 30px 20px;
         text-align: center;
-        z-index: 1;
-        min-height: 350px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        margin-bottom: 30px;
+        border: 1px solid rgba(59,130,246,0.2);
     }
     
-    .hero-badge {
-        display: inline-block;
-        background: rgba(59,130,246,0.2);
-        backdrop-filter: blur(10px);
-        padding: 8px 20px;
-        border-radius: 100px;
-        border: 1px solid rgba(59,130,246,0.3);
+    .hero-logo-text {
+        font-size: 3.5rem;
+        font-weight: 800;
+        font-family: 'Space Grotesk', sans-serif;
+        background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
     }
     
-    .hero-badge span {
+    .hero-tagline {
         font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.15em;
         color: #3B82F6;
         text-transform: uppercase;
+        font-weight: 600;
     }
     
     @media (max-width: 768px) {
-        .hero-overlay {
-            padding: 60px 20px;
-            min-height: 300px;
+        .hero-logo-text {
+            font-size: 2.2rem;
+        }
+        .hero-small {
+            padding: 20px 15px;
         }
     }
     </style>
     
-    <div class="hero-container">
-        <iframe class="hero-iframe" 
-            src="https://www.youtube.com/embed/mCmjNwjYfqw?autoplay=1&loop=1&mute=1&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1&playlist=mCmjNwjYfqw&enablejsapi=1"
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-        <div class="hero-overlay">
-            <div class="hero-badge">
-                <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
-            </div>
-        </div>
+    <div class="hero-small">
+        <div class="hero-logo-text">ZAMI</div>
+        <div class="hero-tagline">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</div>
     </div>
     """, unsafe_allow_html=True)
 
