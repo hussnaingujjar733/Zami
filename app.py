@@ -1,8 +1,11 @@
 import os
 import json
+import time
 import requests
 import streamlit as st
 from datetime import datetime
+import folium
+from streamlit_folium import st_folium
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -20,7 +23,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# State
+# ─────────────────────────────────────────────
+# STATE INITIALIZATION
+# ─────────────────────────────────────────────
 if "property_data" not in st.session_state:
     st.session_state.property_data = None
 if "address_suggestions" not in st.session_state:
@@ -29,6 +34,8 @@ if "user_responses" not in st.session_state:
     st.session_state.user_responses = None
 if "step" not in st.session_state:
     st.session_state.step = "address"
+if "wizard_step" not in st.session_state:
+    st.session_state.wizard_step = 1
 
 # Global Variables
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
@@ -36,7 +43,7 @@ _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0,
 
 
 # ─────────────────────────────────────────────
-# DPE FUNCTIONS
+# DPE & API FUNCTIONS
 # ─────────────────────────────────────────────
 def safe_get(url, params=None):
     try:
@@ -85,7 +92,7 @@ def fetch_base_property_data(selected_address):
 
 
 # ─────────────────────────────────────────────
-# HERO SECTION
+# UI COMPONENTS (Hero, Map, Loader)
 # ─────────────────────────────────────────────
 def hero_section():
     st.markdown("""
@@ -153,24 +160,59 @@ def hero_section():
         <div class="hero-title-fr">L'avenir de la rénovation immobilière</div>
         <div class="hero-subtitle-fr">Entrez votre adresse et recevez votre rapport personnalisé</div>
         <div class="hero-features">
-            <span>✓ Subventions disponibles</span>
-            <span>✓ ROI de rénovation</span>
-            <span>✓ Conformité légale</span>
-            <span>✓ Plus-value immobilière</span>
+            <span class="hero-feature">✓ Subventions disponibles</span>
+            <span class="hero-feature">✓ ROI de rénovation</span>
+            <span class="hero-feature">✓ Conformité légale</span>
+            <span class="hero-feature">✓ Plus-value immobilière</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+def show_skeleton_loader():
+    """Generates the premium shimmer loading effect HTML"""
+    return """
+    <style>
+    .skeleton-box {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    </style>
+    <div class="card" style="padding: 30px; margin-top: 20px;">
+        <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px;">
+            <div class="skeleton-box shimmer-effect" style="height: 80px; width: 80px; border-radius: 50%;"></div>
+            <div style="flex: 1;">
+                <div class="skeleton-box shimmer-effect" style="height: 25px; width: 60%;"></div>
+                <div class="skeleton-box shimmer-effect" style="height: 15px; width: 40%;"></div>
+            </div>
+        </div>
+        <div class="skeleton-box shimmer-effect" style="height: 120px; width: 100%;"></div>
+        <div style="text-align: center; margin-top: 25px;">
+            <span style="color: #3B82F6; font-size: 0.9rem; font-weight: 600; animation: pulse 1.5s infinite;">⚡ ZAMI AI analyse les données ADEME & DVF...</span>
+        </div>
+    </div>
+    """
+
+def display_premium_map(lat, lon):
+    """Displays a dark-themed Folium map for the property location"""
+    st.markdown("<div class='section-label' style='margin-top: 20px;'>Vue Satellite ZAMI</div>", unsafe_allow_html=True)
+    m = folium.Map(location=[lat, lon], zoom_start=16, tiles="CartoDB dark_matter", control_scale=True)
+    folium.Marker(
+        [lat, lon],
+        popup="<b>ZAMI Analyzed Property</b>",
+        icon=folium.Icon(color="green", icon="bolt", prefix='fa')
+    ).add_to(m)
+    st_folium(m, height=350, use_container_width=True, returned_objects=[])
+
 
 # ─────────────────────────────────────────────
-# MAIN APP
+# MAIN APP FLOW
 # ─────────────────────────────────────────────
 hero_section()
 
-st.markdown('<div class="card">', unsafe_allow_html=True)
-
-# Step 1: Address Selection
+# STEP 1: Address Selection
 if st.session_state.step == "address":
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("### 📍 Étape 1 : Entrez votre adresse")
     
     search_query = st.text_input("Adresse", placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="address_input")
@@ -184,45 +226,100 @@ if st.session_state.step == "address":
         selected_label = st.selectbox("Sélectionnez votre adresse", labels, key="address_select")
         
         if st.button("✅ Valider cette adresse", type="primary", use_container_width=True):
+            # Show premium skeleton loader
+            loader_placeholder = st.empty()
+            loader_placeholder.markdown(show_skeleton_loader(), unsafe_allow_html=True)
+            
+            # Simulate processing delay to show off the cool animation (Real API fetch happens here)
+            time.sleep(2) 
+            
+            # Fetch data and move to next step
             for s in st.session_state.address_suggestions:
                 if f"{s['label']} ({s['postcode']} {s['city']})" == selected_label:
                     st.session_state.property_data = fetch_base_property_data(s)
                     st.session_state.step = "questions"
-                    st.rerun()
+                    st.session_state.wizard_step = 1 # Reset wizard
+                    
+            loader_placeholder.empty()
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# Step 2: Questions
+# STEP 2: Interactive Wizard Questions
 elif st.session_state.step == "questions":
     st.markdown("### 📋 Étape 2 : Améliorez la précision")
-    st.markdown("Quelques questions optionnelles pour un résultat plus précis")
     
-    with st.form("accuracy_form"):
-        windows = st.radio("Type de vitrage", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], horizontal=True)
-        heating = st.radio("Système de chauffage", ["Gaz ancien", "Electrique", "Pompe a chaleur", "Je ne sais pas"], horizontal=True)
-        
+    # Custom animated progress bar
+    progress = st.session_state.wizard_step / 3
+    st.progress(progress)
+    
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    
+    # Wizard Step 1
+    if st.session_state.wizard_step == 1:
+        st.markdown("#### 🪟 Quel type de vitrage possède le bien ?")
+        st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], key="q_win")
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Suivant ➡️", type="primary", use_container_width=True):
+            st.session_state.wizard_step = 2
+            st.rerun()
+            
+    # Wizard Step 2
+    elif st.session_state.wizard_step == 2:
+        st.markdown("#### 🔥 Quel est le système de chauffage principal ?")
+        st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"], key="q_heat")
+        st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
-            roof = st.radio("Toiture isolee ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
+            if st.button("⬅️ Retour", use_container_width=True):
+                st.session_state.wizard_step = 1
+                st.rerun()
         with col2:
-            wall = st.radio("Murs isoles ?", ["Oui", "Non", "Je ne sais pas"], horizontal=True)
-        
-        if st.form_submit_button("📊 Generer mon rapport", type="primary", use_container_width=True):
-            st.session_state.user_responses = {
-                "windows": windows, "heating": heating,
-                "roof_insulation": roof, "wall_insulation": wall
-            }
-            st.session_state.step = "report"
-            st.rerun()
+            if st.button("Suivant ➡️", type="primary", use_container_width=True):
+                st.session_state.wizard_step = 3
+                st.rerun()
+
+    # Wizard Step 3
+    elif st.session_state.wizard_step == 3:
+        st.markdown("#### 🧱 Comment est l'isolation actuelle ?")
+        colA, colB = st.columns(2)
+        with colA:
+            st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"], key="q_roof")
+        with colB:
+            st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"], key="q_wall")
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Retour", use_container_width=True):
+                st.session_state.wizard_step = 2
+                st.rerun()
+        with col2:
+            if st.button("📊 Générer mon rapport", type="primary", use_container_width=True):
+                st.session_state.user_responses = {
+                    "windows": st.session_state.q_win, 
+                    "heating": st.session_state.q_heat,
+                    "roof_insulation": st.session_state.q_roof, 
+                    "wall_insulation": st.session_state.q_wall
+                }
+                st.session_state.step = "report"
+                st.rerun()
+                
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    if st.button("⏩ Passer les questions", use_container_width=True):
+    if st.button("⏩ Passer les questions (Générer avec l'IA)", use_container_width=True):
         st.session_state.user_responses = None
         st.session_state.step = "report"
         st.rerun()
 
-# Step 3: PDF Generation
+# STEP 3: Report & Premium Map Generation
 elif st.session_state.step == "report":
     st.markdown("### 📄 Votre rapport est prêt")
     
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     prop = st.session_state.property_data
+    
+    # Premium Map Display
+    display_premium_map(prop["lat"], prop["lon"])
     
     # Show summary
     st.info(f"""
@@ -235,7 +332,7 @@ elif st.session_state.step == "report":
     
     # Generate PDF
     try:
-        with st.spinner("📄 Génération du rapport..."):
+        with st.spinner("📄 Finalisation du PDF ultra-premium..."):
             pdf_bytes = generer_rapport(prop)
         
         if pdf_bytes and len(pdf_bytes) > 100:
@@ -256,15 +353,17 @@ elif st.session_state.step == "report":
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
     
+    st.markdown('</div>', unsafe_allow_html=True)
+    
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
+        # Reset everything
         st.session_state.step = "address"
         st.session_state.property_data = None
         st.session_state.address_suggestions = []
         st.session_state.user_responses = None
+        st.session_state.wizard_step = 1
         st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True)
-
 # Footer
-st.markdown('<div class="footer">ZAMI - Intelligence Renovation Energetique</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">ZAMI - Intelligence Rénovation Énergétique</div>', unsafe_allow_html=True)
