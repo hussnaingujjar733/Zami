@@ -4,6 +4,7 @@ import requests
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
+from reportlab_generator import generate_premium_report
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -87,213 +88,56 @@ def fetch_base_property_data(selected_address):
 # ─────────────────────────────────────────────
 # PDF GENERATION (FIXED)
 # ─────────────────────────────────────────────
-def generate_pdf_bytes(property_data):
-    """Generate premium PDF report - no Unicode issues"""
-    pdf = FPDF()
-    pdf.add_page()
+# Step 3: PDF Generation with Premium Report
+elif st.session_state.step == "report":
+    st.markdown("### 📄 Votre rapport institutionnel est prêt")
     
-    # Background
-    pdf.set_fill_color(15, 23, 42)
-    pdf.rect(0, 0, 210, 297, 'F')
+    prop = st.session_state.property_data
     
-    # Top bar
-    pdf.set_fill_color(59, 130, 246)
-    pdf.rect(0, 0, 210, 6, 'F')
+    # Show summary
+    st.info(f"""
+    **Adresse:** {prop['address'][:60]}  
+    **DPE Actuel:** {prop['dpe']}  
+    **Surface:** {prop['surface']:.0f} m²  
+    **Budget estimé:** €{prop['cost']:,.0f}  
+    **ROI projeté:** +{prop['roi']:.1f}%
+    """)
     
-    # Header
-    pdf.set_font('Helvetica', 'B', 32)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 20, 'ZAMI', ln=True, align='C')
+    # Generate Premium Report
+    try:
+        from reportlab_generator import generate_premium_report
+        
+        with st.spinner("📄 Génération du rapport institutionnel..."):
+            pdf_bytes = generate_premium_report(prop)
+        
+        if pdf_bytes and len(pdf_bytes) > 1000:
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.download_button(
+                    label="⬇️ Télécharger le rapport institutionnel",
+                    data=pdf_bytes,
+                    file_name=f"ZAMI_Institutional_Report_{prop['zipcode']}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+            st.success(f"✅ Rapport généré avec succès ! Taille: {len(pdf_bytes)} bytes")
+        else:
+            st.error(f"Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0})")
+            
+    except ImportError as e:
+        st.error(f"Module ReportLab non installé. Exécutez: pip install reportlab")
+        st.info(str(e))
+    except Exception as e:
+        st.error(f"Erreur: {str(e)}")
     
-    pdf.set_font('Helvetica', '', 9)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 5, 'PROPERTY INTELLIGENCE REPORT', ln=True, align='C')
-    pdf.line(70, pdf.get_y(), 140, pdf.get_y())
-    pdf.ln(8)
-    
-    # Date
-    pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(100, 116, 139)
-    pdf.cell(0, 5, f'GENERATED: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
-    pdf.ln(5)
-    
-    # Address
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(255, 255, 255)
-    address = property_data.get('address', 'Address not available')[:55]
-    # Remove any problematic chars
-    address = address.replace('é', 'e').replace('è', 'e').replace('ê', 'e').replace('à', 'a').replace('ç', 'c')
-    pdf.multi_cell(0, 6, address, align='L')
-    pdf.ln(5)
-    
-    # DPE Badge
-    dpe = property_data.get('dpe', 'E')
-    dpe_colors = {
-        "A": (34, 197, 94), "B": (74, 222, 128),
-        "C": (163, 230, 53), "D": (250, 204, 21),
-        "E": (251, 146, 60), "F": (249, 115, 22),
-        "G": (239, 68, 68)
-    }
-    color = dpe_colors.get(dpe, (100, 100, 100))
-    
-    pdf.set_fill_color(color[0], color[1], color[2])
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font('Helvetica', 'B', 70)
-    pdf.set_x(210/2 - 30)
-    pdf.cell(60, 60, dpe, border=0, align='C', fill=True)
-    pdf.ln(15)
-    
-    pdf.set_font('Helvetica', '', 9)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 5, 'ENERGY PERFORMANCE RATING', ln=True, align='C')
-    pdf.ln(12)
-    
-    # Surface
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(15, pdf.get_y(), 85, 35, 'F')
-    pdf.set_xy(20, pdf.get_y() - 35)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'SURFACE', ln=True)
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"{int(property_data.get('surface', 68))} m2", ln=True)
-    
-    # DPE Class
-    pdf.set_xy(110, pdf.get_y() - 35)
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(110, pdf.get_y(), 85, 35, 'F')
-    pdf.set_xy(115, pdf.get_y() - 35)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'DPE CLASS', ln=True)
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, property_data.get('dpe', 'E'), ln=True)
-    
-    pdf.ln(40)
-    
-    # Cost
-    cost = property_data.get('cost', 25000)
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(15, pdf.get_y(), 85, 35, 'F')
-    pdf.set_xy(20, pdf.get_y() - 35)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'RENOVATION COST', ln=True)
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"EUR {int(cost):,}", ln=True)
-    
-    # ROI
-    roi = property_data.get('roi', 15.0)
-    pdf.set_xy(110, pdf.get_y() - 35)
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(110, pdf.get_y(), 85, 35, 'F')
-    pdf.set_xy(115, pdf.get_y() - 35)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'ROI', ln=True)
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 8, f"+{roi:.1f}%", ln=True)
-    
-    pdf.ln(40)
-    
-    # ROI bar
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, 'ROI PROJECTION', ln=True, align='L')
-    pdf.ln(3)
-    
-    roi_percent = min(100, roi * 2)
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(15, pdf.get_y(), 180, 15, 'F')
-    pdf.set_fill_color(34, 197, 94)
-    pdf.rect(15, pdf.get_y(), int(roi_percent * 180 / 100), 15, 'F')
-    pdf.set_xy(15 + int(roi_percent * 180 / 100) - 10, pdf.get_y())
-    pdf.set_font('Helvetica', 'B', 9)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 5, f"{roi:.0f}%", ln=False)
-    pdf.ln(20)
-    
-    # Value Projection
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, 'VALUE PROJECTION', ln=True, align='L')
-    pdf.ln(3)
-    
-    surface_val = property_data.get('surface', 68)
-    current_val = 280000
-    after_val = int(350000 * (surface_val / 68))
-    gain = after_val - current_val
-    
-    # Before
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(15, pdf.get_y(), 85, 30, 'F')
-    pdf.set_xy(20, pdf.get_y() - 30)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'CURRENT VALUE', ln=True)
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"EUR {current_val:,}", ln=True)
-    
-    # Arrow using hyphen
-    pdf.set_xy(108, pdf.get_y() - 15)
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 5, '->', ln=False)
-    
-    # After
-    pdf.set_xy(125, pdf.get_y() - 30)
-    pdf.set_fill_color(34, 197, 94)
-    pdf.rect(125, pdf.get_y(), 70, 30, 'F')
-    pdf.set_xy(130, pdf.get_y() - 30)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 4, 'AFTER RENOVATION', ln=True)
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.cell(0, 8, f"EUR {after_val:,}", ln=True)
-    
-    pdf.ln(35)
-    
-    # Gain
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 8, f"+EUR {gain:,} VALUE GAIN", ln=True, align='C')
-    pdf.ln(10)
-    
-    # Subsidy
-    subsidy = int(12500 * (surface_val / 68))
-    pdf.set_fill_color(30, 41, 59)
-    pdf.rect(15, pdf.get_y(), 180, 30, 'F')
-    pdf.set_xy(20, pdf.get_y() - 30)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 5, 'SUBSIDY ELIGIBILITY', ln=True)
-    pdf.set_xy(20, pdf.get_y() - 15)
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 8, f"EUR {subsidy:,}", ln=True)
-    pdf.set_xy(20, pdf.get_y() - 7)
-    pdf.set_font('Helvetica', '', 8)
-    pdf.set_text_color(148, 163, 184)
-    pdf.cell(0, 4, 'MaPrimeRenov Estimate', ln=True)
-    pdf.ln(40)
-    
-    # Footer
-    pdf.set_y(-25)
-    pdf.set_font('Helvetica', 'I', 7)
-    pdf.set_text_color(71, 85, 105)
-    pdf.cell(0, 5, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    pdf.cell(0, 5, 'This is an AI-generated estimate. Consult certified professionals.', ln=True, align='C')
-    
-    # Convert to bytes
-    output = pdf.output(dest='S')
-    if isinstance(output, str):
-        output = output.encode('latin-1', errors='replace')
-    return output
+    st.markdown("---")
+    if st.button("🔍 Nouvelle analyse", use_container_width=True):
+        st.session_state.step = "address"
+        st.session_state.property_data = None
+        st.session_state.address_suggestions = []
+        st.session_state.user_responses = None
+        st.rerun()
 # ─────────────────────────────────────────────
 # HERO SECTION
 # ─────────────────────────────────────────────
