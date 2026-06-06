@@ -4,7 +4,6 @@ import requests
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-import base64
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -30,8 +29,6 @@ if "user_responses" not in st.session_state:
     st.session_state.user_responses = None
 if "step" not in st.session_state:
     st.session_state.step = "address"
-if "pdf_data" not in st.session_state:
-    st.session_state.pdf_data = None
 
 # Global Variables
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
@@ -88,10 +85,10 @@ def fetch_base_property_data(selected_address):
 
 
 # ─────────────────────────────────────────────
-# SIMPLE PDF GENERATION (GUARANTEED WORKING)
+# PDF GENERATION (FIXED)
 # ─────────────────────────────────────────────
-def create_pdf_bytes(property_data):
-    """Create PDF and return as bytes - guaranteed working"""
+def generate_pdf_bytes(property_data):
+    """Generate PDF and return bytes - guaranteed working"""
     pdf = FPDF()
     pdf.add_page()
     
@@ -150,8 +147,11 @@ def create_pdf_bytes(property_data):
     pdf.set_text_color(100, 100, 100)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
     
-    # Return as bytes
-    return pdf.output(dest='S')
+    # FIX: Convert to bytes properly
+    output = pdf.output(dest='S')
+    if isinstance(output, str):
+        output = output.encode('latin-1')
+    return output
 
 
 # ─────────────────────────────────────────────
@@ -263,6 +263,7 @@ if st.session_state.step == "address":
 # Step 2: Questions
 elif st.session_state.step == "questions":
     st.markdown("### 📋 Étape 2 : Améliorez la précision")
+    st.markdown("Quelques questions optionnelles pour un résultat plus précis")
     
     with st.form("accuracy_form"):
         windows = st.radio("Type de vitrage", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], horizontal=True)
@@ -302,9 +303,9 @@ elif st.session_state.step == "report":
     **ROI projete:** +{prop['roi']:.1f}%
     """)
     
-    # Generate PDF
+    # Generate and download PDF
     try:
-        pdf_bytes = create_pdf_bytes(prop)
+        pdf_bytes = generate_pdf_bytes(prop)
         
         if pdf_bytes and len(pdf_bytes) > 500:
             st.download_button(
@@ -315,12 +316,12 @@ elif st.session_state.step == "report":
                 use_container_width=True,
                 type="primary"
             )
-            st.success(f"✅ PDF pret ! Taille: {len(pdf_bytes)} bytes")
+            st.success("✅ PDF genere avec succes !")
         else:
-            st.error(f"❌ Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0} bytes)")
+            st.error(f"Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0})")
             
     except Exception as e:
-        st.error(f"❌ Erreur: {str(e)}")
+        st.error(f"Erreur: {str(e)}")
     
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
@@ -331,4 +332,6 @@ elif st.session_state.step == "report":
         st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# Footer
 st.markdown('<div class="footer">ZAMI - Intelligence Renovation Energetique</div>', unsafe_allow_html=True)
