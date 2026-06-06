@@ -241,14 +241,15 @@ elif st.session_state.step == "report":
         if pdf_bytes and len(pdf_bytes) > 100:
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                st.download_button(
-                    label="⬇️ Télécharger le rapport PDF",
-                    data=pdf_bytes,
-                    file_name=f"ZAMI_Rapport_{prop['zipcode']}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
-                )
+               # PDF download section mein yeh change karo
+      st.download_button(
+    label="⬇️ Télécharger le rapport",
+    data=pdf_bytes,
+    file_name=f"ZAMI_Rapport_{prop['zipcode']}.txt",
+    mime="text/plain",
+    use_container_width=True,
+    type="primary"
+)
             st.success("✅ Rapport généré avec succès !")
         else:
             st.error(f"Erreur: PDF vide")
@@ -257,7 +258,6 @@ elif st.session_state.step == "report":
         st.error(f"Module error: {e}")
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
-    
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
         st.session_state.step = "address"
