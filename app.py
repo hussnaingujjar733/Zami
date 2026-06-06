@@ -275,28 +275,29 @@ def generate_pdf(property_data, scenario, target_dpe, active_cost, net_cost, sub
 
 
 # ─────────────────────────────────────────────
-# HERO SECTION (Small, No Video, Beautiful ZAMI Text)
+# HERO SECTION (Beautiful French Design)
 # ─────────────────────────────────────────────
 def hero_section():
     st.markdown("""
     <style>
     .hero-small {
         background: linear-gradient(135deg, #0F172A, #020617);
-        border-radius: 24px;
-        padding: 30px 20px;
+        border-radius: 28px;
+        padding: 35px 20px 25px 20px;
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 35px;
         border: 1px solid rgba(59,130,246,0.2);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
     }
     
     .hero-logo-text {
-        font-size: 3.5rem;
+        font-size: 3.8rem;
         font-weight: 800;
         font-family: 'Space Grotesk', sans-serif;
         background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         letter-spacing: -0.02em;
     }
     
@@ -306,11 +307,73 @@ def hero_section():
         color: #3B82F6;
         text-transform: uppercase;
         font-weight: 600;
+        margin-bottom: 30px;
+    }
+    
+    .hero-title-fr {
+        font-size: 2.3rem;
+        font-weight: 700;
+        font-family: 'Space Grotesk', sans-serif;
+        background: linear-gradient(135deg, #F8FAFC, #CBD5E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+    
+    .hero-subtitle-fr {
+        font-size: 1rem;
+        color: #94A3B8;
+        max-width: 550px;
+        margin: 0 auto 25px auto;
+        line-height: 1.5;
+    }
+    
+    .hero-features {
+        display: flex;
+        justify-content: center;
+        gap: 35px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .hero-feature {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #CBD5E1;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-feature:hover {
+        transform: translateY(-2px);
+        color: #3B82F6;
+    }
+    
+    .hero-feature span:first-child {
+        font-size: 1.1rem;
+        font-weight: 700;
     }
     
     @media (max-width: 768px) {
         .hero-logo-text {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
+        }
+        .hero-title-fr {
+            font-size: 1.5rem;
+        }
+        .hero-subtitle-fr {
+            font-size: 0.85rem;
+            padding: 0 15px;
+        }
+        .hero-features {
+            gap: 15px;
+        }
+        .hero-feature {
+            font-size: 0.7rem;
         }
         .hero-small {
             padding: 20px 15px;
@@ -321,6 +384,28 @@ def hero_section():
     <div class="hero-small">
         <div class="hero-logo-text">ZAMI</div>
         <div class="hero-tagline">⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</div>
+        
+        <div class="hero-title-fr">
+            L'avenir de la rénovation immobilière
+        </div>
+        <div class="hero-subtitle-fr">
+            Découvrez en 30 secondes le potentiel caché de votre bien
+        </div>
+        
+        <div class="hero-features">
+            <div class="hero-feature">
+                <span>✓</span> <span>Subventions disponibles</span>
+            </div>
+            <div class="hero-feature">
+                <span>✓</span> <span>ROI de rénovation</span>
+            </div>
+            <div class="hero-feature">
+                <span>✓</span> <span>Conformité légale</span>
+            </div>
+            <div class="hero-feature">
+                <span>✓</span> <span>Plus-value immobilière</span>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
