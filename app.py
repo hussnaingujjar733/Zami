@@ -118,69 +118,92 @@ def calculate_enhanced_roi(property_data, user_responses):
 # ─────────────────────────────────────────────
 # BEAUTIFUL PDF GENERATION
 # ─────────────────────────────────────────────
-def generate_beautiful_pdf(property_data, user_responses):
-    """Simple working PDF generator"""
+# Step 3: PDF Generation (with debug)
+elif st.session_state.step == "report":
+    st.markdown("### 📄 Votre rapport est prêt !")
     
-    pdf = FPDF()
-    pdf.add_page()
+    prop = st.session_state.property_data
     
-    # Title
-    pdf.set_font('Helvetica', 'B', 20)
-    pdf.cell(0, 15, 'ZAMI PROPERTY REPORT', ln=True, align='C')
+    # Show property summary
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.05)); border-radius:16px; padding:15px; margin-bottom:20px;">
+        <table style="width:100%; color:#CBD5E1;">
+            <tr><td>📍 Adresse</td><td style="text-align:right;"><strong>{prop['address'][:60]}</strong></td></tr>
+            <tr><td>📊 DPE Actuel</td><td style="text-align:right;"><strong style="color:#22c55e;">{prop['dpe']}</strong></td></tr>
+            <tr><td>📐 Surface</td><td style="text-align:right;"><strong>{prop['surface']:.0f} m²</strong></td></tr>
+            <tr><td>💰 Budget estimé</td><td style="text-align:right;"><strong>€{prop['cost']:,.0f}</strong></td></tr>
+            <tr><td>📈 ROI projeté</td><td style="text-align:right;"><strong style="color:#22c55e;">+{prop['roi']:.1f}%</strong></td></tr>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Date
-    pdf.set_font('Helvetica', '', 10)
-    pdf.cell(0, 8, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
-    pdf.ln(5)
+    # Debug: Check data
+    st.write(f"Debug: Property data = {prop}")
+    st.write(f"Debug: User responses = {st.session_state.user_responses}")
     
-    # Address
-    pdf.set_font('Helvetica', 'B', 12)
-    address = property_data.get('address', 'Address not available')[:60]
-    pdf.multi_cell(0, 8, address, align='L')
-    pdf.ln(5)
+    # Generate PDF with try-except
+    try:
+        from fpdf import FPDF
+        from datetime import datetime
+        
+        st.write("Debug: Creating PDF...")
+        
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Simple content
+        pdf.set_font('Helvetica', 'B', 16)
+        pdf.cell(0, 10, 'ZAMI PROPERTY REPORT', ln=True, align='C')
+        pdf.cell(0, 5, '', ln=True)
+        
+        pdf.set_font('Helvetica', 'B', 11)
+        pdf.multi_cell(0, 6, prop['address'][:50])
+        pdf.cell(0, 5, '', ln=True)
+        
+        pdf.set_font('Helvetica', 'B', 12)
+        pdf.cell(0, 8, f"DPE: {prop['dpe']}", ln=True)
+        
+        pdf.set_font('Helvetica', '', 10)
+        pdf.cell(0, 6, f"Surface: {int(prop['surface'])} m2", ln=True)
+        pdf.cell(0, 6, f"Cost: EUR {int(prop['cost']):,}", ln=True)
+        pdf.cell(0, 6, f"ROI: +{prop['roi']:.1f}%", ln=True)
+        
+        pdf.set_y(-20)
+        pdf.set_font('Helvetica', 'I', 8)
+        pdf.cell(0, 5, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='C')
+        
+        pdf_bytes = pdf.output(dest='S')
+        
+        st.write(f"Debug: PDF generated, size = {len(pdf_bytes)} bytes")
+        
+        if pdf_bytes and len(pdf_bytes) > 100:
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.download_button(
+                    label="⬇️ Télécharger mon rapport PDF",
+                    data=pdf_bytes,
+                    file_name=f"ZAMI_Report_{prop['zipcode']}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+            st.success(f"✅ PDF prêt! Taille: {len(pdf_bytes)} bytes")
+        else:
+            st.error(f"❌ PDF vide ou trop petit: {len(pdf_bytes)} bytes")
+            
+    except Exception as e:
+        st.error(f"❌ Erreur PDF: {type(e).__name__}: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
     
-    # DPE
-    dpe = property_data.get('dpe', 'E')
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.cell(0, 10, f'Current DPE: {dpe}', ln=True)
-    pdf.ln(3)
-    
-    # Surface
-    surface = property_data.get('surface', 68)
-    pdf.cell(0, 8, f'Surface: {int(surface)} m2', ln=True)
-    pdf.ln(3)
-    
-    # Cost
-    cost = property_data.get('cost', 25000)
-    pdf.cell(0, 8, f'Estimated Renovation Cost: EUR {int(cost):,}', ln=True)
-    pdf.ln(3)
-    
-    # ROI
-    roi = property_data.get('roi', 15.0)
-    pdf.cell(0, 8, f'Expected ROI: +{roi:.1f}%', ln=True)
-    pdf.ln(5)
-    
-    # Subsidy
-    surface_val = property_data.get('surface', 68)
-    subsidy = int(12500 * (surface_val / 68))
-    pdf.cell(0, 8, f'Estimated Subsidy: EUR {subsidy:,}', ln=True)
-    pdf.ln(5)
-    
-    # Value gain
-    current_val = 280000
-    after_val = int(350000 * (surface_val / 68))
-    gain = after_val - current_val
-    pdf.cell(0, 8, f'Estimated Value Gain: +EUR {gain:,}', ln=True)
-    pdf.ln(10)
-    
-    # Footer
-    pdf.set_y(-30)
-    pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    pdf.cell(0, 8, 'This is an estimate. Consult certified professionals.', ln=True, align='C')
-    
-    return pdf.output(dest='S')
+    # New report button
+    if st.button("🔍 Nouvelle analyse", use_container_width=True):
+        st.session_state.step = "address"
+        st.session_state.property_data = None
+        st.session_state.address_selected = None
+        st.session_state.address_suggestions = []
+        st.session_state.user_responses = None
+        st.rerun()
 # ─────────────────────────────────────────────
 # HERO SECTION
 # ─────────────────────────────────────────────
