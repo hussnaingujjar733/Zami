@@ -100,21 +100,6 @@ def get_all_leads():
 
 
 # ─────────────────────────────────────────────
-# LOGO FUNCTION
-# ─────────────────────────────────────────────
-def get_logo_html():
-    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "zami_logo.png")
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as img_f:
-                logo_base64 = base64.b64encode(img_f.read()).decode()
-                return f'<img src="data:image/png;base64,{logo_base64}" style="height:45px; width:auto;">'
-        except:
-            pass
-    return '<div style="font-family: Space Grotesk, sans-serif; font-size:1.8rem; font-weight:800; background:linear-gradient(135deg,#3B82F6,#10B981); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">ZAMI</div>'
-
-
-# ─────────────────────────────────────────────
 # ACCURACY FUNCTIONS
 # ─────────────────────────────────────────────
 def calculate_enhanced_roi(property_data, user_responses):
@@ -290,7 +275,7 @@ def generate_pdf(property_data, scenario, target_dpe, active_cost, net_cost, sub
 
 
 # ─────────────────────────────────────────────
-# HERO SECTION (Minimal: Logo + Badge + Video)
+# HERO SECTION (Top, No Logo, Only Video + Badge)
 # ─────────────────────────────────────────────
 def hero_section():
     st.markdown("""
@@ -300,7 +285,7 @@ def hero_section():
         border-radius: 32px;
         overflow: hidden;
         margin-bottom: 30px;
-        min-height: 400px;
+        min-height: 350px;
         background: linear-gradient(135deg, #0F172A, #020617);
     }
     
@@ -323,21 +308,11 @@ def hero_section():
         padding: 80px 40px;
         text-align: center;
         z-index: 1;
-        min-height: 400px;
+        min-height: 350px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-    }
-    
-    .hero-logo {
-        font-size: 4rem;
-        font-weight: 800;
-        font-family: 'Space Grotesk', sans-serif;
-        background: linear-gradient(135deg, #F8FAFC, #3B82F6, #10B981);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 15px;
     }
     
     .hero-badge {
@@ -360,10 +335,7 @@ def hero_section():
     @media (max-width: 768px) {
         .hero-overlay {
             padding: 60px 20px;
-            min-height: 350px;
-        }
-        .hero-logo {
-            font-size: 2.5rem;
+            min-height: 300px;
         }
     }
     </style>
@@ -376,7 +348,6 @@ def hero_section():
             allowfullscreen>
         </iframe>
         <div class="hero-overlay">
-            <div class="hero-logo">ZAMI</div>
             <div class="hero-badge">
                 <span>⚡ FRANCE'S #1 RENOVATION INTELLIGENCE</span>
             </div>
@@ -389,26 +360,12 @@ premium_hero_section = hero_section
 
 
 # ─────────────────────────────────────────────
-# HEADER (Only Logo - No Language)
-# ─────────────────────────────────────────────
-col_left, col_mid, col_right = st.columns([1, 2, 1])
-with col_left:
-    st.markdown(get_logo_html(), unsafe_allow_html=True)
-with col_mid:
-    st.write("")
-with col_right:
-    st.write("")
-
-st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-bottom:2rem;">', unsafe_allow_html=True)
-
-
-# ─────────────────────────────────────────────
 # MAIN CONTENT
 # ─────────────────────────────────────────────
+# Hero section at the very top
+premium_hero_section()
+
 if st.session_state["confirmed_owner_property"] is None:
-    # Hero section only
-    premium_hero_section()
-    
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
