@@ -3,11 +3,10 @@ import json
 import requests
 import streamlit as st
 from datetime import datetime
-# Make sure this import is correct
-from reportlab_generator import generer_rapport
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
+from reportlab_generator import generer_rapport
 
 # Run Premium Style Injections
 utils_styles.inject_premium_styles()
@@ -236,12 +235,10 @@ elif st.session_state.step == "report":
     
     # Generate PDF
     try:
-        from reportlab_generator import generer_rapport
-        
         with st.spinner("📄 Génération du rapport..."):
-            pdf_bytes = html_pdf.generer_rapport(prop)
+            pdf_bytes = generer_rapport(prop)
         
-        if pdf_bytes and len(pdf_bytes) > 1000:
+        if pdf_bytes and len(pdf_bytes) > 100:
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 st.download_button(
@@ -256,8 +253,8 @@ elif st.session_state.step == "report":
         else:
             st.error(f"Erreur: PDF vide")
             
-    except ImportError:
-        st.error("Module reportlab non installé. Exécutez: pip install reportlab")
+    except ImportError as e:
+        st.error(f"Module error: {e}")
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
     
