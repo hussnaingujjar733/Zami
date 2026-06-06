@@ -70,12 +70,15 @@ def generer_rapport(property_data):
     pdf.multi_cell(0, 7, address, align='C')
     pdf.ln(8)
     
-    # DPE Badge
-    dpe_colors = {'A': (34,197,94), 'B': (74,222,128), 'C': (163,230,53),
-                  'D': (250,204,21), 'E': (251,146,60), 'F': (249,115,22),
-                  'G': (239,68,68)}
-    color = dpe_colors.get(dpe, (100,100,100))
-    pdf.set_fill_color(*color)
+    # DPE Badge (Fixed - using RGB values correctly)
+    dpe_colors = {
+        'A': (34, 197, 94), 'B': (74, 222, 128), 'C': (163, 230, 53),
+        'D': (250, 204, 21), 'E': (251, 146, 60), 'F': (249, 115, 22),
+        'G': (239, 68, 68)
+    }
+    color = dpe_colors.get(dpe, (100, 100, 100))
+    # Convert RGB to 0-1 range for set_fill_color
+    pdf.set_fill_color(color[0], color[1], color[2])
     pdf.set_text_color(255, 255, 255)
     pdf.set_font('Helvetica', 'B', 52)
     pdf.set_x(210/2 - 25)
@@ -94,13 +97,13 @@ def generer_rapport(property_data):
     pdf.line(10, pdf.get_y(), 55, pdf.get_y())
     pdf.ln(5)
     
-    # Metrics in 3 columns
+    # Metrics in 2 rows x 3 columns
     metrics = [
         ('SURFACE', f"{int(surface)} m²"),
         ('CURRENT DPE', dpe),
-        ('RENOVATION COST', f"€{cost:,}"),
-        ('SUBSIDY', f"€{subsidy:,}"),
-        ('NET INVESTMENT', f"€{net:,}"),
+        ('RENOVATION COST', f"EUR {cost:,}"),
+        ('SUBSIDY', f"EUR {subsidy:,}"),
+        ('NET INVESTMENT', f"EUR {net:,}"),
         ('EXPECTED ROI', f"+{roi:.1f}%"),
     ]
     
@@ -113,7 +116,7 @@ def generer_rapport(property_data):
         pdf.set_text_color(100, 100, 100)
         pdf.cell(50, 5, label, ln=False, align='C')
         pdf.set_xy(x, y + 5)
-        pdf.set_font('Helvetica', 'B', 12)
+        pdf.set_font('Helvetica', 'B', 11)
         pdf.set_text_color(0, 0, 0)
         pdf.cell(50, 7, value, ln=False, align='C')
     
@@ -128,24 +131,24 @@ def generer_rapport(property_data):
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(60, 8, 'Current Property Value:', ln=False)
+    pdf.cell(65, 8, 'Current Property Value:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 8, f"€{current_val:,}", ln=True)
+    pdf.cell(0, 8, f"EUR {current_val:,}", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(60, 8, 'After Renovation:', ln=False)
+    pdf.cell(65, 8, 'After Renovation:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 8, f"€{future_val:,}", ln=True)
+    pdf.cell(0, 8, f"EUR {future_val:,}", ln=True)
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(60, 8, 'Total Value Gain:', ln=False)
+    pdf.cell(65, 8, 'Total Value Gain:', ln=False)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(34, 197, 94)
-    pdf.cell(0, 8, f"+€{gain:,}", ln=True)
+    pdf.cell(0, 8, f"+EUR {gain:,}", ln=True)
     
     pdf.ln(10)
     
@@ -173,7 +176,10 @@ def generer_rapport(property_data):
         pdf.set_text_color(80, 80, 80)
         pdf.cell(60, 8, name, ln=False)
         pdf.set_font('Helvetica', 'B', 9)
-        pdf.set_text_color(34, 197, 94 if score >= 70 else (245, 158, 11))
+        if score >= 70:
+            pdf.set_text_color(34, 197, 94)
+        else:
+            pdf.set_text_color(245, 158, 11)
         pdf.cell(0, 8, f"{score}/100", ln=True)
         pdf.ln(2)
     
@@ -195,7 +201,7 @@ def generer_rapport(property_data):
     if dpe in ['F', 'G']:
         recos = [
             '1. Complete energy audit by certified professional (mandatory)',
-            '2. Apply for MaPrimeRénov\' subsidy immediately',
+            '2. Apply for MaPrimeRenev subsidy immediately',
             '3. Prioritize wall and attic insulation (highest ROI)',
             '4. Replace heating system with heat pump',
             '5. Contact certified RGE contractors for quotes',
@@ -232,11 +238,11 @@ def generer_rapport(property_data):
     
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 6, f'Estimated MaPrimeRénov\' Subsidy: €{subsidy:,}', ln=True, align='L')
+    pdf.cell(0, 6, f'Estimated MaPrimeRenev Subsidy: EUR {subsidy:,}', ln=True, align='L')
     pdf.ln(2)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 5, 'Apply through official France Rénov\' platform', ln=True, align='L')
+    pdf.cell(0, 5, 'Apply through official France Renev platform', ln=True, align='L')
     
     # ============================================
     # PAGE 3: CONTACT & NEXT STEPS
@@ -275,9 +281,9 @@ def generer_rapport(property_data):
     pdf.ln(5)
     pdf.set_font('Helvetica', '', 11)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, '📧 experts@thezami.com', ln=True, align='C')
-    pdf.cell(0, 7, '📞 +33 (0)1 23 45 67 89', ln=True, align='C')
-    pdf.cell(0, 7, '🌐 thezami.com', ln=True, align='C')
+    pdf.cell(0, 7, ' experts@thezami.com', ln=True, align='C')
+    pdf.cell(0, 7, ' +33 (0)1 23 45 67 89', ln=True, align='C')
+    pdf.cell(0, 7, ' thezami.com', ln=True, align='C')
     
     # Return PDF as bytes
     output = pdf.output(dest='S')
