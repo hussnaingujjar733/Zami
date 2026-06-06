@@ -65,7 +65,6 @@ _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0,
 _DPE_COLORS = {"A": "#319834", "B": "#33cc33", "C": "#ccff33", "D": "#f2b035", "E": "#ff6600", "F": "#ff3300", "G": "#ff0000"}
 _INCOME_SUBSIDY_MAP = {"Très Modeste (Bleu)": 0.75, "Modeste (Jaune)": 0.60, "Intermédiaire (Violet)": 0.40, "Supérieur (Rose)": 0.15}
 
-CHAT_FILE = "chat_messages.json"
 LEADS_FILE = "homeowner_leads.json"
 
 
@@ -101,49 +100,6 @@ def get_all_leads():
 
 
 # ─────────────────────────────────────────────
-# CHAT FUNCTIONS (JSON Storage)
-# ─────────────────────────────────────────────
-def save_chat_message(name, email, message):
-    try:
-        if os.path.exists(CHAT_FILE):
-            with open(CHAT_FILE, "r", encoding="utf-8") as f:
-                messages = json.load(f)
-        else:
-            messages = []
-        messages.append({
-            "id": len(messages) + 1, "name": name, "email": email, "message": message,
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "status": "unread"
-        })
-        with open(CHAT_FILE, "w", encoding="utf-8") as f:
-            json.dump(messages, f, indent=2, ensure_ascii=False)
-        return True
-    except:
-        return False
-
-def get_all_chat_messages():
-    try:
-        if os.path.exists(CHAT_FILE):
-            with open(CHAT_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return []
-    except:
-        return []
-
-def mark_message_read(msg_id):
-    try:
-        messages = get_all_chat_messages()
-        for msg in messages:
-            if msg.get("id") == msg_id:
-                msg["status"] = "read"
-                break
-        with open(CHAT_FILE, "w", encoding="utf-8") as f:
-            json.dump(messages, f, indent=2, ensure_ascii=False)
-        return True
-    except:
-        return False
-
-
-# ─────────────────────────────────────────────
 # LOGO FUNCTION
 # ─────────────────────────────────────────────
 def get_logo_html():
@@ -159,7 +115,7 @@ def get_logo_html():
 
 
 # ─────────────────────────────────────────────
-# ACCURACY IMPROVEMENT FUNCTIONS
+# ACCURACY FUNCTIONS
 # ─────────────────────────────────────────────
 def calculate_enhanced_roi(property_data, user_responses):
     base_roi = property_data.get("roi", 15.0)
@@ -177,10 +133,10 @@ def calculate_enhanced_roi(property_data, user_responses):
     return min(enhanced_roi, 35.0)
 
 def accuracy_progress_bar():
-    levels = {1: {"name": "Données officielles", "accuracy": "70-75%", "color": "#64748b"},
+    levels = {1: {"name": "Officielles", "accuracy": "70-75%", "color": "#64748b"},
               2: {"name": "Questionnaire", "accuracy": "85-90%", "color": "#eab308"},
               3: {"name": "Photos IA", "accuracy": "90-95%", "color": "#22c55e"},
-              4: {"name": "Audit certifié", "accuracy": "98-99%", "color": "#22c55e"}}
+              4: {"name": "Audit", "accuracy": "98-99%", "color": "#22c55e"}}
     current_level = st.session_state.get("accuracy_level", 1)
     cols = st.columns(4)
     for i, (level, info) in enumerate(levels.items(), 1):
@@ -297,7 +253,7 @@ def fetch_single_property_ademe(query_address: str, zipcode: str, lat=48.8566, l
     st.session_state["property_surface"] = surface
     return {"address": query_address, "dpe": dpe, "surface": surface, "cost": cost, "roi": roi, "zipcode": zipcode, "lat": lat, "lon": lon, "data_found": False, "source": "ESTIMATION", "current_value": 280000}
 
-def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
+def generate_pdf(property_data, scenario, target_dpe, active_cost, net_cost, subsidy, roi):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font('Helvetica', 'B', 20)
@@ -329,64 +285,8 @@ def generate_professional_pdf(property_data, scenario, target_dpe, active_cost, 
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(128, 128, 128)
     pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    output = pdf.output(dest='S')
-    if isinstance(output, bytearray):
-        output = bytes(output)
-    return output
-
-
-# Language translations (simplified)
-LANG_DICT = {
-    "FR": {
-        "title": "Portail Propriétaire Énergétique", "subtitle": "Estimez instantanément la valeur et les travaux de votre bien",
-        "input_label": "Saisissez l'adresse de votre logement :", "select_certified": "Sélectionnez l'adresse certifiée BAN France :",
-        "btn_analyze": "⚡ Lancer l'Analyse", "btn_back": "⬅️ Nouvelle recherche",
-        "bilan_title": "BILAN PATRIMONIAL EXCLUSIF", "choose_plan": "PLAN DE CONFIGURATION ÉNERGÉTIQUE",
-        "eco_ess": "🛠️ Éco Essential", "eco_ess_sub": "DPE D • Conformité Légale 2026",
-        "conf_plus": "⚡ Confort Plus", "conf_plus_sub": "DPE C • Isolation Enveloppe Globale",
-        "carb_zero": "🟢 Carbone Zéro", "carb_zero_sub": "DPE B • Décarbonation Pompe à Chaleur",
-        "current_class": "Classe Initiale", "target_class": "🎯 Objectif Scénario",
-        "surface": "Surface Habitable", "budget_est": "Investissement Global", "uplift_label": "Uplift Marché Estimé",
-        "visual_prog": "Vecteur de Progression Énergétique", "your_property": "Actif 🏠", "target_label": "Cible",
-        "fin_title": "Analyse d'Ingénierie Financière", "fin_sub": "Subventions Publiques vs Reste à Charge Net",
-        "subvention_label": "Aides MaPrimeRénov'", "reste_charge": "Reste à Charge Net",
-        "impact_facture": "Impact: Le plan {sc} génère {saving} d'économies par an.",
-        "chart_5yr_title": "📊 Évolution Prédictive de l'Actif (2026-2031)", "chart_5yr_sub": "Trajectoire patrimoniale après rénovation",
-        "form_title": "Mise en Relation avec un Artisan RGE", "form_sub": "Recevez 3 devis gratuits d'artisans certifiés",
-        "form_name": "Nom Complet *", "form_phone": "Téléphone *", "form_email": "Email *", "form_time": "Créneau de rappel",
-        "form_notes": "Notes (optionnel)", "form_btn": "📨 Envoyer ma demande", "form_err": "⚠️ Champs requis manquants",
-        "form_success": "🎉 Demande envoyée! Un artisan vous contactera sous 24h.", "download_btn": "⬇️ Télécharger le Rapport PDF",
-        "map_title": "🗺️ Géolocalisation du bien", "loss_title": "🌡️ Pertes thermiques estimées", "income_label": "💰 Profil de revenu:",
-        "loan_title": "💶 Simulation Eco-PTZ", "loan_duration": "Durée (années)", "monthly_pay": "Mensualité (0% intérêt)",
-        "footer": "ZAMI - Intelligence Rénovation Énergétique", "search_method_address": "📍 Recherche par adresse (~85% précis)",
-        "search_method_dpe": "🔑 Recherche par numéro DPE (100% exact)", "dpe_number_label": "🔑 Numéro DPE",
-        "dpe_number_help": "Trouvez le numéro sur votre certificat DPE", "dpe_not_found": "❌ Numéro DPE invalide",
-        "exact_match_badge": "✅ Données 100% exactes", "select_address_warning": "📍 Sélectionnez une adresse",
-        "enter_input_warning": "⚠️ Entrez une adresse ou un numéro DPE"
-    },
-    "EN": {
-        "title": "Energy Property Portal", "subtitle": "Estimate your property value and renovation costs instantly",
-        "input_label": "Enter your property address:", "select_certified": "Select certified BAN France address:",
-        "btn_analyze": "⚡ Run Analysis", "btn_back": "⬅️ New Search", "bilan_title": "EXCLUSIVE PROPERTY AUDIT",
-        "choose_plan": "ENERGY CONFIGURATION PLAN", "eco_ess": "🛠️ Eco Essential", "eco_ess_sub": "DPE D • Legal Compliance 2026",
-        "conf_plus": "⚡ Comfort Plus", "conf_plus_sub": "DPE C • Full Insulation", "carb_zero": "🟢 Carbon Zero",
-        "carb_zero_sub": "DPE B • Heat Pump", "current_class": "Current Class", "target_class": "🎯 Target Scenario",
-        "surface": "Surface Area", "budget_est": "Global Investment", "uplift_label": "Market Uplift", "visual_prog": "Energy Progression",
-        "your_property": "Your Asset 🏠", "target_label": "Target", "fin_title": "Financial Analysis", "fin_sub": "Public Subsidies vs Net Cost",
-        "subvention_label": "MaPrimeRénov' Aid", "reste_charge": "Net Remaining", "impact_facture": "Impact: Plan {sc} saves {saving} annually on utilities.",
-        "chart_5yr_title": "📊 5-Year Asset Value Prediction (2026-2031)", "chart_5yr_sub": "Renovation vs Obsolescence trajectory",
-        "form_title": "Connect with an RGE Certified Contractor", "form_sub": "Get 3 free quotes from certified professionals",
-        "form_name": "Full Name *", "form_phone": "Phone *", "form_email": "Email *", "form_time": "Callback time", "form_notes": "Notes (optional)",
-        "form_btn": "📨 Submit Request", "form_err": "⚠️ Required fields missing", "form_success": "🎉 Request sent! A contractor will contact you within 24h.",
-        "download_btn": "⬇️ Download PDF Report", "map_title": "🗺️ Property Location", "loss_title": "🌡️ Estimated Heat Loss",
-        "income_label": "💰 Income profile:", "loan_title": "💶 Eco-PTZ Simulation", "loan_duration": "Duration (years)",
-        "monthly_pay": "Monthly payment (0% interest)", "footer": "ZAMI - Energy Renovation Intelligence",
-        "search_method_address": "📍 Address search (~85% accurate)", "search_method_dpe": "🔑 DPE number search (100% exact)",
-        "dpe_number_label": "🔑 DPE Number", "dpe_number_help": "Find the number on your DPE certificate", "dpe_not_found": "❌ Invalid DPE number",
-        "exact_match_badge": "✅ 100% exact data", "select_address_warning": "📍 Please select an address",
-        "enter_input_warning": "⚠️ Please enter address or DPE number"
-    }
-}
+    out = pdf.output(dest='S')
+    return bytes(out) if isinstance(out, bytearray) else out
 
 
 # ─────────────────────────────────────────────
@@ -489,21 +389,15 @@ premium_hero_section = hero_section
 
 
 # ─────────────────────────────────────────────
-# HEADER (No AI Assistant button)
+# HEADER (Only Logo - No Language)
 # ─────────────────────────────────────────────
-col_left, col_mid, col_right = st.columns([1.2, 1.5, 1.3])
-
+col_left, col_mid, col_right = st.columns([1, 2, 1])
 with col_left:
     st.markdown(get_logo_html(), unsafe_allow_html=True)
-
 with col_mid:
-    selected_lang = st.selectbox("🌐 Language", ["FR", "EN"], label_visibility="collapsed", key="lang")
-
-with col_right:
-    # Empty - removed AI Assistant button
     st.write("")
-
-T = LANG_DICT[selected_lang]
+with col_right:
+    st.write("")
 
 st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-bottom:2rem;">', unsafe_allow_html=True)
 
@@ -512,34 +406,34 @@ st.markdown('<hr style="border-color:rgba(255,255,255,0.04); margin-bottom:2rem;
 # MAIN CONTENT
 # ─────────────────────────────────────────────
 if st.session_state["confirmed_owner_property"] is None:
-    # Only hero section, no trust badges, no counters
+    # Hero section only
     premium_hero_section()
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
     search_method = st.radio(
-        "🔍 Search method:",
-        [T["search_method_address"], T["search_method_dpe"]],
+        "🔍 Mode de recherche:",
+        ["📍 Recherche par adresse (~85% précis)", "🔑 Recherche par numéro DPE (100% exact)"],
         key="search_method",
         horizontal=True
     )
     
-    if search_method == T["search_method_address"]:
-        search_query = st.text_input(T["input_label"], placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="search_input")
+    if search_method == "📍 Recherche par adresse (~85% précis)":
+        search_query = st.text_input("Saisissez l'adresse de votre logement :", placeholder="Ex: 39 Rue du Sergent Bobillot, Montreuil", key="search_input")
         if search_query and len(search_query.strip()) >= 3:
             st.session_state["address_suggestions"] = ban_search(search_query)
         suggestions = st.session_state["address_suggestions"]
         if suggestions:
             labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
-            selected_label = st.selectbox(T["select_certified"], labels, key="address_select")
+            selected_label = st.selectbox("Sélectionnez l'adresse certifiée BAN France :", labels, key="address_select")
             st.session_state["selected_address_label"] = selected_label
     else:
-        dpe_number = st.text_input(T["dpe_number_label"], placeholder="Ex: 1234ABCD5678", key="dpe_input")
-        st.caption(T["dpe_number_help"])
+        dpe_number = st.text_input("🔑 Numéro DPE", placeholder="Ex: 1234ABCD5678", key="dpe_input")
+        st.caption("📄 Trouvez le numéro sur votre certificat DPE")
     
-    if st.button(T["btn_analyze"], type="primary", use_container_width=True, key="analyze_btn"):
-        if search_method == T["search_method_dpe"] and dpe_number:
-            with st.spinner("🔍 Searching official DPE certificate..."):
+    if st.button("⚡ Lancer l'Analyse", type="primary", use_container_width=True, key="analyze_btn"):
+        if search_method == "🔑 Recherche par numéro DPE (100% exact)" and dpe_number:
+            with st.spinner("🔍 Recherche du certificat DPE officiel..."):
                 exact_property = fetch_by_dpe_number(dpe_number)
                 if exact_property:
                     geo_data = ban_search(exact_property["address"], limit=1)
@@ -548,17 +442,17 @@ if st.session_state["confirmed_owner_property"] is None:
                         exact_property["lon"] = geo_data[0]["lon"]
                     st.session_state["confirmed_owner_property"] = exact_property
                     st.session_state["property_surface"] = exact_property.get("surface", 68)
-                    st.success(T["exact_match_badge"])
+                    st.success("✅ Données 100% exactes — certificat DPE officiel")
                     st.rerun()
                 else:
-                    st.error(T["dpe_not_found"])
-        elif search_method == T["search_method_address"] and search_query and st.session_state.get("address_suggestions"):
+                    st.error("❌ Numéro DPE invalide. Vérifiez votre certificat.")
+        elif search_method == "📍 Recherche par adresse (~85% précis)" and search_query and st.session_state.get("address_suggestions"):
             selected_label = st.session_state.get("selected_address_label")
             suggestions = st.session_state["address_suggestions"]
             labels = [f"{s['label']} ({s['postcode']} {s['city']})" for s in suggestions]
             if selected_label and selected_label in labels:
                 chosen_property = suggestions[labels.index(selected_label)]
-                with st.spinner("Analyzing..."):
+                with st.spinner("Analyse en cours..."):
                     prop = fetch_single_property_ademe(
                         chosen_property["label"],
                         chosen_property["postcode"],
@@ -570,9 +464,9 @@ if st.session_state["confirmed_owner_property"] is None:
                     st.session_state["property_surface"] = prop.get("surface", 68)
                     st.rerun()
             else:
-                st.warning(T["select_address_warning"])
+                st.warning("📍 Veuillez sélectionner une adresse")
         else:
-            st.warning(T["enter_input_warning"])
+            st.warning("⚠️ Veuillez entrer une adresse ou un numéro DPE")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -580,10 +474,10 @@ else:
     base_prop = st.session_state["confirmed_owner_property"]
     dpe_color = _DPE_COLORS.get(base_prop["dpe"], "#475569")
     
-    # Show accuracy progress bar
+    # Accuracy progress bar
     accuracy_progress_bar()
     
-    # Show dynamic before/after section
+    # Before/After section
     dynamic_before_after_section(
         base_prop["address"], 
         base_prop["dpe"], 
@@ -592,14 +486,14 @@ else:
         base_prop["lon"]
     )
     
-    if st.button(T["btn_back"], key="back_btn"):
+    if st.button("⬅️ Nouvelle recherche", key="back_btn"):
         st.session_state["confirmed_owner_property"] = None
         st.session_state["user_responses"] = None
         st.session_state["photos_uploaded"] = False
         st.session_state["accuracy_level"] = 1
         st.rerun()
     
-    # Questionnaire (Level 2)
+    # Level 2 - Questionnaire
     if st.session_state.get("user_responses") is None:
         st.markdown("### 📋 Améliorez la précision")
         with st.form("acc_form"):
@@ -614,7 +508,7 @@ else:
     else:
         st.markdown(f"<div style='background:rgba(16,185,129,0.1); border-radius:16px; padding:12px; margin:10px 0'><span style='background:#22c55e; padding:5px 12px; border-radius:20px;'>✓ LEVEL 2</span> Questionnaire - Précision 85-90%</div>", unsafe_allow_html=True)
         
-        # Photos (Level 3)
+        # Level 3 - Photos
         if not st.session_state.get("photos_uploaded"):
             st.markdown("### 📸 Photos")
             with st.form("photo_form"):
@@ -641,17 +535,17 @@ else:
     
     # Property details
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<p class="section-label">{T["bilan_title"]}</p><div style="font-size:1.5rem; font-weight:800; margin-bottom:1rem;">{base_prop["address"][:60]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">BILAN PATRIMONIAL EXCLUSIF</p><div style="font-size:1.5rem; font-weight:800; margin-bottom:1rem;">{base_prop["address"][:60]}</div>', unsafe_allow_html=True)
     
     # Scenario selection
-    st.markdown(f'<p>{T["choose_plan"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p>PLAN DE CONFIGURATION ÉNERGÉTIQUE</p>', unsafe_allow_html=True)
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
-        if st.button(T["eco_ess"], use_container_width=True): st.session_state["selected_scenario"] = "Essential"; st.rerun()
+        if st.button("🛠️ Éco Essential", use_container_width=True): st.session_state["selected_scenario"] = "Essential"; st.rerun()
     with sc2:
-        if st.button(T["conf_plus"], use_container_width=True): st.session_state["selected_scenario"] = "Plus"; st.rerun()
+        if st.button("⚡ Confort Plus", use_container_width=True): st.session_state["selected_scenario"] = "Plus"; st.rerun()
     with sc3:
-        if st.button(T["carb_zero"], use_container_width=True): st.session_state["selected_scenario"] = "Zero"; st.rerun()
+        if st.button("🟢 Carbone Zéro", use_container_width=True): st.session_state["selected_scenario"] = "Zero"; st.rerun()
     
     current_scenario = st.session_state["selected_scenario"]
     active_cost = round(base_prop["cost"] * _SCENARIO_COST_MULTIPLIER[current_scenario], 0)
@@ -660,9 +554,9 @@ else:
     
     # Metrics
     m1, m2, m3 = st.columns(3)
-    m1.metric("DPE Actuel", base_prop["dpe"])
-    m2.metric("Budget Estimé", f"€{active_cost:,.0f}")
-    m3.metric("ROI Projeté", f"+{active_roi}%")
+    m1.metric("Classe Initiale", base_prop["dpe"])
+    m2.metric("Investissement Global", f"€{active_cost:,.0f}")
+    m3.metric("Uplift Marché Estimé", f"+{active_roi}%")
     
     # DPE progression
     dpe_seq = ["G","F","E","D","C","B","A"]
@@ -675,7 +569,7 @@ else:
     
     # Financials
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    income = st.selectbox(T["income_label"], list(_INCOME_SUBSIDY_MAP.keys()), index=2)
+    income = st.selectbox("💰 Profil de revenu:", list(_INCOME_SUBSIDY_MAP.keys()), index=2)
     rate = _INCOME_SUBSIDY_MAP[income]
     if current_scenario == "Plus":
         rate = min(rate + 0.05, 0.85)
@@ -683,81 +577,49 @@ else:
         rate = min(rate + 0.12, 0.90)
     sub = round(active_cost * rate, 0)
     net = active_cost - sub
-    st.metric("Subvention", f"€{sub:,.0f}", f"{int(rate*100)}%")
-    st.metric("Reste à charge", f"€{net:,.0f}")
-    years = st.slider(T["loan_duration"], 5, 20, 15)
-    st.metric("Mensualité", f"€{net/(years*12):,.2f}/mois")
+    st.metric("Aides MaPrimeRénov'", f"€{sub:,.0f}", f"{int(rate*100)}%")
+    st.metric("Reste à Charge Net", f"€{net:,.0f}")
+    years = st.slider("Durée (années)", 5, 20, 15)
+    st.metric("Mensualité (0% intérêt)", f"€{net/(years*12):,.2f}/mois")
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Map
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown(f'<p class="section-label">{T["map_title"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="section-label">🗺️ Géolocalisation du bien</p>', unsafe_allow_html=True)
     m = folium.Map(location=[base_prop["lat"], base_prop["lon"]], zoom_start=17)
+    folium.TileLayer('cartodbpositron').add_to(m)
     folium.Marker([base_prop["lat"], base_prop["lon"]], icon=folium.Icon(color='green', icon='home')).add_to(m)
     st_folium(m, use_container_width=True, height=300, returned_objects=[])
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Lead form
     if active_cost > 0:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="card" style="border:1px solid rgba(34,197,94,0.2);">', unsafe_allow_html=True)
+        st.markdown('<p class="section-label" style="color:#22c55e;">📋 RGE CONNECTION</p><h3 style="color:#fff;">Mise en Relation avec un Artisan RGE</h3><p style="color:#64748b;">Recevez 3 devis gratuits d\'artisans certifiés</p>', unsafe_allow_html=True)
         with st.form("lead"):
-            name = st.text_input(T["form_name"])
-            phone = st.text_input(T["form_phone"])
-            email = st.text_input(T["form_email"])
-            if st.form_submit_button(T["form_btn"]):
+            name = st.text_input("Nom Complet *")
+            phone = st.text_input("Téléphone *")
+            email = st.text_input("Email *")
+            if st.form_submit_button("📨 Envoyer ma demande", type="primary"):
                 if name and phone and email:
-                    st.success(T["form_success"])
+                    st.success("🎉 Demande envoyée! Un artisan vous contactera sous 24h.")
                     save_lead(email, base_prop["address"], base_prop["dpe"], sub, active_roi)
                 else:
-                    st.error(T["form_err"])
+                    st.error("⚠️ Champs requis manquants")
         st.markdown('</div>', unsafe_allow_html=True)
     
     # PDF
     st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<p class="section-label" style="color:#22c55e;">📄 DOCUMENTATION</p><h3 style="color:#fff;">Télécharger le Rapport</h3>', unsafe_allow_html=True)
     try:
-        pdf = generate_professional_pdf(base_prop, current_scenario, target_dpe, active_cost, net, sub, active_roi)
-        st.download_button("📥 Télécharger le Rapport PDF", data=pdf, file_name=f"ZAMI_Report_{base_prop['zipcode']}.pdf", mime="application/pdf")
+        pdf = generate_pdf(base_prop, current_scenario, target_dpe, active_cost, net, sub, active_roi)
+        st.download_button("⬇️ Télécharger le Rapport PDF", data=pdf, file_name=f"ZAMI_Report_{base_prop['zipcode']}.pdf", mime="application/pdf")
     except:
         st.info("PDF bientôt disponible")
     st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
-# AGENCY PORTAL BUTTON
-# ─────────────────────────────────────────────
-st.markdown("---")
-c1, c2, c3 = st.columns([1,2,1])
-with c2:
-    if st.button("🏢 Agency Portal →", use_container_width=True, type="primary"):
-        st.switch_page("pages/agency_dashboard.py")
-
-
-# ─────────────────────────────────────────────
-# ADMIN PANEL
-# ─────────────────────────────────────────────
-with st.expander("🔐 Admin Panel"):
-    pwd = st.text_input("Password", type="password")
-    if pwd == "ZAMI2026":
-        st.success("Admin Access")
-        tab1, tab2 = st.tabs(["💬 Messages", "📊 Leads"])
-        with tab1:
-            msgs = get_all_chat_messages()
-            if msgs:
-                st.dataframe(pd.DataFrame(msgs))
-            else:
-                st.info("No messages")
-        with tab2:
-            leads = get_all_leads()
-            if leads:
-                st.dataframe(pd.DataFrame(leads))
-                st.download_button("Export CSV", pd.DataFrame(leads).to_csv(index=False), "leads.csv")
-            else:
-                st.info("No leads")
-    elif pwd:
-        st.error("Access Denied")
-
-
-# ─────────────────────────────────────────────
 # FOOTER
 # ─────────────────────────────────────────────
-st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">ZAMI - Intelligence Rénovation Énergétique</div>', unsafe_allow_html=True)
