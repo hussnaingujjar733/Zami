@@ -3,7 +3,8 @@ import json
 import requests
 import streamlit as st
 from datetime import datetime
-import html_pdf
+# Make sure this import is correct
+from reportlab_generator import generer_rapport
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
