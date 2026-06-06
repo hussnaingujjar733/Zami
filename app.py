@@ -2,9 +2,7 @@ import os
 import json
 import requests
 import streamlit as st
-from fpdf import FPDF
 from datetime import datetime
-from reportlab_generator import generate_premium_report
 
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
@@ -86,59 +84,6 @@ def fetch_base_property_data(selected_address):
 
 
 # ─────────────────────────────────────────────
-# PDF GENERATION (FIXED)
-# ─────────────────────────────────────────────
-# Step 3: PDF Generation with Premium Report
-elif st.session_state.step == "report":
-    st.markdown("### 📄 Votre rapport institutionnel est prêt")
-    
-    prop = st.session_state.property_data
-    
-    # Show summary
-    st.info(f"""
-    **Adresse:** {prop['address'][:60]}  
-    **DPE Actuel:** {prop['dpe']}  
-    **Surface:** {prop['surface']:.0f} m²  
-    **Budget estimé:** €{prop['cost']:,.0f}  
-    **ROI projeté:** +{prop['roi']:.1f}%
-    """)
-    
-    # Generate Premium Report
-    try:
-        from reportlab_generator import generate_premium_report
-        
-        with st.spinner("📄 Génération du rapport institutionnel..."):
-            pdf_bytes = generate_premium_report(prop)
-        
-        if pdf_bytes and len(pdf_bytes) > 1000:
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                st.download_button(
-                    label="⬇️ Télécharger le rapport institutionnel",
-                    data=pdf_bytes,
-                    file_name=f"ZAMI_Institutional_Report_{prop['zipcode']}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
-                )
-            st.success(f"✅ Rapport généré avec succès ! Taille: {len(pdf_bytes)} bytes")
-        else:
-            st.error(f"Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0})")
-            
-    except ImportError as e:
-        st.error(f"Module ReportLab non installé. Exécutez: pip install reportlab")
-        st.info(str(e))
-    except Exception as e:
-        st.error(f"Erreur: {str(e)}")
-    
-    st.markdown("---")
-    if st.button("🔍 Nouvelle analyse", use_container_width=True):
-        st.session_state.step = "address"
-        st.session_state.property_data = None
-        st.session_state.address_suggestions = []
-        st.session_state.user_responses = None
-        st.rerun()
-# ─────────────────────────────────────────────
 # HERO SECTION
 # ─────────────────────────────────────────────
 def hero_section():
@@ -194,10 +139,6 @@ def hero_section():
     .hero-feature {
         font-size: 0.8rem;
         color: #CBD5E1;
-    }
-    @media (max-width: 768px) {
-        .hero-logo-text { font-size: 2.2rem; }
-        .hero-title-fr { font-size: 1.3rem; }
     }
     </style>
     
@@ -272,9 +213,9 @@ elif st.session_state.step == "questions":
         st.session_state.step = "report"
         st.rerun()
 
-# Step 3: PDF Download
+# Step 3: PDF Generation with Premium Report
 elif st.session_state.step == "report":
-    st.markdown("### 📄 Votre rapport est pret !")
+    st.markdown("### 📄 Votre rapport institutionnel est prêt")
     
     prop = st.session_state.property_data
     
@@ -283,27 +224,34 @@ elif st.session_state.step == "report":
     **Adresse:** {prop['address'][:60]}  
     **DPE Actuel:** {prop['dpe']}  
     **Surface:** {prop['surface']:.0f} m²  
-    **Budget estime:** €{prop['cost']:,.0f}  
-    **ROI projete:** +{prop['roi']:.1f}%
+    **Budget estimé:** €{prop['cost']:,.0f}  
+    **ROI projeté:** +{prop['roi']:.1f}%
     """)
     
-    # Generate and download PDF
+    # Generate Premium Report
     try:
-        pdf_bytes = generate_pdf_bytes(prop)
+        from reportlab_generator import generate_premium_report
         
-        if pdf_bytes and len(pdf_bytes) > 500:
-            st.download_button(
-                label="⬇️ Telecharger le rapport PDF",
-                data=pdf_bytes,
-                file_name=f"ZAMI_Report_{prop['zipcode']}_{datetime.now().strftime('%Y%m%d')}.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-                type="primary"
-            )
-            st.success("✅ PDF genere avec succes !")
+        with st.spinner("📄 Génération du rapport institutionnel..."):
+            pdf_bytes = generate_premium_report(prop)
+        
+        if pdf_bytes and len(pdf_bytes) > 1000:
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.download_button(
+                    label="⬇️ Télécharger le rapport institutionnel",
+                    data=pdf_bytes,
+                    file_name=f"ZAMI_Institutional_Report_{prop['zipcode']}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+            st.success(f"✅ Rapport généré avec succès !")
         else:
             st.error(f"Erreur: PDF vide (taille: {len(pdf_bytes) if pdf_bytes else 0})")
             
+    except ImportError as e:
+        st.error(f"Module ReportLab non installé. Exécutez: pip install reportlab")
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
     
