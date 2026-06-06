@@ -7,6 +7,7 @@ import io
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 )
@@ -42,11 +43,11 @@ def header_footer(canvas, doc):
     # Header Text
     canvas.setFont('Helvetica-Bold', 14)
     canvas.setFillColor(ZAMI_GREEN)
-    canvas.drawString(20*mm, 285*mm, "ZAMI")
+    canvas.drawString(20*mm, 282*mm, "ZAMI")
     
     canvas.setFont('Helvetica', 8)
     canvas.setFillColor(COOL_GREY)
-    canvas.drawRightString(190*mm, 285*mm, f"Page {doc.page}")
+    canvas.drawRightString(190*mm, 282*mm, f"Page {doc.page}")
     
     # Footer
     canvas.setFont('Helvetica-Oblique', 8)
@@ -65,7 +66,7 @@ def create_styles():
         fontName='Helvetica-Bold',
         fontSize=45,
         textColor=ZAMI_GREEN,
-        alignment=1, # Center
+        alignment=TA_CENTER, # Perfect Center Alignment
         spaceAfter=20
     ))
     
@@ -74,11 +75,10 @@ def create_styles():
         fontName='Helvetica',
         fontSize=14,
         textColor=COOL_GREY,
-        alignment=1,
+        alignment=TA_CENTER,
         spaceAfter=40
     ))
     
-    # Changed names to avoid conflict with ReportLab defaults
     styles.add(ParagraphStyle(
         name='ZamiHeading1',
         fontName='Helvetica-Bold',
@@ -104,7 +104,7 @@ def create_styles():
         fontName='Helvetica',
         fontSize=11,
         textColor=colors.HexColor("#334155"),
-        leading=16, # Line height
+        leading=16, 
         spaceAfter=12
     ))
     
@@ -113,7 +113,7 @@ def create_styles():
         fontName='Helvetica-Bold',
         fontSize=50,
         textColor=WHITE,
-        alignment=1
+        alignment=TA_CENTER
     ))
     
     return styles
@@ -158,7 +158,7 @@ def generer_rapport(property_data):
     elements.append(Paragraph("RAPPORT D'ANALYSE ÉNERGÉTIQUE", styles['CoverSubtitle']))
     
     elements.append(Paragraph(f"<b>Propriété :</b><br/>{adresse}", ParagraphStyle(
-        'Address', fontName='Helvetica', fontSize=12, alignment=1, textColor=DARK_SLATE, leading=16
+        'Address', fontName='Helvetica', fontSize=12, alignment=TA_CENTER, textColor=DARK_SLATE, leading=16
     )))
     elements.append(Spacer(1, 20*mm))
     
@@ -178,9 +178,9 @@ def generer_rapport(property_data):
     elements.append(centered_dpe)
     
     elements.append(Spacer(1, 15*mm))
-    elements.append(Paragraph(f"Score ZAMI : <b>{score_total}/100</b>", ParagraphStyle('Score', alignment=1, fontSize=14, textColor=DARK_SLATE)))
+    elements.append(Paragraph(f"Score ZAMI : <b>{score_total}/100</b>", ParagraphStyle('Score', alignment=TA_CENTER, fontSize=14, textColor=DARK_SLATE)))
     elements.append(Spacer(1, 5*mm))
-    elements.append(Paragraph(datetime.now().strftime("%d %B %Y"), ParagraphStyle('Date', alignment=1, fontSize=10, textColor=COOL_GREY)))
+    elements.append(Paragraph(datetime.now().strftime("%d %B %Y"), ParagraphStyle('Date', alignment=TA_CENTER, fontSize=10, textColor=COOL_GREY)))
     
     elements.append(PageBreak())
     
@@ -316,8 +316,8 @@ def generer_rapport(property_data):
     
     # Contact Box
     contact_data = [[
-        Paragraph("<b>Des questions ? Nos experts sont là.</b><br/><br/>Email: experts@thezami.com<br/>Tél: +33 1 23 45 67 89", 
-                  ParagraphStyle('contact', alignment=1, fontSize=10, textColor=DARK_SLATE, leading=14))
+        Paragraph("<b>Des questions ? Nos experts sont là.</b><br/><br/>Email: thezamifrance@gmail.com<br/>Tél: 07 59 82 35 32", 
+                  ParagraphStyle('contact', alignment=TA_CENTER, fontSize=10, textColor=DARK_SLATE, leading=14))
     ]]
     t_contact = Table(contact_data, colWidths=[170*mm])
     t_contact.setStyle(TableStyle([
