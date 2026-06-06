@@ -119,210 +119,66 @@ def calculate_enhanced_roi(property_data, user_responses):
 # BEAUTIFUL PDF GENERATION
 # ─────────────────────────────────────────────
 def generate_beautiful_pdf(property_data, user_responses):
-    """Generate premium PDF report with Unicode support"""
-    
-    # Helper function to clean text
-    def clean_text(text):
-        if not text:
-            return ""
-        # Replace special characters
-        replacements = {
-            'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-            'à': 'a', 'â': 'a', 'ä': 'a',
-            'ô': 'o', 'ö': 'o', 'û': 'u', 'ü': 'u',
-            'ï': 'i', 'î': 'i', 'ç': 'c',
-            '€': 'EUR', '°': 'deg',
-            '✓': '[OK]', '•': '-',
-            '—': '-', '…': '...',
-            'é': 'e', 'É': 'E',
-            'è': 'e', 'È': 'E',
-            'ù': 'u', 'Ù': 'U',
-            'œ': 'oe', 'Œ': 'OE',
-            'æ': 'ae', 'Æ': 'AE'
-        }
-        for old, new in replacements.items():
-            text = text.replace(old, new)
-        # Remove emojis
-        import re
-        emoji_pattern = re.compile("["
-            u"\U0001F600-\U0001F64F"
-            u"\U0001F300-\U0001F5FF"
-            u"\U0001F680-\U0001F6FF"
-            u"\U0001F1E0-\U0001F1FF"
-            u"\U00002702-\U000027B0"
-            u"\U000024C2-\U0001F251"
-            "]+", flags=re.UNICODE)
-        text = emoji_pattern.sub(r'', text)
-        return text.encode('latin-1', errors='replace').decode('latin-1')
+    """Simple working PDF generator"""
     
     pdf = FPDF()
     pdf.add_page()
     
-    # Background
-    pdf.set_fill_color(15, 23, 42)
-    pdf.rect(0, 0, 210, 297, 'F')
-    
-    # Top gradient bar
-    pdf.set_fill_color(59, 130, 246)
-    pdf.rect(0, 0, 210, 6, 'F')
-    
-    # Logo
-    pdf.set_font('Helvetica', 'B', 28)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 25, 'ZAMI', ln=True, align='C')
-    
-    pdf.set_font('Helvetica', '', 9)
-    pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 5, 'PROPERTY INTELLIGENCE REPORT', ln=True, align='C')
-    pdf.ln(5)
+    # Title
+    pdf.set_font('Helvetica', 'B', 20)
+    pdf.cell(0, 15, 'ZAMI PROPERTY REPORT', ln=True, align='C')
     
     # Date
-    pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 5, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
+    pdf.set_font('Helvetica', '', 10)
+    pdf.cell(0, 8, f'Date: {datetime.now().strftime("%d/%m/%Y")}', ln=True, align='R')
     pdf.ln(5)
     
-    # Address (cleaned)
-    clean_address = clean_text(property_data['address'])
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(255, 255, 255)
-    pdf.multi_cell(0, 6, clean_address, align='C')
-    pdf.ln(8)
+    # Address
+    pdf.set_font('Helvetica', 'B', 12)
+    address = property_data.get('address', 'Address not available')[:60]
+    pdf.multi_cell(0, 8, address, align='L')
+    pdf.ln(5)
     
-    # DPE Badge
-    dpe = property_data['dpe']
-    dpe_colors = {"A": (34,197,94), "B": (74,222,128), "C": (163,230,53), "D": (250,204,21), "E": (251,146,60), "F": (249,115,22), "G": (239,68,68)}
-    color = dpe_colors.get(dpe, (100,100,100))
-    pdf.set_fill_color(*color)
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font('Helvetica', 'B', 65)
-    
-    pdf.set_x(210/2 - 25)
-    pdf.cell(50, 50, dpe, border=0, align='C', fill=True)
-    pdf.ln(12)
-    
-    pdf.set_font('Helvetica', '', 9)
-    pdf.set_text_color(180, 180, 180)
-    pdf.cell(0, 5, 'Energy Performance Rating', ln=True, align='C')
-    pdf.ln(12)
-    
-    # Key Metrics
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, 'KEY METRICS', ln=True, align='L')
+    # DPE
+    dpe = property_data.get('dpe', 'E')
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.cell(0, 10, f'Current DPE: {dpe}', ln=True)
     pdf.ln(3)
-    pdf.set_draw_color(59, 130, 246)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(6)
     
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Surface Area:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"{property_data['surface']:.0f} m2", ln=True)
-    
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Current DPE:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"Class {property_data['dpe']}", ln=True)
-    
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Renovation Cost:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"EUR {property_data['cost']:,.0f}", ln=True)
-    
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Expected ROI:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 8, f"+{property_data['roi']:.1f}%", ln=True)
-    
-    pdf.ln(10)
-    
-    # Value Projection
-    current_val = 280000
-    after_val = int(350000 * (property_data['surface'] / 68))
-    gain = after_val - current_val
-    
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, 'VALUE PROJECTION', ln=True, align='L')
+    # Surface
+    surface = property_data.get('surface', 68)
+    pdf.cell(0, 8, f'Surface: {int(surface)} m2', ln=True)
     pdf.ln(3)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(6)
     
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Current Value:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"EUR {current_val:,}", ln=True)
+    # Cost
+    cost = property_data.get('cost', 25000)
+    pdf.cell(0, 8, f'Estimated Renovation Cost: EUR {int(cost):,}', ln=True)
+    pdf.ln(3)
     
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'After Renovation:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 8, f"EUR {after_val:,}", ln=True)
-    
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(70, 8, 'Value Gain:', ln=False)
-    pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(100, 255, 100)
-    pdf.cell(0, 8, f"+EUR {gain:,}", ln=True)
-    
-    pdf.ln(10)
+    # ROI
+    roi = property_data.get('roi', 15.0)
+    pdf.cell(0, 8, f'Expected ROI: +{roi:.1f}%', ln=True)
+    pdf.ln(5)
     
     # Subsidy
-    subsidy = int(12500 * (property_data['surface'] / 68))
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, 'SUBSIDY ELIGIBILITY', ln=True, align='L')
-    pdf.ln(3)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(6)
+    surface_val = property_data.get('surface', 68)
+    subsidy = int(12500 * (surface_val / 68))
+    pdf.cell(0, 8, f'Estimated Subsidy: EUR {subsidy:,}', ln=True)
+    pdf.ln(5)
     
-    pdf.set_font('Helvetica', '', 10)
-    pdf.set_text_color(200, 200, 200)
-    pdf.cell(0, 8, f"MaPrimeRenevi Estimate: EUR {subsidy:,}", ln=True, align='C')
-    
+    # Value gain
+    current_val = 280000
+    after_val = int(350000 * (surface_val / 68))
+    gain = after_val - current_val
+    pdf.cell(0, 8, f'Estimated Value Gain: +EUR {gain:,}', ln=True)
     pdf.ln(10)
-    
-    # Accuracy Section
-    if user_responses:
-        pdf.set_font('Helvetica', 'B', 11)
-        pdf.set_text_color(255, 255, 255)
-        pdf.cell(0, 8, 'PROPERTY DETAILS', ln=True, align='L')
-        pdf.ln(3)
-        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-        pdf.ln(6)
-        
-        pdf.set_font('Helvetica', '', 9)
-        pdf.set_text_color(180, 180, 180)
-        
-        windows_text = clean_text(user_responses.get('windows', 'N/A'))
-        heating_text = clean_text(user_responses.get('heating', 'N/A'))
-        roof_text = clean_text(user_responses.get('roof_insulation', 'N/A'))
-        wall_text = clean_text(user_responses.get('wall_insulation', 'N/A'))
-        
-        pdf.cell(0, 6, f"Windows: {windows_text}", ln=True)
-        pdf.cell(0, 6, f"Heating: {heating_text}", ln=True)
-        pdf.cell(0, 6, f"Roof Insulation: {roof_text}", ln=True)
-        pdf.cell(0, 6, f"Wall Insulation: {wall_text}", ln=True)
     
     # Footer
     pdf.set_y(-30)
-    pdf.set_font('Helvetica', 'I', 7)
-    pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 5, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
-    pdf.cell(0, 5, 'This is an estimate. Consult certified professionals.', ln=True, align='C')
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(128, 128, 128)
+    pdf.cell(0, 8, 'ZAMI - Property Intelligence Platform', ln=True, align='C')
+    pdf.cell(0, 8, 'This is an estimate. Consult certified professionals.', ln=True, align='C')
     
     return pdf.output(dest='S')
 # ─────────────────────────────────────────────
