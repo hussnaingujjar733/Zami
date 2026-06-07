@@ -1,9 +1,9 @@
 import os
-import pandas as pd
 import json
 import time
 import requests
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 import folium
 from streamlit_folium import st_folium
@@ -58,6 +58,83 @@ st.markdown("""
     [data-testid="stSidebarNav"] { display: none !important; }
     [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 </style>
+""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# STYLISH ADMIN BUTTON (TOP RIGHT CORNER)
+# ─────────────────────────────────────────────
+st.markdown("""
+<style>
+/* Admin Button Container */
+.admin-btn-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+/* Premium Admin Button */
+.admin-btn {
+    background: linear-gradient(135deg, #1E293B, #0F172A);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 50px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.admin-btn:hover {
+    border-color: #22c55e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.15);
+}
+
+.admin-icon {
+    font-size: 16px;
+}
+
+.admin-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #CBD5E1;
+    letter-spacing: 0.5px;
+}
+
+.admin-badge {
+    background: #22c55e;
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-left: 5px;
+}
+</style>
+
+<div class="admin-btn-container">
+    <div class="admin-btn" id="adminBtn">
+        <span class="admin-icon">🔐</span>
+        <span class="admin-text">ADMIN</span>
+        <span class="admin-badge">v1</span>
+    </div>
+</div>
+
+<script>
+    document.getElementById('adminBtn').onclick = function() {
+        var adminSection = parent.document.querySelector('[data-testid="stExpander"]');
+        if (adminSection) {
+            var expanderHeader = adminSection.querySelector('.streamlit-expanderHeader');
+            if (expanderHeader) {
+                expanderHeader.click();
+            }
+        }
+    };
+</script>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
@@ -378,7 +455,7 @@ elif st.session_state.step == "report":
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # ── LEAD CAPTURE FORM (No Email, JSON Storage) ──
+    # ── LEAD CAPTURE FORM ──
     st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3);">', unsafe_allow_html=True)
     st.markdown("### 📩 Recevez des devis gratuits")
     st.markdown("Obtenez jusqu'à 3 devis d'artisans RGE certifiés dans votre région")
@@ -419,29 +496,6 @@ elif st.session_state.step == "report":
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # ── ADMIN PANEL TO VIEW LEADS ──
-    with st.expander("🔐 Admin Panel (Leads Viewer)"):
-        admin_pwd = st.text_input("Password", type="password", key="admin_pwd")
-        if admin_pwd == "ZAMI2026":
-            st.success("Admin Access Granted")
-            if os.path.exists(LEADS_FILE):
-                with open(LEADS_FILE, "r", encoding="utf-8") as f:
-                    leads = json.load(f)
-                if leads:
-                    st.dataframe(pd.DataFrame(leads))
-                    st.download_button(
-                        label="📥 Export Leads to CSV",
-                        data=pd.DataFrame(leads).to_csv(index=False),
-                        file_name="zami_leads.csv",
-                        mime="text/csv"
-                    )
-                else:
-                    st.info("No leads yet")
-            else:
-                st.info("No leads file found")
-        elif admin_pwd:
-            st.error("Access Denied")
-    
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
         st.session_state.step = "address"
@@ -451,6 +505,90 @@ elif st.session_state.step == "report":
         st.session_state.wizard_step = 1
         st.session_state.lead_submitted = False
         st.rerun()
+
+# ─────────────────────────────────────────────
+# PREMIUM ADMIN PANEL (STYLISH EXPANDER)
+# ─────────────────────────────────────────────
+with st.expander("", expanded=False):
+    st.markdown("""
+    <style>
+    .admin-panel-header {
+        background: linear-gradient(135deg, #1E293B, #0F172A);
+        border-radius: 16px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .admin-panel-header h3 {
+        color: #22c55e;
+        margin: 0;
+        font-size: 1.3rem;
+    }
+    .admin-panel-header p {
+        color: #94A3B8;
+        margin: 5px 0 0 0;
+        font-size: 0.8rem;
+    }
+    </style>
+    
+    <div class="admin-panel-header">
+        <h3>🔐 ZAMI Admin Vault</h3>
+        <p>Secure lead management system</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    admin_pwd = st.text_input("Enter Admin Password", type="password", key="admin_password_main")
+    
+    if admin_pwd == "ZAMI2026":
+        st.success("✅ Access Granted - Welcome Admin")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### 📊 Lead Statistics")
+            if os.path.exists(LEADS_FILE):
+                with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                    leads_data = json.load(f)
+                total = len(leads_data)
+                new = len([l for l in leads_data if l.get("status") == "new"])
+                st.metric("Total Leads", total)
+                st.metric("New Leads", new, delta=f"{new} new")
+            else:
+                st.info("No leads yet")
+        
+        with col2:
+            st.markdown("### 📈 Quick Actions")
+            if st.button("🔄 Refresh Data", use_container_width=True):
+                st.rerun()
+        
+        st.markdown("---")
+        
+        st.markdown("### 📋 All Leads")
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                leads_data = json.load(f)
+            
+            if leads_data:
+                df = pd.DataFrame(leads_data)
+                st.dataframe(df, use_container_width=True, height=400)
+                
+                col_export1, col_export2 = st.columns(2)
+                with col_export1:
+                    csv = df.to_csv(index=False)
+                    st.download_button(
+                        label="📥 Export to CSV",
+                        data=csv,
+                        file_name=f"zami_leads_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+                with col_export2:
+                    st.info(f"📊 Total: {len(leads_data)} leads captured")
+            else:
+                st.info("No leads captured yet")
+        else:
+            st.info("No leads file found. First lead will create the file.")
+    elif admin_pwd:
+        st.error("❌ Access Denied - Invalid Password")
 
 # Footer
 st.markdown('<div class="footer">ZAMI - Intelligence Rénovation Énergétique</div>', unsafe_allow_html=True)
