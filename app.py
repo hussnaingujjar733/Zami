@@ -8,17 +8,30 @@ from datetime import datetime
 import folium
 from streamlit_folium import st_folium
 
+# ── ⚡ MUST BE FIRST COMMAND ──
+st.set_page_config(page_title="ZAMI - Property Intelligence", page_icon="🏠", layout="wide")
+
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
 from reportlab_generator import generer_rapport
 
 # ─────────────────────────────────────────────
-# LEAD STORAGE FUNCTION (JSON)
+# CHECK FOR ADMIN MODE (MUST BE AFTER set_page_config)
+# ─────────────────────────────────────────────
+# Get query parameters
+query_params = st.query_params
+
+if query_params.get("admin", [None])[0] == "true":
+    st.session_state.admin_mode = True
+else:
+    st.session_state.admin_mode = False
+
+# ─────────────────────────────────────────────
+# LEAD STORAGE FUNCTION
 # ─────────────────────────────────────────────
 LEADS_FILE = "leads.json"
 
 def save_lead(lead_data):
-    """Save lead to JSON file"""
     try:
         if os.path.exists(LEADS_FILE):
             with open(LEADS_FILE, "r", encoding="utf-8") as f:
@@ -61,15 +74,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# CHECK FOR ADMIN MODE (via query parameter)
-# ─────────────────────────────────────────────
-query_params = st.query_params
-if query_params.get("admin") == "true":
-    st.session_state.admin_mode = True
-else:
-    st.session_state.admin_mode = False
-
-# ─────────────────────────────────────────────
 # ADMIN MODE - Show Admin Panel
 # ─────────────────────────────────────────────
 if st.session_state.admin_mode:
@@ -108,14 +112,9 @@ if st.session_state.admin_mode:
     }
     </style>
     
-    <div class="back-btn" id="backBtn">
-        <span>← Retour à l'accueil</span>
+    <div class="back-btn" onclick="window.location.href=window.location.pathname">
+        ← Retour à l'accueil
     </div>
-    <script>
-        document.getElementById('backBtn').onclick = function() {
-            window.location.href = window.location.pathname;
-        };
-    </script>
     """, unsafe_allow_html=True)
     
     st.markdown("""
@@ -170,8 +169,6 @@ if st.session_state.admin_mode:
                 st.write("**Distribution par DPE:**")
                 for dpe, count in dpe_counts.items():
                     st.write(f"- DPE {dpe}: {count} leads")
-            else:
-                st.info("Aucune donnée DPE")
         else:
             st.info("Aucune donnée disponible")
     
@@ -248,17 +245,13 @@ st.markdown("""
 </style>
 
 <div class="admin-btn-container">
-    <div class="admin-btn" id="adminBtn">
-        <span class="admin-icon">🔐</span>
-        <span class="admin-text">ADMIN</span>
-    </div>
+    <a href="?admin=true">
+        <div class="admin-btn">
+            <span class="admin-icon">🔐</span>
+            <span class="admin-text">ADMIN</span>
+        </div>
+    </a>
 </div>
-
-<script>
-    document.getElementById('adminBtn').onclick = function() {
-        window.location.href = window.location.pathname + '?admin=true';
-    };
-</script>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
