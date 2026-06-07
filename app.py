@@ -61,11 +61,153 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# STYLISH ADMIN BUTTON (TOP RIGHT CORNER) - OPENS NEW PAGE
+# CHECK FOR ADMIN MODE (via query parameter)
+# ─────────────────────────────────────────────
+query_params = st.query_params
+if query_params.get("admin") == "true":
+    st.session_state.admin_mode = True
+else:
+    st.session_state.admin_mode = False
+
+# ─────────────────────────────────────────────
+# ADMIN MODE - Show Admin Panel
+# ─────────────────────────────────────────────
+if st.session_state.admin_mode:
+    st.markdown("""
+    <style>
+    .admin-header {
+        background: linear-gradient(135deg, #0F172A, #020617);
+        border-radius: 28px;
+        padding: 30px 20px;
+        text-align: center;
+        margin-bottom: 30px;
+        border: 1px solid rgba(34,197,94,0.3);
+    }
+    .admin-header h1 {
+        color: #22c55e;
+        margin-bottom: 10px;
+    }
+    .admin-header p {
+        color: #94a3b8;
+    }
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #1E293B, #0F172A);
+        border: 1px solid rgba(34,197,94,0.3);
+        border-radius: 50px;
+        padding: 8px 18px;
+        cursor: pointer;
+        z-index: 9999;
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        border-color: #22c55e;
+        transform: translateY(-2px);
+    }
+    </style>
+    
+    <div class="back-btn" id="backBtn">
+        <span>← Retour à l'accueil</span>
+    </div>
+    <script>
+        document.getElementById('backBtn').onclick = function() {
+            window.location.href = window.location.pathname;
+        };
+    </script>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="admin-header">
+        <h1>🔐 ZAMI - Panneau Administrateur</h1>
+        <p>Gestion sécurisée des leads clients</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if "admin_auth" not in st.session_state:
+        st.session_state.admin_auth = False
+    
+    if not st.session_state.admin_auth:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown("### 🔑 Accès Administrateur")
+            pwd = st.text_input("Mot de passe", type="password")
+            if st.button("🔐 Se connecter", type="primary", use_container_width=True):
+                if pwd == "ZAMI2026":
+                    st.session_state.admin_auth = True
+                    st.rerun()
+                else:
+                    st.error("❌ Mot de passe incorrect")
+        st.stop()
+    
+    st.success("✅ Accès autorisé - Bienvenue Administrateur")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                leads_data = json.load(f)
+            total = len(leads_data)
+            new = len([l for l in leads_data if l.get("status") == "new"])
+            st.metric("📊 Total Leads", total)
+            st.metric("🆕 Nouveaux Leads", new)
+        else:
+            st.metric("📊 Total Leads", "0")
+            st.metric("🆕 Nouveaux Leads", "0")
+    
+    with col2:
+        st.markdown("### 📈 Statistiques")
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                leads_data = json.load(f)
+            dpe_counts = {}
+            for lead in leads_data:
+                dpe = lead.get("dpe", "Inconnu")
+                dpe_counts[dpe] = dpe_counts.get(dpe, 0) + 1
+            if dpe_counts:
+                st.write("**Distribution par DPE:**")
+                for dpe, count in dpe_counts.items():
+                    st.write(f"- DPE {dpe}: {count} leads")
+            else:
+                st.info("Aucune donnée DPE")
+        else:
+            st.info("Aucune donnée disponible")
+    
+    st.markdown("---")
+    st.markdown("### 📋 Liste complète des leads")
+    
+    if os.path.exists(LEADS_FILE):
+        with open(LEADS_FILE, "r", encoding="utf-8") as f:
+            leads_data = json.load(f)
+        
+        if leads_data:
+            df = pd.DataFrame(leads_data)
+            st.dataframe(df, use_container_width=True, height=500)
+            
+            csv = df.to_csv(index=False)
+            st.download_button(
+                label="📥 Exporter en CSV",
+                data=csv,
+                file_name=f"zami_leads_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                type="primary"
+            )
+            st.info(f"📊 Total: {len(leads_data)} leads capturés")
+        else:
+            st.info("Aucun lead capturé pour le moment")
+    else:
+        st.info("Aucun fichier de leads trouvé")
+    
+    st.stop()
+
+# ─────────────────────────────────────────────
+# STYLISH ADMIN BUTTON (TOP RIGHT CORNER)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Admin Button Container */
 .admin-btn-container {
     position: fixed;
     top: 20px;
@@ -73,7 +215,6 @@ st.markdown("""
     z-index: 9999;
 }
 
-/* Premium Admin Button */
 .admin-btn {
     background: linear-gradient(135deg, #1E293B, #0F172A);
     border: 1px solid rgba(34, 197, 94, 0.3);
@@ -115,7 +256,7 @@ st.markdown("""
 
 <script>
     document.getElementById('adminBtn').onclick = function() {
-        window.parent.location.href = '/admin';
+        window.location.href = window.location.pathname + '?admin=true';
     };
 </script>
 """, unsafe_allow_html=True)
