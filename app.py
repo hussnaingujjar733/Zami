@@ -61,7 +61,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# STYLISH ADMIN BUTTON (TOP RIGHT CORNER)
+# STYLISH ADMIN BUTTON (TOP RIGHT CORNER) - OPENS NEW PAGE
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -104,35 +104,18 @@ st.markdown("""
     color: #CBD5E1;
     letter-spacing: 0.5px;
 }
-
-.admin-badge {
-    background: #22c55e;
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #0F172A;
-    margin-left: 5px;
-}
 </style>
 
 <div class="admin-btn-container">
     <div class="admin-btn" id="adminBtn">
         <span class="admin-icon">🔐</span>
         <span class="admin-text">ADMIN</span>
-        <span class="admin-badge">v1</span>
     </div>
 </div>
 
 <script>
     document.getElementById('adminBtn').onclick = function() {
-        var adminSection = parent.document.querySelector('[data-testid="stExpander"]');
-        if (adminSection) {
-            var expanderHeader = adminSection.querySelector('.streamlit-expanderHeader');
-            if (expanderHeader) {
-                expanderHeader.click();
-            }
-        }
+        window.parent.location.href = '/admin';
     };
 </script>
 """, unsafe_allow_html=True)
@@ -505,90 +488,6 @@ elif st.session_state.step == "report":
         st.session_state.wizard_step = 1
         st.session_state.lead_submitted = False
         st.rerun()
-
-# ─────────────────────────────────────────────
-# PREMIUM ADMIN PANEL (STYLISH EXPANDER)
-# ─────────────────────────────────────────────
-with st.expander("", expanded=False):
-    st.markdown("""
-    <style>
-    .admin-panel-header {
-        background: linear-gradient(135deg, #1E293B, #0F172A);
-        border-radius: 16px;
-        padding: 15px 20px;
-        margin-bottom: 20px;
-        border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-    .admin-panel-header h3 {
-        color: #22c55e;
-        margin: 0;
-        font-size: 1.3rem;
-    }
-    .admin-panel-header p {
-        color: #94A3B8;
-        margin: 5px 0 0 0;
-        font-size: 0.8rem;
-    }
-    </style>
-    
-    <div class="admin-panel-header">
-        <h3>🔐 ZAMI Admin Vault</h3>
-        <p>Secure lead management system</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    admin_pwd = st.text_input("Enter Admin Password", type="password", key="admin_password_main")
-    
-    if admin_pwd == "ZAMI2026":
-        st.success("✅ Access Granted - Welcome Admin")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### 📊 Lead Statistics")
-            if os.path.exists(LEADS_FILE):
-                with open(LEADS_FILE, "r", encoding="utf-8") as f:
-                    leads_data = json.load(f)
-                total = len(leads_data)
-                new = len([l for l in leads_data if l.get("status") == "new"])
-                st.metric("Total Leads", total)
-                st.metric("New Leads", new, delta=f"{new} new")
-            else:
-                st.info("No leads yet")
-        
-        with col2:
-            st.markdown("### 📈 Quick Actions")
-            if st.button("🔄 Refresh Data", use_container_width=True):
-                st.rerun()
-        
-        st.markdown("---")
-        
-        st.markdown("### 📋 All Leads")
-        if os.path.exists(LEADS_FILE):
-            with open(LEADS_FILE, "r", encoding="utf-8") as f:
-                leads_data = json.load(f)
-            
-            if leads_data:
-                df = pd.DataFrame(leads_data)
-                st.dataframe(df, use_container_width=True, height=400)
-                
-                col_export1, col_export2 = st.columns(2)
-                with col_export1:
-                    csv = df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Export to CSV",
-                        data=csv,
-                        file_name=f"zami_leads_{datetime.now().strftime('%Y%m%d')}.csv",
-                        mime="text/csv",
-                        use_container_width=True
-                    )
-                with col_export2:
-                    st.info(f"📊 Total: {len(leads_data)} leads captured")
-            else:
-                st.info("No leads captured yet")
-        else:
-            st.info("No leads file found. First lead will create the file.")
-    elif admin_pwd:
-        st.error("❌ Access Denied - Invalid Password")
 
 # Footer
 st.markdown('<div class="footer">ZAMI - Intelligence Rénovation Énergétique</div>', unsafe_allow_html=True)
