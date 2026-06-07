@@ -1,16 +1,18 @@
-# data_store.py
 import json
 import os
 import hashlib
 import time
 
-DATA_FILE = "agencies.json"
-LEADS_FILE = "leads.json"
-MESSAGES_FILE = "messages.json"
-QUOTES_FILE = "quotes.json"
-
+# --- ABSOLUTE PATHS FIX ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "agencies.json")
+LEADS_FILE = os.path.join(BASE_DIR, "leads.json")
+MESSAGES_FILE = os.path.join(BASE_DIR, "messages.json")
+QUOTES_FILE = os.path.join(BASE_DIR, "quotes.json")
+# --------------------------
 
 def hash_password(pwd):
+# ... (baaki sara code same rahega)
     return hashlib.sha256(pwd.encode()).hexdigest()
 
 # ─────────────────────────────────────────────
