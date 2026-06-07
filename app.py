@@ -10,6 +10,7 @@ from streamlit_folium import st_folium
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
 from reportlab_generator import generer_rapport
+import data_store  # Database connection for Lead Capture
 
 # Run Premium Style Injections
 utils_styles.inject_premium_styles()
@@ -36,6 +37,8 @@ if "step" not in st.session_state:
     st.session_state.step = "address"
 if "wizard_step" not in st.session_state:
     st.session_state.wizard_step = 1
+if "lead_submitted" not in st.session_state:
+    st.session_state.lead_submitted = False
 
 # Global Variables
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
@@ -169,7 +172,6 @@ def hero_section():
     """, unsafe_allow_html=True)
 
 def show_skeleton_loader():
-    """Generates the premium shimmer loading effect HTML"""
     return """
     <style>
     .skeleton-box {
@@ -194,7 +196,6 @@ def show_skeleton_loader():
     """
 
 def display_premium_map(lat, lon):
-    """Displays a dark-themed Folium map for the property location"""
     st.markdown("<div class='section-label' style='margin-top: 20px;'>Vue Satellite ZAMI</div>", unsafe_allow_html=True)
     m = folium.Map(location=[lat, lon], zoom_start=16, tiles="CartoDB dark_matter", control_scale=True)
     folium.Marker(
@@ -226,19 +227,15 @@ if st.session_state.step == "address":
         selected_label = st.selectbox("Sélectionnez votre adresse", labels, key="address_select")
         
         if st.button("✅ Valider cette adresse", type="primary", use_container_width=True):
-            # Show premium skeleton loader
             loader_placeholder = st.empty()
             loader_placeholder.markdown(show_skeleton_loader(), unsafe_allow_html=True)
-            
-            # Simulate processing delay to show off the cool animation (Real API fetch happens here)
             time.sleep(2) 
             
-            # Fetch data and move to next step
             for s in st.session_state.address_suggestions:
                 if f"{s['label']} ({s['postcode']} {s['city']})" == selected_label:
                     st.session_state.property_data = fetch_base_property_data(s)
                     st.session_state.step = "questions"
-                    st.session_state.wizard_step = 1 # Reset wizard
+                    st.session_state.wizard_step = 1
                     
             loader_placeholder.empty()
             st.rerun()
@@ -247,34 +244,27 @@ if st.session_state.step == "address":
 # STEP 2: Interactive Wizard Questions
 elif st.session_state.step == "questions":
     st.markdown("### 📋 Étape 2 : Améliorez la précision")
-    
-    # Initialize user_responses dict safely if it doesn't exist
     if st.session_state.user_responses is None:
         st.session_state.user_responses = {}
         
-    # Custom animated progress bar
     progress = st.session_state.wizard_step / 3
     st.progress(progress)
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     
-    # Wizard Step 1
     if st.session_state.wizard_step == 1:
         st.markdown("#### 🪟 Quel type de vitrage possède le bien ?")
         win_val = st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"])
         st.markdown("<br>", unsafe_allow_html=True)
-        
         if st.button("Suivant ➡️", type="primary", use_container_width=True):
             st.session_state.user_responses["windows"] = win_val
             st.session_state.wizard_step = 2
             st.rerun()
             
-    # Wizard Step 2
     elif st.session_state.wizard_step == 2:
         st.markdown("#### 🔥 Quel est le système de chauffage principal ?")
         heat_val = st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"])
         st.markdown("<br>", unsafe_allow_html=True)
-        
         col1, col2 = st.columns(2)
         with col1:
             if st.button("⬅️ Retour", use_container_width=True):
@@ -286,7 +276,6 @@ elif st.session_state.step == "questions":
                 st.session_state.wizard_step = 3
                 st.rerun()
 
-    # Wizard Step 3
     elif st.session_state.wizard_step == 3:
         st.markdown("#### 🧱 Comment est l'isolation actuelle ?")
         colA, colB = st.columns(2)
@@ -296,7 +285,6 @@ elif st.session_state.step == "questions":
             wall_val = st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"])
             
         st.markdown("<br>", unsafe_allow_html=True)
-        
         col1, col2 = st.columns(2)
         with col1:
             if st.button("⬅️ Retour", use_container_width=True):
@@ -316,17 +304,15 @@ elif st.session_state.step == "questions":
         st.session_state.step = "report"
         st.rerun()
 
-# STEP 3: Report & Premium Map Generation
+# STEP 3: Report, PDF Download & LEAD CAPTURE
 elif st.session_state.step == "report":
     st.markdown("### 📄 Votre rapport est prêt")
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
     prop = st.session_state.property_data
     
-    # Premium Map Display
     display_premium_map(prop["lat"], prop["lon"])
     
-    # Show summary
     st.info(f"""
     **Adresse:** {prop['address'][:60]}  
     **DPE Actuel:** {prop['dpe']}  
@@ -335,21 +321,19 @@ elif st.session_state.step == "report":
     **ROI projeté:** +{prop['roi']:.1f}%
     """)
     
-    # Generate PDF
     try:
         with st.spinner("📄 Finalisation du PDF ultra-premium..."):
             pdf_bytes = generer_rapport(prop)
         
         if pdf_bytes and len(pdf_bytes) > 100:
             st.download_button(
-                label="⬇️ Télécharger le rapport PDF",
+                label="⬇️ Télécharger le rapport PDF gratuit",
                 data=pdf_bytes,
                 file_name=f"ZAMI_Rapport_{prop['zipcode']}.pdf",
                 mime="application/pdf",
                 use_container_width=True,
                 type="primary"
             )
-            st.success("✅ Rapport généré avec succès !")
         else:
             st.error("Erreur: PDF vide")
             
@@ -357,17 +341,62 @@ elif st.session_state.step == "report":
         st.error(f"Module error: {e}")
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
-    
+        
     st.markdown('</div>', unsafe_allow_html=True)
+    
+    # ── 🎯 LEAD CAPTURE SECTION (The Upsell) ──
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 👷‍♂️ Passez à l'action !")
+    st.markdown('<div class="card" style="border-color: #10B981;">', unsafe_allow_html=True)
+    
+    if st.session_state.lead_submitted:
+        st.success("✅ **Demande envoyée avec succès !** Un expert ZAMI ou un artisan partenaire vous contactera sous 24h pour discuter de votre projet.")
+    else:
+        st.markdown("<p style='color: #94A3B8; font-size: 0.95rem; margin-bottom: 20px;'>Obtenez jusqu'à <b>3 devis gratuits</b> d'artisans certifiés RGE de votre région pour réaliser cette rénovation en toute sécurité.</p>", unsafe_allow_html=True)
+        
+        with st.form("lead_capture_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                nom = st.text_input("Votre Nom complet*", placeholder="Ex: Jean Dupont")
+                telephone = st.text_input("Téléphone*", placeholder="Ex: 06 12 34 56 78")
+            with col2:
+                email = st.text_input("Adresse Email*", placeholder="jean.dupont@email.com")
+                
+            submit_lead = st.form_submit_button("📩 Demander mes devis gratuits", type="primary", use_container_width=True)
+            
+            if submit_lead:
+                if not nom or not email or not telephone:
+                    st.error("⚠️ Veuillez remplir tous les champs obligatoires (*).")
+                else:
+                    # Save lead to data_store database
+                    lead_data = {
+                        "address": prop['address'],
+                        "zipcode": prop['zipcode'],
+                        "dpe": prop['dpe'],
+                        "surface": prop['surface'],
+                        "cost": prop['cost'],
+                        "roi": prop['roi'],
+                        "name": nom,
+                        "email": email,
+                        "phone": telephone
+                    }
+                    data_store.create_new_lead(lead_data)
+                    
+                    # Update State
+                    st.session_state.lead_submitted = True
+                    st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    # ───────────────────────────────────────────
     
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
-        # Reset everything
         st.session_state.step = "address"
         st.session_state.property_data = None
         st.session_state.address_suggestions = []
         st.session_state.user_responses = None
         st.session_state.wizard_step = 1
+        st.session_state.lead_submitted = False
         st.rerun()
 
 # Footer
