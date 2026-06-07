@@ -12,7 +12,6 @@ QUOTES_FILE = os.path.join(BASE_DIR, "quotes.json")
 # --------------------------
 
 def hash_password(pwd):
-# ... (baaki sara code same rahega)
     return hashlib.sha256(pwd.encode()).hexdigest()
 
 # ─────────────────────────────────────────────
@@ -20,12 +19,17 @@ def hash_password(pwd):
 # ─────────────────────────────────────────────
 def load_agencies():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content: return {}
+                return json.loads(content)
+        except:
+            return {}
     return {}
 
 def save_agencies(agencies):
-    with open(DATA_FILE, "w") as f:
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(agencies, f, indent=2)
 
 def register_agency(company_name, email, phone, siret, address, password):
@@ -63,22 +67,33 @@ def get_agency_by_id(agency_id):
             return data
     return None
 
-
 # ─────────────────────────────────────────────
 # LEAD CAPTURE & MANAGEMENT FUNCTIONS
 # ─────────────────────────────────────────────
 def load_leads():
-    if os.path.exists(LEADS_FILE):
-        with open(LEADS_FILE, "r") as f:
-            return json.load(f)
-    return []
+    print(f"⏳ Checking leads file at: {LEADS_FILE}")
+    if not os.path.exists(LEADS_FILE):
+        return []
+    try:
+        with open(LEADS_FILE, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if not content:  
+                return []
+            return json.loads(content)
+    except Exception as e:
+        print(f"⚠️ Warning: JSON load error (File corrupted). Fixing it... Error: {e}")
+        return []
 
 def save_leads(leads):
-    with open(LEADS_FILE, "w") as f:
-        json.dump(leads, f, indent=2)
+    try:
+        with open(LEADS_FILE, "w", encoding="utf-8") as f:
+            json.dump(leads, f, indent=2)
+        print(f"✅ SUCCESS: {len(leads)} Lead(s) saved properly in {LEADS_FILE}")
+    except Exception as e:
+        print(f"❌ ERROR: Cannot save to JSON file. {e}")
 
 def create_new_lead(lead_data):
-    """Saves a fresh lead from the user frontend before assigning to an agency"""
+    print(f"🚀 Processing new lead for: {lead_data.get('name')}")
     leads = load_leads()
     new_lead = {
         "id": len(leads) + 1,
@@ -91,9 +106,9 @@ def create_new_lead(lead_data):
         "customer_name": lead_data.get("name"),
         "customer_email": lead_data.get("email"),
         "customer_phone": lead_data.get("phone"),
-        "status": "new", # "new", "assigned", "accepted", "rejected"
+        "status": "new",
         "created_at": str(time.time()),
-        "agency_id": None # Not assigned yet
+        "agency_id": None
     }
     leads.append(new_lead)
     save_leads(leads)
@@ -133,18 +148,21 @@ def get_lead_by_id(lead_id):
             return lead
     return None
 
-
 # ─────────────────────────────────────────────
 # MESSAGES FUNCTIONS
 # ─────────────────────────────────────────────
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
-        with open(MESSAGES_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(MESSAGES_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content: return []
+                return json.loads(content)
+        except: return []
     return []
 
 def save_messages(messages):
-    with open(MESSAGES_FILE, "w") as f:
+    with open(MESSAGES_FILE, "w", encoding="utf-8") as f:
         json.dump(messages, f, indent=2)
 
 def add_message(lead_id, sender_type, sender_id, message):
@@ -164,18 +182,21 @@ def get_messages(lead_id):
     messages = load_messages()
     return [tuple(m.values()) for m in messages if m["lead_id"] == lead_id]
 
-
 # ─────────────────────────────────────────────
 # QUOTES FUNCTIONS
 # ─────────────────────────────────────────────
 def load_quotes():
     if os.path.exists(QUOTES_FILE):
-        with open(QUOTES_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(QUOTES_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content: return []
+                return json.loads(content)
+        except: return []
     return []
 
 def save_quotes(quotes):
-    with open(QUOTES_FILE, "w") as f:
+    with open(QUOTES_FILE, "w", encoding="utf-8") as f:
         json.dump(quotes, f, indent=2)
 
 def add_quote(lead_id, agency_id, amount, details):

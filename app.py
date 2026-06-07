@@ -44,7 +44,6 @@ if "lead_submitted" not in st.session_state:
 _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 0, "A": 0}
 _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0, "A": 0}
 
-
 # ─────────────────────────────────────────────
 # DPE & API FUNCTIONS
 # ─────────────────────────────────────────────
@@ -92,7 +91,6 @@ def fetch_base_property_data(selected_address):
         "lat": selected_address["lat"],
         "lon": selected_address["lon"],
     }
-
 
 # ─────────────────────────────────────────────
 # UI COMPONENTS (Hero, Map, Loader)
@@ -204,7 +202,6 @@ def display_premium_map(lat, lon):
         icon=folium.Icon(color="green", icon="bolt", prefix='fa')
     ).add_to(m)
     st_folium(m, height=350, use_container_width=True, returned_objects=[])
-
 
 # ─────────────────────────────────────────────
 # MAIN APP FLOW
@@ -368,23 +365,26 @@ elif st.session_state.step == "report":
                 if not nom or not email or not telephone:
                     st.error("⚠️ Veuillez remplir tous les champs obligatoires (*).")
                 else:
-                    # Save lead to data_store database
-                    lead_data = {
-                        "address": prop['address'],
-                        "zipcode": prop['zipcode'],
-                        "dpe": prop['dpe'],
-                        "surface": prop['surface'],
-                        "cost": prop['cost'],
-                        "roi": prop['roi'],
-                        "name": nom,
-                        "email": email,
-                        "phone": telephone
-                    }
-                    data_store.create_new_lead(lead_data)
-                    
-                    # Update State
-                    st.session_state.lead_submitted = True
-                    st.rerun()
+                    try:
+                        # Save lead to data_store database
+                        lead_data = {
+                            "address": prop['address'],
+                            "zipcode": prop['zipcode'],
+                            "dpe": prop['dpe'],
+                            "surface": prop['surface'],
+                            "cost": prop['cost'],
+                            "roi": prop['roi'],
+                            "name": nom,
+                            "email": email,
+                            "phone": telephone
+                        }
+                        data_store.create_new_lead(lead_data)
+                        
+                        # Update State
+                        st.session_state.lead_submitted = True
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Erreur système de sauvegarde: {str(e)}")
 
     st.markdown('</div>', unsafe_allow_html=True)
     # ───────────────────────────────────────────
