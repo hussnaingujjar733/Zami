@@ -10,9 +10,63 @@ from streamlit_folium import st_folium
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
 from reportlab_generator import generer_rapport
-import data_store  # Database connection for Lead Capture
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-# Run Premium Style Injections
+# ─────────────────────────────────────────────
+# EMAIL FUNCTION
+# ─────────────────────────────────────────────
+def send_lead_email(lead_data):
+    """Sends an email notification when a new lead is captured"""
+    sender_email = "thezamifrance@gmail.com"
+    receiver_email = "thezamifrance@gmail.com"
+    
+    try:
+        password = st.secrets["GMAIL_APP_PASSWORD"]
+    except:
+        print("Error: GMAIL_APP_PASSWORD not found")
+        return False
+
+    subject = f"🚀 NOUVEAU LEAD ZAMI: {lead_data['name']}"
+    
+    body = f"""
+Nouveau lead généré sur ZAMI !
+
+--- Détails du Client ---
+Nom: {lead_data['name']}
+Email: {lead_data['email']}
+Téléphone: {lead_data['phone']}
+
+--- Détails du Projet ---
+Adresse: {lead_data['address']}
+Code Postal: {lead_data['zipcode']}
+DPE Actuel: {lead_data['dpe']}
+Surface: {lead_data['surface']} m²
+Budget Estimé: €{lead_data['cost']:,.0f}
+ROI Projeté: +{lead_data['roi']:.1f}%
+"""
+    
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Email error: {e}")
+        return False
+
+# ─────────────────────────────────────────────
+# STYLES INJECTION
+# ─────────────────────────────────────────────
 utils_styles.inject_premium_styles()
 
 # Hide sidebar
@@ -93,7 +147,7 @@ def fetch_base_property_data(selected_address):
     }
 
 # ─────────────────────────────────────────────
-# UI COMPONENTS (Hero, Map, Loader)
+# UI COMPONENTS
 # ─────────────────────────────────────────────
 def hero_section():
     st.markdown("""
@@ -251,7 +305,7 @@ elif st.session_state.step == "questions":
     
     if st.session_state.wizard_step == 1:
         st.markdown("#### 🪟 Quel type de vitrage possède le bien ?")
-        win_val = st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"])
+        win_val = st.radio("", ["Simple vitrage", "Double vitrage", "Je ne sais pas"], key="win")
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Suivant ➡️", type="primary", use_container_width=True):
             st.session_state.user_responses["windows"] = win_val
@@ -260,7 +314,7 @@ elif st.session_state.step == "questions":
             
     elif st.session_state.wizard_step == 2:
         st.markdown("#### 🔥 Quel est le système de chauffage principal ?")
-        heat_val = st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"])
+        heat_val = st.radio("", ["Gaz ancien", "Électrique", "Pompe à chaleur", "Je ne sais pas"], key="heat")
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
@@ -277,9 +331,9 @@ elif st.session_state.step == "questions":
         st.markdown("#### 🧱 Comment est l'isolation actuelle ?")
         colA, colB = st.columns(2)
         with colA:
-            roof_val = st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"])
+            roof_val = st.radio("Toiture isolée ?", ["Oui", "Non", "Je ne sais pas"], key="roof")
         with colB:
-            wall_val = st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"])
+            wall_val = st.radio("Murs isolés ?", ["Oui", "Non", "Je ne sais pas"], key="wall")
             
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -305,9 +359,9 @@ elif st.session_state.step == "questions":
 elif st.session_state.step == "report":
     st.markdown("### 📄 Votre rapport est prêt")
     
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     prop = st.session_state.property_data
     
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     display_premium_map(prop["lat"], prop["lon"])
     
     st.info(f"""
@@ -318,76 +372,70 @@ elif st.session_state.step == "report":
     **ROI projeté:** +{prop['roi']:.1f}%
     """)
     
+    # PDF Download
     try:
-        with st.spinner("📄 Finalisation du PDF ultra-premium..."):
+        with st.spinner("📄 Génération du PDF..."):
             pdf_bytes = generer_rapport(prop)
         
         if pdf_bytes and len(pdf_bytes) > 100:
-            st.download_button(
-                label="⬇️ Télécharger le rapport PDF gratuit",
-                data=pdf_bytes,
-                file_name=f"ZAMI_Rapport_{prop['zipcode']}.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-                type="primary"
-            )
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.download_button(
+                    label="⬇️ Télécharger le rapport PDF",
+                    data=pdf_bytes,
+                    file_name=f"ZAMI_Rapport_{prop['zipcode']}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+            st.success("✅ Rapport généré avec succès !")
         else:
             st.error("Erreur: PDF vide")
-            
-    except ImportError as e:
-        st.error(f"Module error: {e}")
     except Exception as e:
-        st.error(f"Erreur: {str(e)}")
-        
+        st.error(f"Erreur PDF: {str(e)}")
+    
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # ── 🎯 LEAD CAPTURE SECTION (The Upsell) ──
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 👷‍♂️ Passez à l'action !")
-    st.markdown('<div class="card" style="border-color: #10B981;">', unsafe_allow_html=True)
+    # ── LEAD CAPTURE FORM ──
+    st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3);">', unsafe_allow_html=True)
+    st.markdown("### 📩 Recevez des devis gratuits")
+    st.markdown("Obtenez jusqu'à 3 devis d'artisans RGE certifiés dans votre région")
     
-    if st.session_state.lead_submitted:
-        st.success("✅ **Demande envoyée avec succès !** Un expert ZAMI ou un artisan partenaire vous contactera sous 24h pour discuter de votre projet.")
-    else:
-        st.markdown("<p style='color: #94A3B8; font-size: 0.95rem; margin-bottom: 20px;'>Obtenez jusqu'à <b>3 devis gratuits</b> d'artisans certifiés RGE de votre région pour réaliser cette rénovation en toute sécurité.</p>", unsafe_allow_html=True)
+    with st.form("lead_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            nom = st.text_input("Nom complet *", placeholder="Jean Dupont")
+            email = st.text_input("Email *", placeholder="jean@email.com")
+        with col2:
+            telephone = st.text_input("Téléphone *", placeholder="06 12 34 56 78")
+            st.markdown("<br>", unsafe_allow_html=True)
         
-        with st.form("lead_capture_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                nom = st.text_input("Votre Nom complet*", placeholder="Ex: Jean Dupont")
-                telephone = st.text_input("Téléphone*", placeholder="Ex: 06 12 34 56 78")
-            with col2:
-                email = st.text_input("Adresse Email*", placeholder="jean.dupont@email.com")
-                
-            submit_lead = st.form_submit_button("📩 Demander mes devis gratuits", type="primary", use_container_width=True)
-            
-            if submit_lead:
-                if not nom or not email or not telephone:
-                    st.error("⚠️ Veuillez remplir tous les champs obligatoires (*).")
-                else:
-                    try:
-                        # Save lead to data_store database
-                        lead_data = {
-                            "address": prop['address'],
-                            "zipcode": prop['zipcode'],
-                            "dpe": prop['dpe'],
-                            "surface": prop['surface'],
-                            "cost": prop['cost'],
-                            "roi": prop['roi'],
-                            "name": nom,
-                            "email": email,
-                            "phone": telephone
-                        }
-                        data_store.create_new_lead(lead_data)
-                        
-                        # Update State
-                        st.session_state.lead_submitted = True
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"❌ Erreur système de sauvegarde: {str(e)}")
-
+        if st.form_submit_button("📩 Demander mes devis gratuits", type="primary", use_container_width=True):
+            if not nom or not email or not telephone:
+                st.error("⚠️ Veuillez remplir tous les champs obligatoires (*).")
+            else:
+                with st.spinner("Envoi de votre demande..."):
+                    lead_data = {
+                        "address": prop['address'],
+                        "zipcode": prop['zipcode'],
+                        "dpe": prop['dpe'],
+                        "surface": prop['surface'],
+                        "cost": prop['cost'],
+                        "roi": prop['roi'],
+                        "name": nom,
+                        "email": email,
+                        "phone": telephone
+                    }
+                    
+                    email_sent = send_lead_email(lead_data)
+                    
+                    if email_sent:
+                        st.success("✅ Demande envoyée ! Un expert vous contactera sous 24h.")
+                        st.balloons()
+                    else:
+                        st.error("❌ Erreur lors de l'envoi. Veuillez réessayer.")
+    
     st.markdown('</div>', unsafe_allow_html=True)
-    # ───────────────────────────────────────────
     
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
