@@ -10,63 +10,44 @@ from streamlit_folium import st_folium
 # ── ⚡ IMPORT MODULES ──
 import utils_styles
 from reportlab_generator import generer_rapport
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 # ─────────────────────────────────────────────
-# EMAIL FUNCTION
+# LEAD STORAGE FUNCTION (JSON)
 # ─────────────────────────────────────────────
-def send_lead_email(lead_data):
-    """Sends an email notification when a new lead is captured"""
-    sender_email = "thezamifrance@gmail.com"
-    receiver_email = "thezamifrance@gmail.com"
-    
+LEADS_FILE = "leads.json"
+
+def save_lead(lead_data):
+    """Save lead to JSON file"""
     try:
-        password = st.secrets["GMAIL_APP_PASSWORD"]
-    except:
-        print("Error: GMAIL_APP_PASSWORD not found")
-        return False
-
-    subject = f"🚀 NOUVEAU LEAD ZAMI: {lead_data['name']}"
-    
-    body = f"""
-Nouveau lead généré sur ZAMI !
-
---- Détails du Client ---
-Nom: {lead_data['name']}
-Email: {lead_data['email']}
-Téléphone: {lead_data['phone']}
-
---- Détails du Projet ---
-Adresse: {lead_data['address']}
-Code Postal: {lead_data['zipcode']}
-DPE Actuel: {lead_data['dpe']}
-Surface: {lead_data['surface']} m²
-Budget Estimé: €{lead_data['cost']:,.0f}
-ROI Projeté: +{lead_data['roi']:.1f}%
-"""
-    
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
-    
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
+        if os.path.exists(LEADS_FILE):
+            with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                leads = json.load(f)
+        else:
+            leads = []
+        
+        leads.append({
+            "id": len(leads) + 1,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "name": lead_data.get("name"),
+            "email": lead_data.get("email"),
+            "phone": lead_data.get("phone"),
+            "address": lead_data.get("address"),
+            "zipcode": lead_data.get("zipcode"),
+            "dpe": lead_data.get("dpe"),
+            "surface": lead_data.get("surface"),
+            "cost": lead_data.get("cost"),
+            "roi": lead_data.get("roi"),
+            "status": "new"
+        })
+        
+        with open(LEADS_FILE, "w", encoding="utf-8") as f:
+            json.dump(leads, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
-        print(f"Email error: {e}")
+        print(f"Save error: {e}")
         return False
 
-# ─────────────────────────────────────────────
-# STYLES INJECTION
-# ─────────────────────────────────────────────
+# Run Premium Style Injections
 utils_styles.inject_premium_styles()
 
 # Hide sidebar
@@ -396,7 +377,7 @@ elif st.session_state.step == "report":
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # ── LEAD CAPTURE FORM ──
+    # ── LEAD CAPTURE FORM (No Email, JSON Storage) ──
     st.markdown('<div class="card" style="border: 1px solid rgba(34,197,94,0.3);">', unsafe_allow_html=True)
     st.markdown("### 📩 Recevez des devis gratuits")
     st.markdown("Obtenez jusqu'à 3 devis d'artisans RGE certifiés dans votre région")
@@ -414,7 +395,7 @@ elif st.session_state.step == "report":
             if not nom or not email or not telephone:
                 st.error("⚠️ Veuillez remplir tous les champs obligatoires (*).")
             else:
-                with st.spinner("Envoi de votre demande..."):
+                with st.spinner("Enregistrement de votre demande..."):
                     lead_data = {
                         "address": prop['address'],
                         "zipcode": prop['zipcode'],
@@ -427,15 +408,38 @@ elif st.session_state.step == "report":
                         "phone": telephone
                     }
                     
-                    email_sent = send_lead_email(lead_data)
+                    saved = save_lead(lead_data)
                     
-                    if email_sent:
-                        st.success("✅ Demande envoyée ! Un expert vous contactera sous 24h.")
+                    if saved:
+                        st.success("✅ Demande enregistrée ! Un expert vous contactera sous 24h.")
                         st.balloons()
                     else:
-                        st.error("❌ Erreur lors de l'envoi. Veuillez réessayer.")
+                        st.error("❌ Erreur lors de l'enregistrement. Veuillez réessayer.")
     
     st.markdown('</div>', unsafe_allow_html=True)
+    
+    # ── ADMIN PANEL TO VIEW LEADS ──
+    with st.expander("🔐 Admin Panel (Leads Viewer)"):
+        admin_pwd = st.text_input("Password", type="password", key="admin_pwd")
+        if admin_pwd == "ZAMI2026":
+            st.success("Admin Access Granted")
+            if os.path.exists(LEADS_FILE):
+                with open(LEADS_FILE, "r", encoding="utf-8") as f:
+                    leads = json.load(f)
+                if leads:
+                    st.dataframe(pd.DataFrame(leads))
+                    st.download_button(
+                        label="📥 Export Leads to CSV",
+                        data=pd.DataFrame(leads).to_csv(index=False),
+                        file_name="zami_leads.csv",
+                        mime="text/csv"
+                    )
+                else:
+                    st.info("No leads yet")
+            else:
+                st.info("No leads file found")
+        elif admin_pwd:
+            st.error("Access Denied")
     
     st.markdown("---")
     if st.button("🔍 Nouvelle analyse", use_container_width=True):
