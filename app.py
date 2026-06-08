@@ -11,7 +11,7 @@ from streamlit_folium import st_folium
 # ── ⚡ MUST BE FIRST COMMAND ──
 st.set_page_config(page_title="ZAMI - Property Intelligence", page_icon="🏠", layout="wide", initial_sidebar_state="collapsed")
 
-# ── ⚡ IMPORT MODULES ──
+# ── ⚡ IMPORT CUSTOM MODULES ──
 import utils_styles
 import utils_animations
 try:
@@ -59,7 +59,7 @@ def save_lead(lead_data):
         return False
 
 # ─────────────────────────────────────────────
-# ADMIN MODE - Show Admin Panel
+# ADMIN MODE - Show Admin Panel (SECURE)
 # ─────────────────────────────────────────────
 if st.session_state.admin_mode:
     st.markdown("""
@@ -108,13 +108,17 @@ if st.session_state.admin_mode:
         with col2:
             st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
             st.markdown("<h3 style='text-align:center;'>🔑 Accès Restreint</h3>", unsafe_allow_html=True)
-            pwd = st.text_input("Mot de passe", type="password")
+            pwd = st.text_input("Mot de passe administrateur", type="password")
             if st.button("Se connecter", type="primary", use_container_width=True):
-                if pwd == "ZAMI2026":
-                    st.session_state.admin_auth = True
-                    st.rerun()
-                else:
-                    st.error("❌ Mot de passe incorrect")
+                # 🔒 SECURE LOGIN USING SECRETS
+                try:
+                    if pwd == st.secrets["ZAMI2026"]:
+                        st.session_state.admin_auth = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Mot de passe incorrect")
+                except FileNotFoundError:
+                    st.error("⚠️ Fichier secrets manquant. Veuillez configurer .streamlit/secrets.toml")
             st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
     
@@ -204,8 +208,9 @@ _FALLBACK_RENO_COST = {"G": 1350, "F": 1100, "E": 620, "D": 280, "C": 120, "B": 
 _FALLBACK_UPLIFT = {"G": 24.2, "F": 19.8, "E": 13.1, "D": 6.8, "C": 2.0, "B": 0, "A": 0}
 
 # ─────────────────────────────────────────────
-# DPE & API FUNCTIONS
+# DPE & API FUNCTIONS (WITH CACHING FOR SPEED 🚀)
 # ─────────────────────────────────────────────
+@st.cache_data(ttl=3600)
 def safe_get(url, params=None):
     try:
         r = requests.get(url, params=params, timeout=10)
@@ -213,6 +218,7 @@ def safe_get(url, params=None):
     except:
         return None
 
+@st.cache_data(ttl=3600)
 def ban_search(query: str, limit: int = 5):
     if not query or len(query.strip()) < 3: return []
     data = safe_get("https://api-adresse.data.gouv.fr/search/", {"q": query, "limit": limit})
@@ -229,6 +235,7 @@ def ban_search(query: str, limit: int = 5):
         })
     return results
 
+@st.cache_data(ttl=86400)
 def fetch_base_property_data(selected_address):
     zipcode = selected_address["postcode"]
     region = str(zipcode)[:2]
@@ -321,7 +328,7 @@ if st.session_state.step == "address":
             loader_placeholder = st.empty()
             with loader_placeholder:
                 utils_animations.ai_analyzing_animation()
-                time.sleep(2) # Fake delay for effect
+                time.sleep(1.5) # Animation effect
             
             for s in st.session_state.address_suggestions:
                 if f"{s['label']} ({s['postcode']} {s['city']})" == selected_label:
@@ -441,6 +448,10 @@ elif st.session_state.step == "report":
             telephone = st.text_input("Téléphone *", placeholder="06 12 34 56 78")
             
         st.markdown("<br>", unsafe_allow_html=True)
+        
+        # 📝 GDPR Compliance Text added here!
+        st.caption("En soumettant ce formulaire, j'accepte que mes données soient utilisées pour être recontacté par des artisans partenaires.")
+        
         submit = st.form_submit_button("Demander mes devis gratuits", type="primary", use_container_width=True)
         
         if submit:
