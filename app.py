@@ -112,7 +112,7 @@ if st.session_state.admin_mode:
             if st.button("Se connecter", type="primary", use_container_width=True):
                 # 🔒 SECURE LOGIN USING SECRETS
                 try:
-                    if pwd == st.secrets["ZAMI2026"]:
+                    if pwd == st.secrets.get("ADMIN_PASSWORD", "ZAMI2026"):
                         st.session_state.admin_auth = True
                         st.rerun()
                     else:
