@@ -64,10 +64,7 @@ def save_lead(lead_data):
         return False
 
 # ─────────────────────────────────────────────
-# ADMIN MODE - Show Admin Panel (SECURE)
-# ─────────────────────────────────────────────
-# ─────────────────────────────────────────────
-# ADMIN MODE - Show Admin Panel (SECURE)
+# ADMIN MODE - Show Admin Panel (SECURE - RENDER ONLY)
 # ─────────────────────────────────────────────
 if st.session_state.admin_mode:
     st.markdown("""
@@ -82,29 +79,17 @@ if st.session_state.admin_mode:
         box-shadow: 0 10px 25px rgba(52, 211, 153, 0.1);
     }
     .admin-header h1 { color: #34d399; margin-bottom: 10px; font-weight: 800;}
-    .admin-header p { color: #a7f3d0; font-size: 1.1rem;}
     .back-btn {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: #1e293b;
-        border: 1px solid #34d399;
-        color: white;
-        text-decoration: none;
-        border-radius: 50px;
-        padding: 10px 20px;
-        font-weight: bold;
-        z-index: 9999;
-        transition: all 0.3s ease;
+        position: fixed; top: 20px; left: 20px; background: #1e293b;
+        border: 1px solid #34d399; color: white; text-decoration: none;
+        border-radius: 50px; padding: 10px 20px; z-index: 9999;
     }
     .back-btn:hover { background: #34d399; color: black; }
     </style>
-    
     <a href="/" class="back-btn" target="_self">← Retour à l'accueil</a>
-    
     <div class="admin-header">
         <h1>🔐 ZAMI Intelligence - Admin Panel</h1>
-        <p>Gestion sécurisée des leads clients et analyses</p>
+        <p>Gestion sécurisée des leads clients</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -117,11 +102,9 @@ if st.session_state.admin_mode:
             st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
             st.markdown("<h3 style='text-align:center;'>🔑 Accès Restreint</h3>", unsafe_allow_html=True)
             pwd = st.text_input("Mot de passe administrateur", type="password")
-            
             if st.button("Se connecter", type="primary", use_container_width=True):
-                # SECURE LOGIN: Priority to Environment Variable (Render)
-                admin_pwd = os.environ.get("ADMIN_PASSWORD", st.secrets.get("ADMIN_PASSWORD", "ZAMI2026"))
-                
+                # PASSWORD LOGIC: Render Environment Variable only
+                admin_pwd = os.environ.get("ADMIN_PASSWORD", "ZAMI2026")
                 if pwd == admin_pwd:
                     st.session_state.admin_auth = True
                     st.rerun()
@@ -130,10 +113,9 @@ if st.session_state.admin_mode:
             st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
     
-    st.success("✅ Accès autorisé - Bienvenue dans le centre de contrôle ZAMI.")
+    st.success("✅ Accès autorisé.")
     
     col1, col2 = st.columns(2)
-    
     with col1:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
         if os.path.exists(LEADS_FILE):
@@ -143,7 +125,7 @@ if st.session_state.admin_mode:
             new = len([l for l in leads_data if l.get("status") == "new"])
             c1, c2 = st.columns(2)
             c1.metric("📊 Total Leads", total)
-            c2.metric("🆕 Nouveaux Leads", new, delta="Action requise", delta_color="inverse")
+            c2.metric("🆕 Nouveaux Leads", new)
         else:
             st.metric("📊 Total Leads", "0")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -156,21 +138,15 @@ if st.session_state.admin_mode:
             for lead in leads_data:
                 dpe = lead.get("dpe", "Inconnu")
                 dpe_counts[dpe] = dpe_counts.get(dpe, 0) + 1
-            if dpe_counts:
-                for dpe, count in sorted(dpe_counts.items()):
-                    st.write(f"**DPE {dpe}:** {count} propriétés")
-        else:
-            st.write("Aucune donnée disponible.")
+            for dpe, count in sorted(dpe_counts.items()):
+                st.write(f"**DPE {dpe}:** {count} propriétés")
         st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("### 📋 Base de Données Clients")
-    if os.path.exists(LEADS_FILE) and leads_data:
+    if os.path.exists(LEADS_FILE) and 'leads_data' in locals():
         df = pd.DataFrame(leads_data)
         st.dataframe(df, use_container_width=True, height=400)
-    else:
-        st.info("La base de données est actuellement vide.")
     st.stop()
-
 # ─────────────────────────────────────────────
 # STYLISH ADMIN BUTTON (TOP RIGHT CORNER)
 # ─────────────────────────────────────────────
