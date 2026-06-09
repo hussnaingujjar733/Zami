@@ -9,8 +9,12 @@ import folium
 from streamlit_folium import st_folium
 
 # ── ⚡ MUST BE FIRST COMMAND ──
-st.set_page_config(page_title="ZAMI - Property Intelligence", page_icon="🏠", layout="wide", initial_sidebar_state="collapsed")
-
+st.set_page_config(
+    page_title="ZAMI - Property Intelligence", 
+    page_icon="assets/logo2.png",  # Yahan apni file ka sahi path dein
+    layout="wide", 
+    initial_sidebar_state="collapsed"
+)
 # ── ⚡ IMPORT CUSTOM MODULES ──
 import utils_styles
 import utils_animations
