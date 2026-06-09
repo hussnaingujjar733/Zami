@@ -21,6 +21,11 @@ except ImportError:
 
 # ── ⚡ INJECT PREMIUM CSS ──
 utils_styles.inject_premium_styles()
+@st.dialog("Bienvenue chez ZAMI 🏠")
+def show_beta_disclaimer():
+    st.write("⚠️ **Note Beta :** ZAMI est en phase de développement actif. Les insights fournis sont des estimations à titre indicatif.")
+    if st.button("J'ai compris"):
+        st.rerun()
 
 # ─────────────────────────────────────────────
 # CHECK FOR ADMIN MODE
@@ -249,7 +254,6 @@ def fetch_base_property_data(selected_address):
         "dpe": dpe, "surface": surface, "cost": cost, "roi": roi,
         "zipcode": zipcode, "lat": selected_address["lat"], "lon": selected_address["lon"],
     }
-
 # ─────────────────────────────────────────────
 # UI COMPONENTS
 # ─────────────────────────────────────────────
@@ -306,6 +310,9 @@ def display_premium_map(lat, lon):
 # ─────────────────────────────────────────────
 # MAIN APP FLOW
 # ─────────────────────────────────────────────
+if "beta_disclaimer_shown" not in st.session_state:
+    st.session_state.beta_disclaimer_shown = True
+    show_beta_disclaimer()
 hero_section()
 
 # STEP 1: Address
