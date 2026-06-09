@@ -104,7 +104,7 @@ if st.session_state.admin_mode:
             pwd = st.text_input("Mot de passe administrateur", type="password")
             if st.button("Se connecter", type="primary", use_container_width=True):
                 # PASSWORD LOGIC: Render Environment Variable only
-                admin_pwd = os.environ.get("ADMIN_PASSWORD", "ZAMI2026")
+                admin_pwd = os.environ.get("ADMIN_PASSWORD")
                 if pwd == admin_pwd:
                     st.session_state.admin_auth = True
                     st.rerun()
