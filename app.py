@@ -66,6 +66,9 @@ def save_lead(lead_data):
 # ─────────────────────────────────────────────
 # ADMIN MODE - Show Admin Panel (SECURE)
 # ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# ADMIN MODE - Show Admin Panel (SECURE)
+# ─────────────────────────────────────────────
 if st.session_state.admin_mode:
     st.markdown("""
     <style>
@@ -114,16 +117,16 @@ if st.session_state.admin_mode:
             st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
             st.markdown("<h3 style='text-align:center;'>🔑 Accès Restreint</h3>", unsafe_allow_html=True)
             pwd = st.text_input("Mot de passe administrateur", type="password")
+            
             if st.button("Se connecter", type="primary", use_container_width=True):
-                # 🔒 SECURE LOGIN USING SECRETS
-                try:
-                    if pwd == st.secrets.get("ADMIN_PASSWORD", "ZAMI2026"):
-                        st.session_state.admin_auth = True
-                        st.rerun()
-                    else:
-                        st.error("❌ Mot de passe incorrect")
-                except FileNotFoundError:
-                    st.error("⚠️ Fichier secrets manquant. Veuillez configurer .streamlit/secrets.toml")
+                # SECURE LOGIN: Priority to Environment Variable (Render)
+                admin_pwd = os.environ.get("ADMIN_PASSWORD", st.secrets.get("ADMIN_PASSWORD", "ZAMI2026"))
+                
+                if pwd == admin_pwd:
+                    st.session_state.admin_auth = True
+                    st.rerun()
+                else:
+                    st.error("❌ Mot de passe incorrect")
             st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
     
