@@ -231,20 +231,20 @@ def show():
         # Display metrics using Streamlit's built-in metrics (safe)
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("🏷️ DPE", f"{data['current_dpe']} → {data['target_dpe']}", delta=f"Gain: {data['savings_percentage']}%")
-            st.metric("💰 Coût des travaux", f"{data['renovation_cost']:,.0f} €")
+            premium_ui.premium_metric("🏷️ DPE", f"{data['current_dpe']} → {data['target_dpe']}", delta=f"Gain: {data['savings_percentage']}%")
+            premium_ui.premium_metric("💰 Coût des travaux", f"{data['renovation_cost']:,.0f} €")
         with col2:
-            st.metric("🎁 Aides", f"{data['subsidy']:,.0f} €", delta=f"{data['subsidy_rate']}%")
-            st.metric("💳 Reste à charge", f"{data['net_investment']:,.0f} €")
+            premium_ui.premium_metric("🎁 Aides", f"{data['subsidy']:,.0f} €", delta=f"{data['subsidy_rate']}%")
+            premium_ui.premium_metric("💳 Reste à charge", f"{data['net_investment']:,.0f} €")
         with col3:
-            st.metric("🏠 Valeur actuelle", f"{data['current_value']:,.0f} €")
-            st.metric("📈 Valeur après travaux", f"{data['future_value']:,.0f} €", delta=f"+{data['added_value']:,.0f} €")
+            premium_ui.premium_metric("🏠 Valeur actuelle", f"{data['current_value']:,.0f} €")
+            premium_ui.premium_metric("📈 Valeur après travaux", f"{data['future_value']:,.0f} €", delta=f"+{data['added_value']:,.0f} €")
         
         st.markdown("---")
         col_a, col_b, col_c = st.columns(3)
-        with col_a: st.metric("📊 ROI", f"{data['roi']}%")
-        with col_b: st.metric("⚡ Économies annuelles", f"{data['annual_savings']:,} €")
-        with col_c: st.metric("⏱️ Amortissement", f"{data['payback']} ans")
+        with col_a: premium_ui.premium_metric("📊 ROI", f"{data['roi']}%")
+        with col_b: premium_ui.premium_metric("⚡ Économies annuelles", f"{data['annual_savings']:,} €")
+        with col_c: premium_ui.premium_metric("⏱️ Amortissement", f"{data['payback']} ans")
         
         st.markdown("---")
         
