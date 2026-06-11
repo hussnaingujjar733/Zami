@@ -1,6 +1,6 @@
 import streamlit as st
 from utils import utils_auth, utils_db_marketplace, utils_marketplace
-from utils.stripe_payments import simple_payment_button
+from utils.stripe_payments import simple_payment_button, STRIPE_AVAILABLE
 
 def show():
     st.markdown("<h2 style='text-align: center; color: #34d399;'>🏠 Espace Client ZAMI</h2>", unsafe_allow_html=True)
