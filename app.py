@@ -157,5 +157,22 @@ st.markdown("""
     <p style="color: #555; font-size: 0.7rem; letter-spacing: 1px;">
         ZAMI — L'EXCELLENCE DE LA RÉNOVATION ÉNERGÉTIQUE
     </p>
+    <p style="color: #777; font-size: 0.75rem;">
+        📧 thezamifrance@gmail.com | 🌐 www.thezami.com
+    </p>
 </div>
 """, unsafe_allow_html=True)
+
+with st.expander("📄 Mentions légales"):
+    try:
+        with open("mentions_legales.md", "r", encoding="utf-8") as f:
+            st.markdown(f.read())
+    except FileNotFoundError:
+        st.info("Mentions légales non disponibles pour le moment.")
+
+with st.expander("🔒 Politique de confidentialité"):
+    try:
+        with open("politique_confidentialite.md", "r", encoding="utf-8") as f:
+            st.markdown(f.read())
+    except FileNotFoundError:
+        st.info("Politique de confidentialité non disponible pour le moment.")
