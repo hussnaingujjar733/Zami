@@ -54,7 +54,7 @@ def show():
     
     with utils_db_marketplace.get_db() as conn:
         projects = conn.execute('''
-            SELECT p.*, c.company_name, c.stripe_account_id
+            SELECT p.*, c.company_name, "" as stripe_account_id
             FROM projects p
             LEFT JOIN contractors c ON p.contractor_id = c.id
             WHERE p.homeowner_id = ? 
