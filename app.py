@@ -90,6 +90,41 @@ with col2:
 
 # ── ⚡ ROUTING ──
 if selected_page == "🔍 Nouvelle Estimation":
+    st.markdown("""
+    <div class="luxury-card" style="text-align:center;">
+        <h2 style="color:#D4AF37;">Estimez vos travaux de rénovation énergétique en quelques minutes</h2>
+        <p style="color:#ccc; font-size:1.05rem;">
+            ZAMI analyse votre adresse, votre DPE et votre projet pour vous donner une estimation claire,
+            une fourchette de coût et un rapport PDF téléchargeable.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        high_class_ui.luxury_metric("Adresse", "BAN", delta="Recherche officielle")
+    with col_b:
+        high_class_ui.luxury_metric("DPE", "ADEME", delta="Lorsque disponible")
+    with col_c:
+        high_class_ui.luxury_metric("Estimation", "Fourchette", delta="Pas de fausse précision")
+    with col_d:
+        high_class_ui.luxury_metric("Rapport", "PDF", delta="Téléchargeable")
+
+    st.markdown("""
+    <div class="luxury-card">
+        <h3 style="color:#D4AF37;">Comment ça marche ?</h3>
+        <p style="color:#ccc;">
+            1. Entrez votre adresse<br>
+            2. Vérifiez les informations du logement<br>
+            3. Obtenez une estimation avec niveau de confiance<br>
+            4. Téléchargez votre rapport ou demandez des devis d'artisans
+        </p>
+        <p style="color:#888; font-size:0.85rem;">
+            Estimation indicative. Un devis final nécessite une visite technique par un professionnel qualifié.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
     estimation_view.show()
 elif selected_page == "🏠 Mon Espace Client":
     homeowner_view.show()
