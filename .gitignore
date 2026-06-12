@@ -41,3 +41,4 @@ Thumbs.db
 .streamlit/secrets.toml
 .streamlit/secrets.toml
 .venv/
+.venv/
