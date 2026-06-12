@@ -73,7 +73,7 @@ if "admin_logged_in" not in st.session_state:
 col1, col2, col3 = st.columns([1, 8, 1])
 with col2:
     selected_page = st.radio(
-        "",
+        "Navigation principale",
         ["✨ ESTIMATION", "👑 MON ESPACE", "🔧 ESPACE ARTISAN", "⚜️ ADMIN"],
         horizontal=True,
         label_visibility="collapsed"
