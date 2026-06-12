@@ -257,7 +257,7 @@ def generate_complete_report(data):
     story.append(Paragraph("Notes importantes", heading2_style))
     disclaimer_text = """
     <font size="8" color="#666666">
-    * Ce rapport est une estimation basée sur les données officielles (ADEME, DVF, MaPrimeRénov').<br/>
+    * Ce rapport est une estimation initiale basée sur les informations saisies et les données publiques disponibles.<br/>
     * Les montants des aides sont indicatifs et sous réserve d'éligibilité après étude de dossier.<br/>
     * Un devis détaillé par un professionnel certifié RGE est recommandé avant tout début de travaux.<br/>
     * Les prix et les aides sont susceptibles d'évoluer selon la réglementation en vigueur.
@@ -270,7 +270,7 @@ def generate_complete_report(data):
     contact_text = """
     <b>ZAMI - Intelligence Artificielle pour la Rénovation Énergétique</b><br/>
     📧 thezamifrance@gmail.com | 📞 07 59 82 35 32<br/>
-    🌐 www.zami.fr | Sources: ADEME, DVF, MaPrimeRénov', BAN<br/>
+    🌐 www.thezami.com | Données: ADEME lorsque disponible, Base Adresse Nationale (BAN)<br/>
     © 2026 ZAMI. Tous droits réservés.
     """
     story.append(Paragraph(contact_text, small_style))

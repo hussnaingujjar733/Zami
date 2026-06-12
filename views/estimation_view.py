@@ -5,6 +5,7 @@ import datetime
 from streamlit_folium import st_folium
 from utils import utils_marketplace
 from utils import premium_ui
+from utils.pdf_generator import generate_complete_report
 
 # ==================== ADEME API ====================
 ADEME_BASE_URL = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant"
@@ -262,6 +263,20 @@ def show():
         with col_a: premium_ui.premium_metric("📊 ROI", f"{data['roi']}%")
         with col_b: premium_ui.premium_metric("⚡ Économies annuelles", f"{data['annual_savings']:,} €")
         with col_c: premium_ui.premium_metric("⏱️ Amortissement", f"{data['payback']} ans")
+
+        st.markdown("---")
+        st.markdown("### 📄 Télécharger votre rapport")
+        try:
+            pdf_bytes = generate_complete_report(data)
+            st.download_button(
+                label="📄 Télécharger le rapport PDF",
+                data=pdf_bytes,
+                file_name=f"rapport_zami_{data.get('postcode', 'france')}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+        except Exception as e:
+            st.warning(f"Le rapport PDF n'est pas disponible pour le moment: {e}")
         
         st.markdown("---")
         
