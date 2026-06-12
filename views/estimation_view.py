@@ -6,6 +6,7 @@ from streamlit_folium import st_folium
 from utils import utils_marketplace
 from utils import premium_ui
 from utils.pdf_generator import generate_complete_report
+from utils.email_notifications import send_new_lead_email
 
 # ==================== ADEME API ====================
 ADEME_BASE_URL = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant"
@@ -327,6 +328,14 @@ def show():
                             data['renovation_cost'], data['current_dpe']
                         )
                         if success:
+                            send_new_lead_email(
+                                name=name,
+                                email=email,
+                                phone=phone,
+                                address=data['address'],
+                                estimated_cost=data['renovation_cost'],
+                                dpe_rating=data['current_dpe']
+                            )
                             st.success("✅ Votre demande a bien été envoyée.")
                             st.balloons()
                             premium_ui.show_confetti()
