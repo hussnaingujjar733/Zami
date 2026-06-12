@@ -1,24 +1,19 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import requests
 
 def send_new_lead_email(name, email, phone, address, estimated_cost, dpe_rating):
     try:
-        smtp_host = os.environ.get("SMTP_HOST", "")
-        smtp_port = int(os.environ.get("SMTP_PORT", "587"))
-        smtp_user = os.environ.get("SMTP_USER", "")
-        smtp_password = os.environ.get("SMTP_PASSWORD", "")
+        api_key = os.environ.get("RESEND_API_KEY", "")
         admin_email = os.environ.get("ADMIN_EMAIL", "thezamifrance@gmail.com")
 
-        if not smtp_host or not smtp_user or not smtp_password:
+        if not api_key:
             return False
 
-        msg = EmailMessage()
-        msg["Subject"] = f"🔥 Nouveau lead ZAMI - {name}"
-        msg["From"] = smtp_user
-        msg["To"] = admin_email
-
-        msg.set_content(f"""
+        payload = {
+            "from": "ZAMI <onboarding@resend.dev>",
+            "to": [admin_email],
+            "subject": f"🔥 Nouveau lead ZAMI - {name}",
+            "text": f"""
 NOUVEAU LEAD ZAMI
 
 Nom: {name}
@@ -30,14 +25,24 @@ DPE: {dpe_rating}
 Estimation: {estimated_cost:,.0f} €
 
 Connectez-vous à l'administration ZAMI pour traiter ce lead.
-""")
+"""
+        }
 
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.send_message(msg)
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json=payload,
+            timeout=10
+        )
 
-        return True
+        if response.status_code in [200, 202]:
+            return True
+
+        print("RESEND ERROR:", response.status_code, response.text)
+        return False
 
     except Exception as e:
         print("EMAIL ERROR:", e)
