@@ -143,6 +143,18 @@ if selected_page == "🔍 Nouvelle Estimation":
         L'estimation initiale est gratuite et sans engagement.
         """)
 
+    st.markdown("""
+    <div class="luxury-card" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
+        <h3 style="color:#D4AF37;">Prêt à estimer votre rénovation ?</h3>
+        <p style="color:#ccc;">
+            Lancez votre estimation gratuite, téléchargez votre rapport PDF et recevez des devis d'artisans.
+        </p>
+        <p style="color:#D4AF37; font-weight:600; font-size:1.05rem;">
+            ↓ Commencez ci-dessous avec votre adresse ↓
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
     estimation_view.show()
 elif selected_page == "🏠 Mon Espace Client":
     homeowner_view.show()
