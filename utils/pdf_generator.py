@@ -139,7 +139,8 @@ def generate_complete_report(data):
     story.append(Paragraph("Analyse Financière", heading1_style))
     
     financial_data = [
-        ["Coût total des travaux", f"{data.get('renovation_cost', 0):,.0f} €", "HT"],
+        ["Coût estimé des travaux", f"{data.get('cost_min', data.get('renovation_cost', 0)):,.0f} € - {data.get('cost_max', data.get('renovation_cost', 0)):,.0f} €", "Estimation initiale"],
+        ["Confiance estimation", f"{data.get('confidence_score', 70)}%", data.get('confidence_label', 'Moyenne')],
         ["MaPrimeRénov'", f"- {data.get('subsidy', 0):,.0f} €", f"Taux: {data.get('subsidy_rate', 0)}%"],
         ["", "", ""],
         ["Reste à charge (investissement net)", f"{data.get('net_investment', 0):,.0f} €", ""],
