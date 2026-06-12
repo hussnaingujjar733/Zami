@@ -13,7 +13,7 @@ def show():
             with col2:
                 password = st.text_input("Mot de passe administrateur", type="password")
                 if st.button("Se connecter", type="primary", use_container_width=True):
-                    if password == os.environ.get("ADMIN_PASSWORD", "admin2026"):
+                    if password == os.environ.get("ADMIN_PASSWORD", ""):
                         st.session_state.admin_logged_in = True
                         st.rerun()
                     else:

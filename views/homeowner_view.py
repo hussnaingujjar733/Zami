@@ -19,7 +19,7 @@ def show():
                         st.session_state.client_user = user
                         st.rerun()
                     else:
-                        st.error("❌ Identifiants incorrects. Mot de passe par défaut: zami123")
+                        st.error("❌ Identifiants incorrects.")
         
         with st.expander("📝 Pas encore de compte? Inscrivez-vous"):
             with st.form("client_signup"):
