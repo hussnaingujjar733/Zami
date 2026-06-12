@@ -40,3 +40,4 @@ Thumbs.db
 *.log.streamlit/config.toml
 .streamlit/secrets.toml
 .streamlit/secrets.toml
+.venv/
