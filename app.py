@@ -1,4 +1,21 @@
 import streamlit as st
+import warnings
+import sqlite3
+import os
+
+warnings.filterwarnings('ignore')
+
+# ========== FORCE DATABASE INITIALIZATION ==========
+# This MUST run before any other imports
+from utils import utils_db_marketplace
+
+# Initialize database - create all tables if not exist
+try:
+    utils_db_marketplace.init_db()
+    print("✅ Database initialized successfully")
+except Exception as e:
+    print(f"Database init error: {e}")
+
 from utils import high_class_ui
 
 # Import views
@@ -82,14 +99,10 @@ elif selected_page == "🔐 Admin":
     admin_view.show()
 
 # ── ⚡ LUXURY FOOTER ──
-high_class_ui.luxury_divider()
 st.markdown("""
-<div style="text-align: center; padding: 1rem;">
+<div style="text-align: center; padding: 1rem; margin-top: 2rem; border-top: 1px solid rgba(212,175,55,0.2);">
     <p style="color: #555; font-size: 0.7rem; letter-spacing: 1px;">
         ZAMI — L'EXCELLENCE DE LA RÉNOVATION ÉNERGÉTIQUE
-    </p>
-    <p style="color: #333; font-size: 0.6rem;">
-        SOURCES OFFICIELLES · ADEME · DVF · BAN · MAPRIMERÉNOV'
     </p>
 </div>
 """, unsafe_allow_html=True)
