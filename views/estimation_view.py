@@ -195,6 +195,20 @@ def show():
             target_consumption = STANDARD_CONSUMPTION.get(target_dpe, 130)
             current_value, price_m2 = get_property_value(prop['postcode'], surface, property_type)
             renovation_cost = surface * (RENOVATION_COSTS.get(current_dpe, 620) - RENOVATION_COSTS.get(target_dpe, 120))
+
+            # Accuracy layer: show a realistic range instead of a single exact number
+            if has_real_dpe:
+                range_pct = 0.12
+                confidence_score = 82
+                confidence_label = "Élevée"
+            else:
+                range_pct = 0.22
+                confidence_score = 68
+                confidence_label = "Moyenne"
+
+            cost_min = int(renovation_cost * (1 - range_pct))
+            cost_max = int(renovation_cost * (1 + range_pct))
+
             subsidy, subsidy_rate, _ = calculate_subsidy(household_income, household_size, renovation_cost)
             net_investment = renovation_cost - subsidy
             uplift_pct = 0.08 if target_dpe in ['C', 'D'] else 0.12
@@ -210,6 +224,8 @@ def show():
                 "property_type": property_type, "current_dpe": current_dpe, "target_dpe": target_dpe,
                 "current_consumption": current_consumption, "target_consumption": target_consumption,
                 "savings_percentage": savings_percentage, "renovation_cost": renovation_cost,
+                "cost_min": cost_min, "cost_max": cost_max,
+                "confidence_score": confidence_score, "confidence_label": confidence_label,
                 "subsidy": subsidy, "subsidy_rate": subsidy_rate, "net_investment": net_investment,
                 "current_value": current_value, "future_value": future_value, "added_value": added_value,
                 "roi": roi, "annual_savings": annual_savings, "payback": payback,
@@ -232,7 +248,8 @@ def show():
         col1, col2, col3 = st.columns(3)
         with col1:
             premium_ui.premium_metric("🏷️ DPE", f"{data['current_dpe']} → {data['target_dpe']}", delta=f"Gain: {data['savings_percentage']}%")
-            premium_ui.premium_metric("💰 Coût des travaux", f"{data['renovation_cost']:,.0f} €")
+            premium_ui.premium_metric("💰 Coût estimé", f"{data.get('cost_min', data['renovation_cost']):,.0f} € – {data.get('cost_max', data['renovation_cost']):,.0f} €")
+            premium_ui.premium_metric("🎯 Confiance", f"{data.get('confidence_score', 70)}%", delta=data.get('confidence_label', 'Moyenne'))
         with col2:
             premium_ui.premium_metric("🎁 Aides", f"{data['subsidy']:,.0f} €", delta=f"{data['subsidy_rate']}%")
             premium_ui.premium_metric("💳 Reste à charge", f"{data['net_investment']:,.0f} €")
