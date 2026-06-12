@@ -298,7 +298,7 @@ def show():
         st.markdown("---")
         
         # Publish project form
-        st.subheader("🛠️ Publier mon projet sur la Marketplace")
+        st.subheader("🛠️ Recevoir des devis d’artisans")
         
         with st.form(key="publish_project_form"):
             col_name, col_email = st.columns(2)
@@ -313,7 +313,7 @@ def show():
             
             accept_terms = st.checkbox("J'accepte les conditions d'utilisation")
             
-            submitted = st.form_submit_button("📢 Publier mon projet", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("📩 Recevoir des devis gratuits", type="primary", use_container_width=True)
             
             if submitted:
                 if not name or not email or not phone:
@@ -327,12 +327,13 @@ def show():
                             data['renovation_cost'], data['current_dpe']
                         )
                         if success:
-                            st.success("✅ Projet publié avec succès!")
+                            st.success("✅ Votre demande a bien été envoyée.")
                             st.balloons()
                             premium_ui.show_confetti()
-                            st.info(f"🔑 Compte créé: {email} | Mot de passe: zami123")
+                            st.info("Un artisan partenaire pourra vous contacter après vérification de votre projet.")
+                            st.caption("Votre espace client a été créé automatiquement. Vous pourrez suivre vos demandes depuis l'onglet Mon Espace.")
                         else:
-                            st.error("❌ Erreur lors de la publication")
+                            st.error("❌ Erreur lors de l'envoi de la demande")
                     except Exception as e:
                         st.error(f"❌ Erreur: {str(e)}")
         
