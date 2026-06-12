@@ -125,6 +125,24 @@ if selected_page == "🔍 Nouvelle Estimation":
     </div>
     """, unsafe_allow_html=True)
 
+    with st.expander("❓ Questions fréquentes"):
+        st.markdown("""
+        **Cette estimation est-elle un devis final ?**  
+        Non. ZAMI fournit une estimation indicative. Le devis final nécessite une visite technique par un artisan.
+
+        **D'où viennent les données ?**  
+        Nous utilisons la Base Adresse Nationale et les données ADEME lorsque disponibles. Certaines valeurs sont estimées si les données officielles ne sont pas trouvées.
+
+        **Pourquoi une fourchette de prix ?**  
+        Les travaux dépendent de l'état réel du logement, des matériaux et de la visite technique. Une fourchette est plus honnête qu'un prix exact.
+
+        **Puis-je recevoir des devis ?**  
+        Oui. Après l'estimation, vous pouvez demander à être contacté par des artisans.
+
+        **Le service est-il gratuit ?**  
+        L'estimation initiale est gratuite et sans engagement.
+        """)
+
     estimation_view.show()
 elif selected_page == "🏠 Mon Espace Client":
     homeowner_view.show()
