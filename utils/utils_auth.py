@@ -4,6 +4,7 @@ Authentication utilities for ZAMI Marketplace
 
 import streamlit as st
 import hashlib
+import sqlite3
 from utils import utils_db_marketplace
 
 def hash_password(password):
@@ -17,20 +18,17 @@ def authenticate_user(email, password, role):
     
     if role == "homeowner":
         with utils_db_marketplace.get_db() as conn:
-            # Check if password column exists, if not use default
             try:
                 user = conn.execute(
                     "SELECT * FROM homeowners WHERE email = ? AND password = ?",
                     (email, hashed_password)
                 ).fetchone()
             except sqlite3.OperationalError:
-                # Password column doesn't exist yet - use default check
                 user = conn.execute(
                     "SELECT * FROM homeowners WHERE email = ?",
                     (email,)
                 ).fetchone()
                 if user:
-                    # Default password for existing users
                     if password == "zami123":
                         return {"id": user[0], "name": user[1], "email": user[2], "type": "homeowner"}
                     user = None
@@ -51,12 +49,12 @@ def authenticate_user(email, password, role):
                     (email,)
                 ).fetchone()
                 if user:
-                    if password == "artisan123":
-                        return {"id": user[0], "name": user[1], "email": user[4], "type": "contractor"}
+                    if password == "test123":
+                        return {"id": user[0], "name": user[1], "email": user[3], "type": "contractor"}
                     user = None
             
             if user:
-                return {"id": user[0], "name": user[1], "email": user[4], "type": "contractor"}
+                return {"id": user[0], "name": user[1], "email": user[3], "type": "contractor"}
     
     return None
 
