@@ -6,7 +6,25 @@ from utils import utils_auth, utils_db_marketplace, utils_marketplace
 
 def show():
     st.markdown("<h2 style='text-align: center; color: #D4AF37;'>👷 Espace Artisan</h2>", unsafe_allow_html=True)
-    
+
+    if not st.session_state.get('artisan_user'):
+        st.markdown("""
+        <div class="luxury-card" style="text-align:center;">
+            <h3 style="color:#D4AF37;">Développez votre activité avec des projets qualifiés</h3>
+            <p style="color:#ccc;">
+                Rejoignez ZAMI pour recevoir des demandes de rénovation énergétique de propriétaires intéressés.
+            </p>
+            <p style="color:#D4AF37; font-weight:600;">
+                ✓ Leads qualifiés &nbsp; ✓ Devis libres &nbsp; ✓ Visibilité locale &nbsp; ✓ Sans engagement au lancement
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col1, col2, col3 = st.columns(3)
+        col1.info("📍 Projets près de votre zone")
+        col2.info("💶 Déposez vos devis")
+        col3.info("✅ Validation artisan")
+
     # ========== LOGIN SECTION ==========
     if not st.session_state.get('artisan_user'):
         tab_login, tab_signup = st.tabs(["Connexion", "Inscription"])
