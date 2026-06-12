@@ -95,8 +95,7 @@ with col2:
     page_map = {
         "✨ ESTIMATION": "🔍 Nouvelle Estimation",
         "👑 MON ESPACE": "🏠 Mon Espace Client",
-        "🔧 ESPACE ARTISAN": "👷 Espace Artisan",
-        "⚜️ ADMIN": "🔐 Admin"
+        "🔧 ESPACE ARTISAN": "👷 Espace Artisan"
     }
     selected_page = page_map.get(selected_page, "🔍 Nouvelle Estimation")
 
