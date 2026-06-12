@@ -105,7 +105,9 @@ def show():
                             with col1:
                                 st.write(f"📍 **Adresse:** {p.get('property_address', 'N/A')}")
                                 st.write(f"👤 **Client:** {p.get('homeowner_name', 'N/A')}")
-                                st.write(f"📧 **Email:** {p.get('homeowner_email', 'N/A')}")
+                                st.write(f"📧 **Email:** {p.get('homeowner_email',
+                    'homeowner_phone', 'N/A')}")
+                                st.write(f"📞 **Téléphone:** {p.get('homeowner_phone', 'N/A')}")
 
                             with col2:
                                 cost = p.get('estimated_cost') or 0
@@ -124,6 +126,7 @@ def show():
                     'property_address',
                     'homeowner_name',
                     'homeowner_email',
+                    'homeowner_phone',
                     'company_name',
                     'status',
                     'estimated_cost',

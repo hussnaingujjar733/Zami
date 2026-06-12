@@ -55,7 +55,7 @@ def get_all_projects_admin():
     """Get all projects with join info for admin"""
     with utils_db_marketplace.get_db() as conn:
         rows = conn.execute('''
-            SELECT p.*, h.name as homeowner_name, h.email as homeowner_email, 
+            SELECT p.*, h.name as homeowner_name, h.email as homeowner_email, h.phone as homeowner_phone, 
                    c.company_name, c.email as contractor_email
             FROM projects p
             LEFT JOIN homeowners h ON p.homeowner_id = h.id
@@ -65,7 +65,7 @@ def get_all_projects_admin():
         
         columns = ['id', 'homeowner_id', 'contractor_id', 'property_address', 'dpe_rating',
                    'estimated_cost', 'final_cost', 'status', 'created_at', 'assigned_at',
-                   'completed_at', 'homeowner_name', 'homeowner_email', 'company_name', 'contractor_email']
+                   'completed_at', 'homeowner_name', 'homeowner_email', 'homeowner_phone', 'company_name', 'contractor_email']
         return rows_to_dict_list(rows, columns)
 
 
