@@ -79,17 +79,60 @@ def show():
     # ========== TAB 2: PROJECTS ==========
     with tab_proj:
         st.subheader("📊 Supervision Globale des Projets")
+
         try:
             projects = utils_marketplace.get_all_projects_admin()
+
             if not projects:
                 st.info("Aucun projet dans la base de données.")
             else:
+                pending_projects = [p for p in projects if p.get('status') == 'pending']
+
+                st.markdown("### 🔥 Nouveaux Leads à Traiter")
+
+                if not pending_projects:
+                    st.success("✅ Aucun nouveau lead en attente.")
+                else:
+                    st.warning(f"⚠️ {len(pending_projects)} nouveau(x) lead(s) en attente")
+
+                    for p in pending_projects:
+                        with st.container(border=True):
+                            st.markdown(f"### 🏠 Projet #{p.get('id')}")
+
+                            col1, col2 = st.columns(2)
+
+                            with col1:
+                                st.write(f"📍 **Adresse:** {p.get('property_address', 'N/A')}")
+                                st.write(f"👤 **Client:** {p.get('homeowner_name', 'N/A')}")
+                                st.write(f"📧 **Email:** {p.get('homeowner_email', 'N/A')}")
+
+                            with col2:
+                                cost = p.get('estimated_cost') or 0
+                                st.write(f"🏷️ **DPE:** {p.get('dpe_rating', 'N/A')}")
+                                st.write(f"💶 **Estimation:** {cost:,.0f} €")
+                                st.write(f"📌 **Statut:** {p.get('status', 'N/A')}")
+
+                            st.info("Action recommandée: contacter le client ou assigner un artisan validé.")
+
+                st.markdown("---")
+                st.markdown("### 📋 Tous les Projets")
+
                 df = pd.DataFrame(projects)
-                display_cols = ['id', 'property_address', 'homeowner_name', 'company_name', 'status', 'estimated_cost']
+                display_cols = [
+                    'id',
+                    'property_address',
+                    'homeowner_name',
+                    'homeowner_email',
+                    'company_name',
+                    'status',
+                    'estimated_cost',
+                    'created_at'
+                ]
                 available = [c for c in display_cols if c in df.columns]
                 st.dataframe(df[available], use_container_width=True)
-        except:
-            st.info("Aucun projet trouvé")
+
+        except Exception as e:
+            st.error(f"Erreur lors du chargement des projets: {e}")
     
     # ========== TAB 3: FINANCES ==========
     with tab_fin:
