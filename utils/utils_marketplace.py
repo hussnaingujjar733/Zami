@@ -158,6 +158,23 @@ def create_project_from_estimation(name, email, phone, address, estimated_cost, 
             )
         else:
             homeowner_id = homeowner[0]  # Tuple, first element is id
+
+        # Prevent duplicate pending/active lead for same homeowner and same address
+        with utils_db_marketplace.get_db() as conn:
+            existing_project = conn.execute(
+                """
+                SELECT id FROM projects
+                WHERE homeowner_id = ?
+                  AND property_address = ?
+                  AND status IN ('pending', 'assigned', 'in_progress')
+                LIMIT 1
+                """,
+                (homeowner_id, address)
+            ).fetchone()
+
+        if existing_project:
+            print(f"Duplicate project ignored: homeowner={homeowner_id}, address={address}")
+            return True
         
         # Create project
         project_id = utils_db_marketplace.create_project(
