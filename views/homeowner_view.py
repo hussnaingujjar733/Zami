@@ -156,13 +156,8 @@ def show():
             elif project_status == 'assigned':
                 st.success(f"👷 Artisan sélectionné: **{company_name}**")
                 st.write(f"💰 Devis accepté: {final_cost or est_cost:,.0f} €")
-                
-                # Payment button for initial payment
-                simple_payment_button(
-                    amount=final_cost or est_cost,
-                    project_id=project_id,
-                    homeowner_email=user['email']
-                )
+                st.info("✅ Votre demande est confirmée. L'artisan va vous contacter pour organiser la visite technique.")
+                st.caption("Paiement en ligne bientôt disponible. Pour le lancement, le paiement se fait directement après validation du devis final.")
             
             elif project_status == 'paid_by_homeowner':
                 st.success("✅ Paiement confirmé! Les travaux peuvent commencer.")
