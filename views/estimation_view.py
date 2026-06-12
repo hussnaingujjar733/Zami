@@ -265,6 +265,23 @@ def show():
         with col_c: premium_ui.premium_metric("⏱️ Amortissement", f"{data['payback']} ans")
 
         st.markdown("---")
+        st.markdown("### 🧠 Pourquoi cette estimation ?")
+
+        source_label = "Données ADEME trouvées" if data.get('dpe_source') == 'ADEME_API' else "Estimation basée sur l'année de construction"
+        st.info(
+            f"""
+            Cette estimation est basée sur :
+            - Surface du logement : **{data.get('surface')} m²**
+            - DPE actuel : **{data.get('current_dpe')}**
+            - Objectif DPE : **{data.get('target_dpe')}**
+            - Source DPE : **{source_label}**
+            - Méthode : fourchette de coût pour éviter une fausse précision
+            """
+        )
+
+        st.caption("⚠️ Cette estimation est indicative. Un devis final nécessite une visite technique par un artisan qualifié.")
+
+        st.markdown("---")
         st.markdown("### 📄 Télécharger votre rapport")
         try:
             pdf_bytes = generate_complete_report(data)
