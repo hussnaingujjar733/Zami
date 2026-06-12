@@ -92,65 +92,48 @@ with col2:
 if selected_page == "🔍 Nouvelle Estimation":
     st.markdown("""
     <div class="luxury-card" style="text-align:center;">
-        <h2 style="color:#D4AF37;">Estimez vos travaux de rénovation énergétique en quelques minutes</h2>
-        <p style="color:#ccc; font-size:1.05rem;">
-            ZAMI analyse votre adresse, votre DPE et votre projet pour vous donner une estimation claire,
-            une fourchette de coût et un rapport PDF téléchargeable.
+        <h1 style="color:#D4AF37; margin-bottom:0.5rem;">Rénovez mieux. Estimez vos travaux en 2 minutes.</h1>
+        <p style="color:#ccc; font-size:1.1rem;">
+            Obtenez une fourchette de coût, un niveau de confiance, une estimation des aides
+            et un rapport PDF pour votre projet de rénovation énergétique.
+        </p>
+        <p style="color:#D4AF37; font-weight:600;">
+            ✓ Estimation gratuite &nbsp; ✓ Rapport PDF &nbsp; ✓ Devis d'artisans &nbsp; ✓ Sans engagement
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     col_a, col_b, col_c, col_d = st.columns(4)
     with col_a:
-        high_class_ui.luxury_metric("Adresse", "BAN", delta="Recherche officielle")
+        high_class_ui.luxury_metric("1", "Adresse", delta="Recherche BAN")
     with col_b:
-        high_class_ui.luxury_metric("DPE", "ADEME", delta="Lorsque disponible")
+        high_class_ui.luxury_metric("2", "Analyse", delta="DPE / logement")
     with col_c:
-        high_class_ui.luxury_metric("Estimation", "Fourchette", delta="Pas de fausse précision")
+        high_class_ui.luxury_metric("3", "Estimation", delta="Coût + aides")
     with col_d:
-        high_class_ui.luxury_metric("Rapport", "PDF", delta="Téléchargeable")
+        high_class_ui.luxury_metric("4", "Devis", delta="Artisans")
 
     st.markdown("""
     <div class="luxury-card">
-        <h3 style="color:#D4AF37;">Comment ça marche ?</h3>
-        <p style="color:#ccc;">
-            1. Entrez votre adresse<br>
-            2. Vérifiez les informations du logement<br>
-            3. Obtenez une estimation avec niveau de confiance<br>
-            4. Téléchargez votre rapport ou demandez des devis d'artisans
-        </p>
-        <p style="color:#888; font-size:0.85rem;">
-            Estimation indicative. Un devis final nécessite une visite technique par un professionnel qualifié.
+        <h3 style="color:#D4AF37;">Pourquoi utiliser ZAMI ?</h3>
+        <p style="color:#ccc; line-height:1.8;">
+            ✓ Fourchette réaliste au lieu d'un prix unique trompeur<br>
+            ✓ Niveau de confiance affiché pour plus de transparence<br>
+            ✓ Données ADEME lorsque disponibles et Base Adresse Nationale<br>
+            ✓ Rapport PDF téléchargeable pour comparer et discuter avec un artisan<br>
+            ✓ Demande de devis gratuite et sans engagement
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("❓ Questions fréquentes"):
-        st.markdown("""
-        **Cette estimation est-elle un devis final ?**  
-        Non. ZAMI fournit une estimation indicative. Le devis final nécessite une visite technique par un artisan.
-
-        **D'où viennent les données ?**  
-        Nous utilisons la Base Adresse Nationale et les données ADEME lorsque disponibles. Certaines valeurs sont estimées si les données officielles ne sont pas trouvées.
-
-        **Pourquoi une fourchette de prix ?**  
-        Les travaux dépendent de l'état réel du logement, des matériaux et de la visite technique. Une fourchette est plus honnête qu'un prix exact.
-
-        **Puis-je recevoir des devis ?**  
-        Oui. Après l'estimation, vous pouvez demander à être contacté par des artisans.
-
-        **Le service est-il gratuit ?**  
-        L'estimation initiale est gratuite et sans engagement.
-        """)
-
     st.markdown("""
     <div class="luxury-card" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
-        <h3 style="color:#D4AF37;">Prêt à estimer votre rénovation ?</h3>
+        <h3 style="color:#D4AF37;">Prêt à connaître le potentiel de votre logement ?</h3>
         <p style="color:#ccc;">
-            Lancez votre estimation gratuite, téléchargez votre rapport PDF et recevez des devis d'artisans.
+            Commencez avec votre adresse ci-dessous. L'estimation prend moins de 2 minutes.
         </p>
         <p style="color:#D4AF37; font-weight:600; font-size:1.05rem;">
-            ↓ Commencez ci-dessous avec votre adresse ↓
+            ↓ Recevoir mon estimation gratuite ↓
         </p>
     </div>
     """, unsafe_allow_html=True)
