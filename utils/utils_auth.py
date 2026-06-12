@@ -1,5 +1,6 @@
 """
 Authentication utilities for ZAMI Marketplace
+With proper admin approval workflow
 """
 
 import streamlit as st
@@ -12,7 +13,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def authenticate_user(email, password, role):
-    """Authenticate user based on role"""
+    """Authenticate user based on role - ONLY approved users can login"""
     
     hashed_password = hash_password(password)
     
@@ -39,6 +40,7 @@ def authenticate_user(email, password, role):
     elif role == "contractor":
         with utils_db_marketplace.get_db() as conn:
             try:
+                # IMPORTANT: Only return user if status is 'approved'
                 user = conn.execute(
                     "SELECT * FROM contractors WHERE email = ? AND password = ? AND status = 'approved'",
                     (email, hashed_password)
@@ -59,12 +61,18 @@ def authenticate_user(email, password, role):
     return None
 
 def register_contractor(company_name, siret, email, phone, city, password):
-    """Register new contractor"""
+    """Register new contractor - status = 'pending' by default"""
     
     hashed_password = hash_password(password)
     
     try:
         with utils_db_marketplace.get_db() as conn:
+            # Check if email already exists
+            existing = conn.execute("SELECT id FROM contractors WHERE email = ?", (email,)).fetchone()
+            if existing:
+                return False, "❌ Cet email est déjà utilisé"
+            
+            # Insert with status 'pending' - requires admin approval
             conn.execute(
                 """INSERT INTO contractors 
                    (company_name, siret, email, phone, city, password, status, created_at) 
@@ -83,6 +91,10 @@ def register_homeowner(name, email, phone, address, password):
     
     try:
         with utils_db_marketplace.get_db() as conn:
+            existing = conn.execute("SELECT id FROM homeowners WHERE email = ?", (email,)).fetchone()
+            if existing:
+                return False, "❌ Cet email est déjà utilisé"
+            
             conn.execute(
                 """INSERT INTO homeowners 
                    (name, email, phone, address, password, created_at) 
