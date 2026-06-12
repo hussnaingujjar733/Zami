@@ -328,7 +328,7 @@ def show():
                             data['renovation_cost'], data['current_dpe']
                         )
                         if success:
-                            send_new_lead_email(
+                            email_sent = send_new_lead_email(
                                 name=name,
                                 email=email,
                                 phone=phone,
@@ -336,6 +336,10 @@ def show():
                                 estimated_cost=data['renovation_cost'],
                                 dpe_rating=data['current_dpe']
                             )
+                            if email_sent:
+                                st.caption("📧 Notification interne envoyée.")
+                            else:
+                                st.caption("⚠️ Notification email non envoyée. Le lead est quand même enregistré.")
                             st.success("✅ Votre demande a bien été envoyée.")
                             st.balloons()
                             premium_ui.show_confetti()
