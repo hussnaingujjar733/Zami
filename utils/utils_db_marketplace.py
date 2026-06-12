@@ -178,3 +178,15 @@ def get_projects_by_homeowner(homeowner_id):
             WHERE p.homeowner_id = ?
             ORDER BY p.created_at DESC
         ''', (homeowner_id,)).fetchall()
+
+def create_project(homeowner_id, property_address, dpe_rating, estimated_cost):
+    """Create a new renovation project / lead from estimation"""
+    with get_db() as conn:
+        cursor = conn.execute(
+            """INSERT INTO projects 
+            (homeowner_id, property_address, dpe_rating, estimated_cost, status, created_at)
+            VALUES (?, ?, ?, ?, 'pending', ?)""",
+            (homeowner_id, property_address, dpe_rating, estimated_cost, datetime.now().isoformat())
+        )
+        conn.commit()
+        return cursor.lastrowid
