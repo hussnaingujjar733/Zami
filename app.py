@@ -86,7 +86,7 @@ col1, col2, col3 = st.columns([1, 8, 1])
 with col2:
     selected_page = st.radio(
         "Navigation principale",
-        ["✨ ESTIMATION", "👑 MON ESPACE", "🔧 ESPACE ARTISAN", "⚜️ ADMIN"],
+        ["✨ ESTIMATION", "👑 MON ESPACE", "🔧 ESPACE ARTISAN"],
         horizontal=True,
         label_visibility="collapsed"
     )
@@ -99,6 +99,11 @@ with col2:
         "⚜️ ADMIN": "🔐 Admin"
     }
     selected_page = page_map.get(selected_page, "🔍 Nouvelle Estimation")
+
+    # Hidden admin access:
+    # https://thezami.com/?admin=true
+    if st.query_params.get("admin") == "true":
+        selected_page = "🔐 Admin"
 
 # ── ⚡ ROUTING ──
 if selected_page == "🔍 Nouvelle Estimation":
