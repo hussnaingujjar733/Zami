@@ -2,7 +2,9 @@ services:
   - type: web
     name: zami
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      python init_db.py
     startCommand: streamlit run app.py --server.port 10000
     envVars:
       - key: PYTHON_VERSION
