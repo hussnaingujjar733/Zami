@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import requests
 import folium
 import datetime
@@ -7,6 +8,19 @@ from utils import utils_marketplace
 from utils import premium_ui
 from utils.pdf_generator import generate_complete_report
 from utils.email_notifications import send_new_lead_email
+
+def track_clarity_event(event_name: str):
+    components.html(
+        f"""
+        <script>
+        if (window.clarity) {{
+            window.clarity("event", "{event_name}");
+        }}
+        </script>
+        """,
+        height=0
+    )
+
 
 # ==================== ADEME API ====================
 ADEME_BASE_URL = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant"
@@ -233,6 +247,7 @@ def show():
                 "roi": roi, "annual_savings": annual_savings, "payback": payback,
                 "dpe_source": "ADEME_API" if has_real_dpe else "RT_ESTIMATION"
             }
+            track_clarity_event("estimate_generated")
             st.session_state.estimation_step = "report"
             st.rerun()
     
@@ -340,6 +355,7 @@ def show():
                                 st.caption("📧 Notification interne envoyée.")
                             else:
                                 st.caption("⚠️ Notification email non envoyée. Le lead est quand même enregistré.")
+                            track_clarity_event("lead_submitted")
                             st.success("✅ Votre demande a bien été envoyée.")
                             st.balloons()
                             premium_ui.show_confetti()
