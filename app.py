@@ -36,6 +36,68 @@ st.set_page_config(
 # ── ⚡ HIDE STREAMLIT DEFAULT UI ──
 st.markdown("""
 <style>
+    /* Premium navigation buttons */
+    div[role="radiogroup"] {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.8rem;
+        background: rgba(10,10,10,0.65);
+        border: 1px solid rgba(212,175,55,0.25);
+        border-radius: 999px;
+        margin: 1rem auto 2rem auto;
+        max-width: 850px;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+    }
+
+    div[role="radiogroup"] label {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(212,175,55,0.18);
+        border-radius: 999px;
+        padding: 0.75rem 1.4rem !important;
+        min-width: 170px;
+        text-align: center;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    div[role="radiogroup"] label:hover {
+        border-color: rgba(212,175,55,0.7);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(212,175,55,0.15);
+    }
+
+    div[role="radiogroup"] label:has(input:checked) {
+        background: linear-gradient(135deg, #996515, #D4AF37);
+        color: #0A0A0A !important;
+        font-weight: 700;
+        box-shadow: 0 10px 25px rgba(212,175,55,0.35);
+    }
+
+    div[role="radiogroup"] label p {
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        div[role="radiogroup"] {
+            flex-direction: column;
+            border-radius: 24px;
+            gap: 0.6rem;
+        }
+
+        div[role="radiogroup"] label {
+            width: 100%;
+            min-width: unset;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<style>
     header {display: none !important;}
     .stAppDeployButton {display: none !important;}
     button[kind="header"] {display: none !important;}
