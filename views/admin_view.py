@@ -190,6 +190,35 @@ def show():
                                 st.write(f"🚦 **Priorité:** {priority}")
                                 st.write(f"⭐ **Lead Score:** {lead_score}/100 — {lead_label}")
 
+                            approved_contractors = [
+                                c for c in utils_marketplace.get_all_contractors()
+                                if c.get('status') == 'approved'
+                            ]
+
+                            if approved_contractors:
+                                st.markdown("#### 🎯 Artisans recommandés")
+                                for contractor in approved_contractors[:3]:
+                                    match_score = 70
+
+                                    project_address = str(p.get('property_address', '')).lower()
+                                    contractor_city = str(contractor.get('city', '')).lower()
+
+                                    if contractor_city and contractor_city in project_address:
+                                        match_score += 20
+                                    if contractor.get('rge_certified'):
+                                        match_score += 10
+
+                                    match_score = min(match_score, 100)
+
+                                    st.write(
+                                        f"👷 **{contractor.get('company_name', 'N/A')}** — "
+                                        f"Match: **{match_score}%** | "
+                                        f"{contractor.get('city', 'N/A')} | "
+                                        f"{contractor.get('phone', 'N/A')}"
+                                    )
+                            else:
+                                st.caption("Aucun artisan approuvé pour le moment.")
+
                             contacted_at = p.get('contacted_at')
                             if contacted_at:
                                 st.success(f"✅ Client contacté le {contacted_at[:10]}")
