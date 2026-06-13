@@ -186,7 +186,7 @@ def show():
                                 if st.button("✅ Marquer comme contacté", key=f"contacted_{p.get('id')}"):
                                     with utils_db_marketplace.get_db() as conn:
                                         conn.execute(
-                                            "UPDATE projects SET contacted_at = datetime('now') WHERE id = ?",
+                                            "UPDATE projects SET contacted_at = datetime('now'), status = 'contacted' WHERE id = ?",
                                             (p.get('id'),)
                                         )
                                         conn.commit()
