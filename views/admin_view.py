@@ -151,10 +151,33 @@ def show():
                             with col2:
                                 cost = p.get('estimated_cost') or 0
                                 priority = "🔥 Priorité haute" if cost >= 30000 else "🟡 Priorité normale"
+
+                                lead_score = 0
+                                if p.get('homeowner_email') and p.get('homeowner_email') != 'N/A':
+                                    lead_score += 20
+                                if p.get('homeowner_phone') and p.get('homeowner_phone') != 'N/A':
+                                    lead_score += 20
+                                if p.get('property_address') and len(str(p.get('property_address'))) > 10:
+                                    lead_score += 20
+                                if cost >= 30000:
+                                    lead_score += 25
+                                elif cost >= 12000:
+                                    lead_score += 15
+                                if p.get('dpe_rating') in ['E', 'F', 'G']:
+                                    lead_score += 15
+
+                                if lead_score >= 85:
+                                    lead_label = "🔥 Hot Lead"
+                                elif lead_score >= 60:
+                                    lead_label = "🟡 Warm Lead"
+                                else:
+                                    lead_label = "⚪ Lead à qualifier"
+
                                 st.write(f"🏷️ **DPE:** {p.get('dpe_rating', 'N/A')}")
                                 st.write(f"💶 **Estimation:** {cost:,.0f} €")
                                 st.write(f"📌 **Statut:** {p.get('status', 'N/A')}")
                                 st.write(f"🚦 **Priorité:** {priority}")
+                                st.write(f"⭐ **Lead Score:** {lead_score}/100 — {lead_label}")
 
                             contacted_at = p.get('contacted_at')
                             if contacted_at:
