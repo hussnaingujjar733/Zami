@@ -356,11 +356,26 @@ def show():
                             else:
                                 st.caption("⚠️ Notification email non envoyée. Le lead est quand même enregistré.")
                             track_clarity_event("lead_submitted")
-                            st.success("✅ Votre demande a bien été envoyée.")
                             st.balloons()
                             premium_ui.show_confetti()
-                            st.info("Un artisan partenaire pourra vous contacter après vérification de votre projet.")
-                            st.caption("Votre espace client a été créé automatiquement. Vous pourrez suivre vos demandes depuis l'onglet Mon Espace.")
+
+                            st.markdown("""
+                            <div class="luxury-card" style="text-align:center; border:1px solid rgba(52,211,153,0.35);">
+                                <h2 style="color:#34d399;">🎉 Merci, votre demande est enregistrée !</h2>
+                                <p style="color:#ccc; font-size:1.05rem;">
+                                    Nous avons bien reçu votre projet de rénovation énergétique.
+                                </p>
+                                <p style="color:#D4AF37; line-height:1.9;">
+                                    ✓ Estimation sauvegardée<br>
+                                    ✓ Rapport PDF disponible<br>
+                                    ✓ Demande transmise pour vérification<br>
+                                    ✓ Un artisan partenaire pourra vous contacter
+                                </p>
+                                <p style="color:#888; font-size:0.85rem;">
+                                    Vous pouvez suivre votre demande depuis l'onglet <strong>Mon Espace</strong>.
+                                </p>
+                            </div>
+                            """, unsafe_allow_html=True)
                         else:
                             st.error("❌ Erreur lors de l'envoi de la demande")
                     except Exception as e:

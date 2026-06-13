@@ -108,8 +108,8 @@ def show():
             ''').fetchall()
         
         if not projects:
-            st.info("Aucun projet disponible pour le moment.")
-            st.caption("💡 Les projets apparaîtront ici une fois publiés par les propriétaires.")
+            st.info("📭 Aucun projet disponible pour le moment.")
+            st.caption("Les nouvelles demandes de rénovation apparaîtront ici dès qu’elles seront disponibles dans votre zone.")
         else:
             for project in projects:
                 with st.container(border=True):
@@ -147,7 +147,7 @@ def show():
             ''', (artisan_user['id'],)).fetchall()
         
         if not quotes:
-            st.info("Aucune offre soumise pour le moment.")
+            st.info("📭 Aucune offre soumise pour le moment. Consultez les projets disponibles et déposez votre premier devis.")
         else:
             for quote in quotes:
                 with st.container(border=True):
@@ -176,7 +176,7 @@ def show():
             ''', (artisan_user['id'],)).fetchall()
         
         if not projects:
-            st.info("Aucun chantier assigné pour le moment.")
+            st.info("📭 Aucun chantier assigné pour le moment. Lorsqu’un propriétaire accepte votre devis, le chantier apparaîtra ici.")
         else:
             for project in projects:
                 with st.container(border=True):
