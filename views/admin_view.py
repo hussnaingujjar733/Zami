@@ -91,16 +91,31 @@ def show():
 
                 st.markdown("### 🔥 Nouveaux Leads à Traiter")
 
-                priority_filter = st.selectbox(
-                    "Filtrer les leads",
-                    ["Tous les leads", "Priorité haute", "Priorité normale"],
-                    key="admin_priority_filter"
-                )
+                col_filter1, col_filter2 = st.columns(2)
+
+                with col_filter1:
+                    priority_filter = st.selectbox(
+                        "Priorité",
+                        ["Tous les leads", "Priorité haute", "Priorité normale"],
+                        key="admin_priority_filter"
+                    )
+
+                with col_filter2:
+                    contact_filter = st.selectbox(
+                        "Contact",
+                        ["Tous", "Non contactés", "Contactés"],
+                        key="admin_contact_filter"
+                    )
 
                 if priority_filter == "Priorité haute":
                     pending_projects = [p for p in pending_projects if (p.get('estimated_cost') or 0) >= 30000]
                 elif priority_filter == "Priorité normale":
                     pending_projects = [p for p in pending_projects if (p.get('estimated_cost') or 0) < 30000]
+
+                if contact_filter == "Non contactés":
+                    pending_projects = [p for p in pending_projects if not p.get('contacted_at')]
+                elif contact_filter == "Contactés":
+                    pending_projects = [p for p in pending_projects if p.get('contacted_at')]
 
                 if not pending_projects:
                     st.success("✅ Aucun nouveau lead en attente.")
