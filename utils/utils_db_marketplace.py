@@ -137,6 +137,16 @@ def migrate_db():
                 conn.commit()
             except:
                 pass
+
+        # Add contacted_at to projects
+        try:
+            conn.execute("SELECT contacted_at FROM projects LIMIT 1")
+        except sqlite3.OperationalError:
+            try:
+                conn.execute("ALTER TABLE projects ADD COLUMN contacted_at TEXT")
+                conn.commit()
+            except:
+                pass
         
         conn.commit()
 

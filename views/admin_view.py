@@ -130,6 +130,20 @@ def show():
                                 st.write(f"📌 **Statut:** {p.get('status', 'N/A')}")
                                 st.write(f"🚦 **Priorité:** {priority}")
 
+                            contacted_at = p.get('contacted_at')
+                            if contacted_at:
+                                st.success(f"✅ Client contacté le {contacted_at[:10]}")
+                            else:
+                                if st.button("✅ Marquer comme contacté", key=f"contacted_{p.get('id')}"):
+                                    with utils_db_marketplace.get_db() as conn:
+                                        conn.execute(
+                                            "UPDATE projects SET contacted_at = datetime('now') WHERE id = ?",
+                                            (p.get('id'),)
+                                        )
+                                        conn.commit()
+                                    st.success("Client marqué comme contacté.")
+                                    st.rerun()
+
                             st.info("Action recommandée: contacter le client rapidement, puis suivre l’avancement dans le tableau.")
 
                 st.markdown("---")

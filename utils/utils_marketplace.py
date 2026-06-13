@@ -32,7 +32,7 @@ def get_available_projects():
         
         columns = ['id', 'homeowner_id', 'contractor_id', 'property_address', 'dpe_rating', 
                    'estimated_cost', 'final_cost', 'status', 'created_at', 'assigned_at', 
-                   'completed_at', 'homeowner_name', 'homeowner_email']
+                   'completed_at', 'contacted_at', 'homeowner_name', 'homeowner_email']
         return rows_to_dict_list(rows, columns)
 
 
@@ -65,7 +65,7 @@ def get_all_projects_admin():
         
         columns = ['id', 'homeowner_id', 'contractor_id', 'property_address', 'dpe_rating',
                    'estimated_cost', 'final_cost', 'status', 'created_at', 'assigned_at',
-                   'completed_at', 'homeowner_name', 'homeowner_email', 'homeowner_phone', 'company_name', 'contractor_email']
+                   'completed_at', 'contacted_at', 'homeowner_name', 'homeowner_email', 'homeowner_phone', 'company_name', 'contractor_email']
         return rows_to_dict_list(rows, columns)
 
 
@@ -115,7 +115,7 @@ def get_contractor_projects(contractor_id):
         
         columns = ['id', 'homeowner_id', 'contractor_id', 'property_address', 'dpe_rating',
                    'estimated_cost', 'final_cost', 'status', 'created_at', 'assigned_at',
-                   'completed_at', 'homeowner_name', 'homeowner_phone']
+                   'completed_at', 'contacted_at', 'homeowner_name', 'homeowner_phone']
         return rows_to_dict_list(rows, columns)
 
 
