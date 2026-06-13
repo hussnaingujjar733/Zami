@@ -276,11 +276,25 @@ def show():
             if not df.empty and 'estimated_cost' in df.columns:
                 total_volume = df['estimated_cost'].sum()
                 commission = total_volume * 0.10
+                avg_project_value = df['estimated_cost'].mean()
+                pending_count = len(df[df['status'] == 'pending']) if 'status' in df.columns else 0
+                contacted_count = len(df[df['status'] == 'contacted']) if 'status' in df.columns else 0
+                assigned_count = len(df[df['status'] == 'assigned']) if 'status' in df.columns else 0
+                conversion_rate = round((assigned_count / len(df)) * 100, 1) if len(df) > 0 else 0
                 
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 col1.metric("📊 Projets", len(projects) if projects else 0)
                 col2.metric("💶 Volume Total", f"{total_volume:,.0f} €")
-                col3.metric("✨ Commission ZAMI (10%)", f"{commission:,.0f} €")
+                col3.metric("💰 Valeur moyenne", f"{avg_project_value:,.0f} €")
+                col4.metric("🎯 Conversion", f"{conversion_rate}%")
+
+                col5, col6, col7 = st.columns(3)
+                col5.metric("🆕 New Leads", pending_count)
+                col6.metric("📞 Contactés", contacted_count)
+                col7.metric("👷 Assignés", assigned_count)
+
+                st.markdown("---")
+                st.metric("✨ Commission potentielle ZAMI (10%)", f"{commission:,.0f} €")
             else:
                 st.info("Pas assez de données pour afficher les finances.")
         except:
