@@ -253,6 +253,16 @@ def show():
                 available = [c for c in display_cols if c in df.columns]
                 st.dataframe(df[available], use_container_width=True)
 
+                csv_data = df.to_csv(index=False).encode("utf-8")
+
+                st.download_button(
+                    "📥 Exporter tous les projets (CSV)",
+                    data=csv_data,
+                    file_name="zami_projects_export.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+
         except Exception as e:
             st.error(f"Erreur lors du chargement des projets: {e}")
     
