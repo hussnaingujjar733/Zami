@@ -84,6 +84,17 @@ def show():
         try:
             projects = utils_marketplace.get_all_projects_admin()
 
+            new_leads = [p for p in projects if p.get('status') == 'pending'] if projects else []
+            contacted_leads = [p for p in projects if p.get('status') == 'contacted'] if projects else []
+            assigned_projects = [p for p in projects if p.get('status') == 'assigned'] if projects else []
+            revenue_potential = sum((p.get('estimated_cost') or 0) for p in projects) if projects else 0
+
+            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+            col_m1.metric("🆕 New leads", len(new_leads))
+            col_m2.metric("📞 Contactés", len(contacted_leads))
+            col_m3.metric("👷 Assignés", len(assigned_projects))
+            col_m4.metric("💶 Potentiel", f"{revenue_potential:,.0f} €")
+
             if not projects:
                 st.info("Aucun projet dans la base de données.")
             else:
