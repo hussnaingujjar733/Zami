@@ -81,7 +81,7 @@ def show():
         
         # Status config
         status_config = {
-            'pending': {'emoji': '⏳', 'color': 'orange', 'text': 'En attente d\'artisans'},
+            'pending': {'emoji': '⏳', 'color': 'orange', 'text': 'Demande envoyée - en attente de devis'},
             'assigned': {'emoji': '👷', 'color': 'blue', 'text': 'Artisan assigné'},
             'in_progress': {'emoji': '🔨', 'color': 'orange', 'text': 'Travaux en cours'},
             'completed': {'emoji': '✅', 'color': 'green', 'text': 'Terminé - En vérification'},
@@ -168,7 +168,7 @@ def show():
                 st.warning("🔨 Travaux en cours de réalisation...")
             
             elif project_status == 'completed':
-                st.success("✅ Travaux terminés! En attente de vérification.")
+                st.success("✅ Travaux déclarés terminés. ZAMI vérifie les éléments avant clôture du projet.")
             
             elif project_status == 'verified':
                 st.success("✔️ Travaux vérifiés! Veuillez procéder au paiement final.")
