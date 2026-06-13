@@ -119,11 +119,23 @@ def show():
                     st.markdown("---")
                     st.markdown("### 📝 Offres reçues des artisans")
                     
+                    best_price = quotes[0][3] if quotes else None
+
                     for quote in quotes:
                         with st.container(border=True):
-                            st.markdown(f"**👷 {quote[6]}**")
-                            st.write(f"💰 Devis: **{quote[3]:,.0f} €**")
+                            is_best = best_price is not None and quote[3] == best_price
+                            badge = "🏆 Meilleure offre" if is_best else "👷 Artisan partenaire"
+
+                            st.markdown(f"### {badge}")
+                            st.markdown(f"**Entreprise:** {quote[6]}")
+
+                            col_q1, col_q2, col_q3 = st.columns(3)
+                            col_q1.metric("💰 Devis proposé", f"{quote[3]:,.0f} €")
+                            col_q2.metric("📊 Écart vs budget", f"{quote[3] - est_cost:,.0f} €")
+                            col_q3.metric("📌 Statut", "En attente")
+
                             st.write(f"📞 Contact: {quote[7]} | {quote[8]}")
+                            st.caption("Comparez le prix, contactez l'artisan si besoin, puis acceptez l'offre qui vous convient.")
                             
                             col_acc, col_rej = st.columns(2)
                             with col_acc:
