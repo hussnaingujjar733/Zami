@@ -103,19 +103,34 @@ def show():
                             col1, col2 = st.columns(2)
 
                             with col1:
+                                email = p.get('homeowner_email', 'N/A')
+                                phone = p.get('homeowner_phone', 'N/A')
                                 st.write(f"📍 **Adresse:** {p.get('property_address', 'N/A')}")
                                 st.write(f"👤 **Client:** {p.get('homeowner_name', 'N/A')}")
-                                st.write(f"📧 **Email:** {p.get('homeowner_email',
-                    'homeowner_phone', 'N/A')}")
-                                st.write(f"📞 **Téléphone:** {p.get('homeowner_phone', 'N/A')}")
+                                st.write(f"📧 **Email:** {email}")
+                                st.write(f"📞 **Téléphone:** {phone}")
+
+                                if email != 'N/A' or phone != 'N/A':
+                                    st.markdown(
+                                        f"""
+                                        <div style="margin-top: 0.5rem;">
+                                            <a href="mailto:{email}" target="_blank">📧 Envoyer un email</a>
+                                            &nbsp; | &nbsp;
+                                            <a href="tel:{phone}" target="_blank">📞 Appeler</a>
+                                        </div>
+                                        """,
+                                        unsafe_allow_html=True
+                                    )
 
                             with col2:
                                 cost = p.get('estimated_cost') or 0
+                                priority = "🔥 Priorité haute" if cost >= 30000 else "🟡 Priorité normale"
                                 st.write(f"🏷️ **DPE:** {p.get('dpe_rating', 'N/A')}")
                                 st.write(f"💶 **Estimation:** {cost:,.0f} €")
                                 st.write(f"📌 **Statut:** {p.get('status', 'N/A')}")
+                                st.write(f"🚦 **Priorité:** {priority}")
 
-                            st.info("Action recommandée: contacter le client ou assigner un artisan validé.")
+                            st.info("Action recommandée: contacter le client rapidement, puis suivre l’avancement dans le tableau.")
 
                 st.markdown("---")
                 st.markdown("### 📋 Tous les Projets")
