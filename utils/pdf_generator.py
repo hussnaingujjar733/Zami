@@ -4,6 +4,7 @@ Generates complete renovation report for homeowners
 """
 
 from reportlab.lib import colors
+from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm, cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
@@ -136,6 +137,33 @@ def generate_complete_report(data):
     story.append(Spacer(1, 10*mm))
     
     # ==================== FINANCIAL ANALYSIS ====================
+    story.append(Paragraph("Pourquoi cette estimation ?", heading1_style))
+
+    source_dpe = "Données ADEME trouvées" if data.get("dpe_source") == "ADEME_API" else "Estimation basée sur les informations saisies"
+
+    explanation_data = [
+        ["Surface utilisée", f"{data.get('surface', 0)} m²"],
+        ["DPE actuel", data.get("current_dpe", "N/A")],
+        ["Objectif DPE", data.get("target_dpe", "N/A")],
+        ["Localisation", f"{data.get('postcode', '')}"],
+        ["Source DPE", source_dpe],
+        ["Méthode", "Fourchette de coût pour éviter une fausse précision"],
+        ["Niveau de fiabilité", data.get("confidence_label", "Moyenne")],
+    ]
+
+    explanation_table = Table(explanation_data, colWidths=[2.8*inch, 3.8*inch])
+    explanation_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F5F5F5')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#333333')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#DDDDDD')),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(explanation_table)
+    story.append(Spacer(1, 0.2*inch))
+
     story.append(Paragraph("Analyse Financière", heading1_style))
     
     financial_data = [
@@ -150,6 +178,7 @@ def generate_complete_report(data):
         ["", "", ""],
         ["Retour sur investissement (ROI)", f"{data.get('roi', 0)}%", ""],
         ["Économies annuelles", f"{data.get('annual_savings', 0):,.0f} €", "sur facture énergétique"],
+        ["Économies estimées sur 10 ans", f"{data.get('annual_savings', 0) * 10:,.0f} €", "avant évolution des prix"],
         ["Temps de retour sur investissement", f"{data.get('payback', 0)} ans", ""],
     ]
     
@@ -168,6 +197,43 @@ def generate_complete_report(data):
     story.append(Spacer(1, 10*mm))
     
     # ==================== DPE DETAILS ====================
+    story.append(Paragraph("Comprendre le niveau de fiabilité", heading1_style))
+
+    confidence_text = f"""
+    Le niveau de fiabilité indique la qualité des informations utilisées pour produire cette estimation.
+    Une fiabilité élevée signifie que l'adresse et le DPE ont pu être mieux identifiés.
+    Cette fiabilité ne remplace pas une visite technique, mais permet de mieux comprendre la précision de l'estimation.
+    """
+    story.append(Paragraph(confidence_text, normal_style))
+    story.append(Spacer(1, 0.2*inch))
+
+    story.append(Paragraph("Répartition estimative des travaux", heading1_style))
+
+    breakdown_data = [
+        ["Poste de travaux", "Part estimée"],
+        ["Isolation thermique", "45%"],
+        ["Chauffage / système énergétique", "30%"],
+        ["Ventilation", "15%"],
+        ["Menuiseries", "10%"],
+    ]
+
+    breakdown_table = Table(breakdown_data, colWidths=[4.2*inch, 2.0*inch])
+    breakdown_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#D4AF37')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#DDDDDD')),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(breakdown_table)
+    story.append(Paragraph(
+        "Cette répartition est indicative et dépendra du diagnostic technique, des matériaux choisis et des devis artisans.",
+        normal_style
+    ))
+    story.append(Spacer(1, 0.2*inch))
+
     story.append(Paragraph("Détail du Diagnostic de Performance Énergétique", heading1_style))
     
     dpe_data = [
