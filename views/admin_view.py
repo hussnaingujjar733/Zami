@@ -295,6 +295,12 @@ def show():
 
                 st.markdown("---")
                 st.metric("✨ Commission potentielle ZAMI (10%)", f"{commission:,.0f} €")
+
+                if 'dpe_rating' in df.columns:
+                    st.markdown("### 🏷️ Répartition des DPE")
+                    dpe_counts = df['dpe_rating'].value_counts().reset_index()
+                    dpe_counts.columns = ['DPE', 'Nombre de projets']
+                    st.dataframe(dpe_counts, use_container_width=True)
             else:
                 st.info("Pas assez de données pour afficher les finances.")
         except:
