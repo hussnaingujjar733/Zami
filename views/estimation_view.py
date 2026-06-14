@@ -255,6 +255,19 @@ def show():
     elif st.session_state.estimation_step == "report":
         data = st.session_state.report_data
         st.success(f"### 📄 Rapport pour : {data['address']}")
+
+        st.markdown(f"""
+        <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
+            <h2 style="color:#D4AF37; margin-bottom:0.5rem;">🏠 Synthèse du bien</h2>
+            <p style="color:#ccc; font-size:1.05rem;">{data.get('address')}</p>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem;">
+                <div><strong style="color:#D4AF37;">Surface</strong><br><span style="color:#fff;">{data.get('surface')} m²</span></div>
+                <div><strong style="color:#D4AF37;">Type</strong><br><span style="color:#fff;">{data.get('property_type')}</span></div>
+                <div><strong style="color:#D4AF37;">DPE actuel</strong><br><span style="color:#fff;">{data.get('current_dpe')}</span></div>
+                <div><strong style="color:#D4AF37;">Valeur estimée</strong><br><span style="color:#fff;">{data.get('current_value', 0):,.0f} €</span></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         if data.get('dpe_source') == 'ADEME_API':
             st.info("📊 Données DPE réelles de l'API ADEME")
