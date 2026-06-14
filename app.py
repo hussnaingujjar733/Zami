@@ -192,6 +192,22 @@ if selected_page == "🔍 Nouvelle Estimation":
         high_class_ui.luxury_metric("4", "Devis", delta="Artisans")
 
     st.markdown("""
+    <div class="luxury-card" style="text-align:center; border:1px solid rgba(52,211,153,0.25);">
+        <h3 style="color:#34d399;">🔒 Une estimation transparente, pas une promesse commerciale</h3>
+        <p style="color:#ccc; line-height:1.8;">
+            ZAMI affiche une fourchette de coût, un niveau de fiabilité et les limites de l'estimation.
+            Le devis final reste confirmé par un professionnel après visite technique.
+        </p>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem;">
+            <div><strong style="color:#D4AF37;">Données</strong><br><span style="color:#ccc;">ADEME / BAN</span></div>
+            <div><strong style="color:#D4AF37;">Rapport</strong><br><span style="color:#ccc;">PDF instantané</span></div>
+            <div><strong style="color:#D4AF37;">Méthode</strong><br><span style="color:#ccc;">Fourchette réaliste</span></div>
+            <div><strong style="color:#D4AF37;">Devis</strong><br><span style="color:#ccc;">Sans engagement</span></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
     <div class="luxury-card">
         <h3 style="color:#D4AF37;">Pourquoi utiliser ZAMI ?</h3>
         <p style="color:#ccc; line-height:1.8;">
