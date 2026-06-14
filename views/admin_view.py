@@ -301,6 +301,12 @@ def show():
                     dpe_counts = df['dpe_rating'].value_counts().reset_index()
                     dpe_counts.columns = ['DPE', 'Nombre de projets']
                     st.dataframe(dpe_counts, use_container_width=True)
+
+                if 'created_at' in df.columns:
+                    st.markdown("### 📅 Leads par mois")
+                    df['month'] = pd.to_datetime(df['created_at'], errors='coerce').dt.to_period('M').astype(str)
+                    monthly = df.groupby('month').size().reset_index(name='Nombre de leads')
+                    st.dataframe(monthly, use_container_width=True)
             else:
                 st.info("Pas assez de données pour afficher les finances.")
         except:
