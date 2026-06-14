@@ -208,6 +208,13 @@ def show():
             current_dpe, current_consumption = get_dpe_by_year(year_value)
         
         if st.button("📊 Calculer mon projet", type="primary", use_container_width=True):
+            with st.status("🤖 Analyse IA ZAMI en cours...", expanded=True) as status:
+                st.write("🔍 Analyse de l’adresse et des données disponibles...")
+                st.write("⚡ Évaluation du DPE et du gain énergétique...")
+                st.write("💶 Simulation du coût, des aides et du ROI...")
+                st.write("📄 Préparation du rapport personnalisé...")
+                status.update(label="✅ Analyse terminée", state="complete", expanded=False)
+
             target_consumption = STANDARD_CONSUMPTION.get(target_dpe, 130)
             current_value, price_m2 = get_property_value(prop['postcode'], surface, property_type)
             renovation_cost = surface * (RENOVATION_COSTS.get(current_dpe, 620) - RENOVATION_COSTS.get(target_dpe, 120))
