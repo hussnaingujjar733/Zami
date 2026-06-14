@@ -366,6 +366,27 @@ def show():
             premium_ui.premium_metric("📈 Valeur après travaux", f"{data['future_value']:,.0f} €", delta=f"+{data['added_value']:,.0f} €")
         
         st.markdown("---")
+        st.markdown("### 🎛️ Simulateur rapide de scénario")
+        sim_target = st.selectbox(
+            "Comparer avec un autre objectif DPE",
+            ["D", "C", "B", "A"],
+            index=["D", "C", "B", "A"].index(data.get("target_dpe", "C")) if data.get("target_dpe", "C") in ["D", "C", "B", "A"] else 1,
+            key="roi_simulator_target"
+        )
+
+        sim_cost = data.get("surface", 0) * (RENOVATION_COSTS.get(data.get("current_dpe"), 620) - RENOVATION_COSTS.get(sim_target, 120))
+        sim_cost = max(sim_cost, 0)
+        sim_target_consumption = STANDARD_CONSUMPTION.get(sim_target, 130)
+        sim_savings_pct = round(((data.get("current_consumption", 280) - sim_target_consumption) / data.get("current_consumption", 280)) * 100, 1)
+        sim_subsidy = min(int(sim_cost * (data.get("subsidy_rate", 25) / 100)), 35000)
+        sim_net = sim_cost - sim_subsidy
+
+        col_sim1, col_sim2, col_sim3, col_sim4 = st.columns(4)
+        col_sim1.metric("Objectif", f"DPE {sim_target}")
+        col_sim2.metric("Coût estimé", f"{sim_cost:,.0f} €")
+        col_sim3.metric("Aides estimées", f"{sim_subsidy:,.0f} €")
+        col_sim4.metric("Gain énergie", f"{sim_savings_pct}%")
+
         st.markdown(f"""
         <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
             <h2 style="color:#D4AF37; text-align:center;">💼 Tableau de bord investissement</h2>
