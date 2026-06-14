@@ -269,6 +269,38 @@ def show():
         </div>
         """, unsafe_allow_html=True)
         
+        dpe_colors = {
+            "A": "#16a34a",
+            "B": "#22c55e",
+            "C": "#84cc16",
+            "D": "#facc15",
+            "E": "#f97316",
+            "F": "#ef4444",
+            "G": "#7f1d1d",
+        }
+
+        current_color = dpe_colors.get(data.get("current_dpe"), "#f97316")
+        target_color = dpe_colors.get(data.get("target_dpe"), "#84cc16")
+
+        st.markdown(f"""
+        <div class="luxury-card" style="text-align:center;">
+            <h2 style="color:#D4AF37;">⚡ Transformation énergétique</h2>
+            <p style="color:#ccc;">Votre logement passe de</p>
+            <div style="display:flex; align-items:center; justify-content:center; gap:2rem; margin:1rem 0;">
+                <div style="background:{current_color}; color:white; padding:1rem 1.6rem; border-radius:18px; font-size:2rem; font-weight:800;">
+                    DPE {data.get('current_dpe')}
+                </div>
+                <div style="font-size:2rem; color:#D4AF37;">→</div>
+                <div style="background:{target_color}; color:white; padding:1rem 1.6rem; border-radius:18px; font-size:2rem; font-weight:800;">
+                    DPE {data.get('target_dpe')}
+                </div>
+            </div>
+            <p style="color:#34d399; font-weight:700;">
+                Gain énergétique estimé : {data.get('savings_percentage')}%
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
         if data.get('dpe_source') == 'ADEME_API':
             st.info("📊 Données DPE réelles de l'API ADEME")
         else:
