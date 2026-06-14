@@ -275,6 +275,54 @@ def show():
             premium_ui.premium_metric("📈 Valeur après travaux", f"{data['future_value']:,.0f} €", delta=f"+{data['added_value']:,.0f} €")
         
         st.markdown("---")
+        opportunity_score = 0
+
+        if data.get('savings_percentage', 0) >= 40:
+            opportunity_score += 25
+        elif data.get('savings_percentage', 0) >= 25:
+            opportunity_score += 15
+
+        if data.get('roi', 0) >= 70:
+            opportunity_score += 25
+        elif data.get('roi', 0) >= 40:
+            opportunity_score += 15
+
+        if data.get('subsidy', 0) > 0:
+            opportunity_score += 20
+
+        if data.get('confidence_score', 0) >= 80:
+            opportunity_score += 20
+        elif data.get('confidence_score', 0) >= 65:
+            opportunity_score += 10
+
+        if data.get('payback', 99) <= 10:
+            opportunity_score += 10
+
+        opportunity_score = min(opportunity_score, 100)
+
+        if opportunity_score >= 80:
+            opportunity_label = "Excellent projet de rénovation"
+            opportunity_color = "#34d399"
+        elif opportunity_score >= 60:
+            opportunity_label = "Projet intéressant à étudier"
+            opportunity_color = "#D4AF37"
+        else:
+            opportunity_label = "Projet à qualifier avec un artisan"
+            opportunity_color = "#f59e0b"
+
+        st.markdown(f"""
+        <div class="luxury-card" style="text-align:center; border:1px solid {opportunity_color};">
+            <h2 style="color:{opportunity_color};">🏆 Score d'Opportunité ZAMI</h2>
+            <div style="font-size:3rem; font-weight:800; color:{opportunity_color};">{opportunity_score}/100</div>
+            <h3 style="color:#fff;">{opportunity_label}</h3>
+            <p style="color:#ccc; line-height:1.8;">
+                ✓ Potentiel d'économies analysé<br>
+                ✓ Valorisation du bien estimée<br>
+                ✓ Aides et fiabilité prises en compte
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
         col_a, col_b, col_c = st.columns(3)
         with col_a: premium_ui.premium_metric("📊 ROI", f"{data['roi']}%")
         with col_b: premium_ui.premium_metric("⚡ Économies annuelles", f"{data['annual_savings']:,} €")
