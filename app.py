@@ -166,6 +166,29 @@ with col2:
     if st.query_params.get("admin") == "true":
         selected_page = "🔐 Admin"
 
+
+st.markdown("""
+<style>
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: block !important;
+    }
+    .main .block-container {
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+    }
+}
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ── ⚡ ROUTING ──
 if selected_page == "🔍 Nouvelle Estimation":
     st.markdown("""
@@ -268,6 +291,22 @@ if selected_page == "🔍 Nouvelle Estimation":
         <p style="color:#D4AF37; font-weight:600; font-size:1.05rem;">
             ↓ Recevoir mon estimation gratuite ↓
         </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="mobile-only" style="text-align:center; padding:1rem; border:1px solid rgba(212,175,55,0.35); border-radius:20px; margin-bottom:1rem;">
+        <h2 style="color:#D4AF37;">⚡ Estimez votre rénovation en 2 minutes</h2>
+        <p style="color:#ccc;">Entrez votre adresse ci-dessous pour obtenir votre estimation gratuite.</p>
+        <p style="color:#34d399; font-weight:700;">↓ Commencez ici ↓</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="mobile-only" style="text-align:center; padding:1rem; border:1px solid rgba(212,175,55,0.35); border-radius:20px; margin-bottom:1rem;">
+        <h2 style="color:#D4AF37;">⚡ Estimez votre rénovation en 2 minutes</h2>
+        <p style="color:#ccc;">Entrez votre adresse ci-dessous pour obtenir votre estimation gratuite.</p>
+        <p style="color:#34d399; font-weight:700;">↓ Commencez ici ↓</p>
     </div>
     """, unsafe_allow_html=True)
 
