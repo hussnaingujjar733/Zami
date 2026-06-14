@@ -198,7 +198,7 @@ if selected_page == "🔍 Nouvelle Estimation":
             ZAMI affiche une fourchette de coût, un niveau de fiabilité et les limites de l'estimation.
             Le devis final reste confirmé par un professionnel après visite technique.
         </p>
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1rem;">
             <div><strong style="color:#D4AF37;">Données</strong><br><span style="color:#ccc;">ADEME / BAN</span></div>
             <div><strong style="color:#D4AF37;">Rapport</strong><br><span style="color:#ccc;">PDF instantané</span></div>
             <div><strong style="color:#D4AF37;">Méthode</strong><br><span style="color:#ccc;">Fourchette réaliste</span></div>
@@ -223,7 +223,7 @@ if selected_page == "🔍 Nouvelle Estimation":
     st.markdown("""
     <div class="luxury-card">
         <h3 style="color:#D4AF37; text-align:center;">Ils peuvent utiliser ZAMI pour préparer leur projet</h3>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-top:1rem;">
             <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:16px;">
                 <p style="color:#D4AF37;">★★★★★</p>
                 <p style="color:#ccc;">"Une estimation claire avant de contacter un artisan."</p>

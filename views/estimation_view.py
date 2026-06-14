@@ -306,7 +306,7 @@ def show():
         <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
             <h2 style="color:#D4AF37; margin-bottom:0.5rem;">🏠 Synthèse du bien</h2>
             <p style="color:#ccc; font-size:1.05rem;">{data.get('address')}</p>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1rem;">
                 <div><strong style="color:#D4AF37;">Surface</strong><br><span style="color:#fff;">{data.get('surface')} m²</span></div>
                 <div><strong style="color:#D4AF37;">Type</strong><br><span style="color:#fff;">{data.get('property_type')}</span></div>
                 <div><strong style="color:#D4AF37;">DPE actuel</strong><br><span style="color:#fff;">{data.get('current_dpe')}</span></div>
@@ -390,7 +390,7 @@ def show():
         st.markdown(f"""
         <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
             <h2 style="color:#D4AF37; text-align:center;">💼 Tableau de bord investissement</h2>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem; text-align:center;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:1rem; text-align:center;">
                 <div>
                     <p style="color:#888;">Coût travaux</p>
                     <h3 style="color:#fff;">{data.get('renovation_cost', 0):,.0f} €</h3>
