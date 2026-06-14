@@ -186,13 +186,20 @@ st.markdown("""
         display: none !important;
     }
 }
+
+    @media (max-width: 768px) {
+        div[data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ── ⚡ ROUTING ──
 if selected_page == "🔍 Nouvelle Estimation":
     st.markdown("""
-    <div class="luxury-card" style="text-align:center;">
+    <div class="luxury-card desktop-only" style="text-align:center;">
         <h1 style="color:#D4AF37; margin-bottom:0.5rem;">Rénovez mieux. Estimez vos travaux en 2 minutes.</h1>
         <p style="color:#ccc; font-size:1.1rem;">
             Obtenez une fourchette de coût, un niveau de confiance, une estimation des aides
@@ -215,7 +222,7 @@ if selected_page == "🔍 Nouvelle Estimation":
         high_class_ui.luxury_metric("4", "Devis", delta="Artisans")
 
     st.markdown("""
-    <div class="luxury-card" style="text-align:center; border:1px solid rgba(52,211,153,0.25);">
+    <div class="luxury-card desktop-only" style="text-align:center; border:1px solid rgba(52,211,153,0.25);">
         <h3 style="color:#34d399;">🔒 Une estimation transparente, pas une promesse commerciale</h3>
         <p style="color:#ccc; line-height:1.8;">
             ZAMI affiche une fourchette de coût, un niveau de fiabilité et les limites de l'estimation.
@@ -231,7 +238,7 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="luxury-card">
+    <div class="luxury-card desktop-only">
         <h3 style="color:#D4AF37;">Pourquoi utiliser ZAMI ?</h3>
         <p style="color:#ccc; line-height:1.8;">
             ✓ Fourchette réaliste au lieu d'un prix unique trompeur<br>
@@ -244,7 +251,7 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="luxury-card">
+    <div class="luxury-card desktop-only">
         <h3 style="color:#D4AF37; text-align:center;">Ils peuvent utiliser ZAMI pour préparer leur projet</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-top:1rem;">
             <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:16px;">
@@ -270,7 +277,7 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="luxury-card" style="text-align:center;">
+    <div class="luxury-card desktop-only" style="text-align:center;">
         <h3 style="color:#D4AF37;">🤝 Réseau d'artisans en construction</h3>
         <p style="color:#ccc;">
             ZAMI est actuellement en phase bêta en Île-de-France.
@@ -283,7 +290,7 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="luxury-card" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
+    <div class="luxury-card desktop-only" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
         <h3 style="color:#D4AF37;">Prêt à connaître le potentiel de votre logement ?</h3>
         <p style="color:#ccc;">
             Commencez avec votre adresse ci-dessous. L'estimation prend moins de 2 minutes.
@@ -302,13 +309,6 @@ if selected_page == "🔍 Nouvelle Estimation":
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="mobile-only" style="text-align:center; padding:1rem; border:1px solid rgba(212,175,55,0.35); border-radius:20px; margin-bottom:1rem;">
-        <h2 style="color:#D4AF37;">⚡ Estimez votre rénovation en 2 minutes</h2>
-        <p style="color:#ccc;">Entrez votre adresse ci-dessous pour obtenir votre estimation gratuite.</p>
-        <p style="color:#34d399; font-weight:700;">↓ Commencez ici ↓</p>
-    </div>
-    """, unsafe_allow_html=True)
 
     estimation_view.show()
 elif selected_page == "🏠 Mon Espace Client":
