@@ -137,6 +137,58 @@ def generate_complete_report(data):
     story.append(Spacer(1, 10*mm))
     
     # ==================== FINANCIAL ANALYSIS ====================
+    story.append(Paragraph("Score d'Opportunité ZAMI", heading1_style))
+
+    opportunity_score = 0
+    if data.get('savings_percentage', 0) >= 40:
+        opportunity_score += 25
+    elif data.get('savings_percentage', 0) >= 25:
+        opportunity_score += 15
+
+    if data.get('roi', 0) >= 70:
+        opportunity_score += 25
+    elif data.get('roi', 0) >= 40:
+        opportunity_score += 15
+
+    if data.get('subsidy', 0) > 0:
+        opportunity_score += 20
+
+    if data.get('confidence_score', 0) >= 80:
+        opportunity_score += 20
+    elif data.get('confidence_score', 0) >= 65:
+        opportunity_score += 10
+
+    if data.get('payback', 99) <= 10:
+        opportunity_score += 10
+
+    opportunity_score = min(opportunity_score, 100)
+
+    if opportunity_score >= 80:
+        opportunity_label = "Excellent projet de rénovation"
+    elif opportunity_score >= 60:
+        opportunity_label = "Projet intéressant à étudier"
+    else:
+        opportunity_label = "Projet à qualifier avec un artisan"
+
+    score_data = [
+        ["Score ZAMI", f"{opportunity_score}/100"],
+        ["Analyse", opportunity_label],
+        ["Facteurs pris en compte", "Économies, aides, ROI, fiabilité et temps de retour"],
+    ]
+
+    score_table = Table(score_data, colWidths=[2.4*inch, 4.2*inch])
+    score_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F5F5F5')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#333333')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#DDDDDD')),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(score_table)
+    story.append(Spacer(1, 0.2*inch))
+
     story.append(Paragraph("Pourquoi cette estimation ?", heading1_style))
 
     source_dpe = "Données ADEME trouvées" if data.get("dpe_source") == "ADEME_API" else "Estimation basée sur les informations saisies"
