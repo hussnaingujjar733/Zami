@@ -307,6 +307,15 @@ def show():
                     df['month'] = pd.to_datetime(df['created_at'], errors='coerce').dt.to_period('M').astype(str)
                     monthly = df.groupby('month').size().reset_index(name='Nombre de leads')
                     st.dataframe(monthly, use_container_width=True)
+
+                    analytics_csv = monthly.to_csv(index=False).encode("utf-8")
+                    st.download_button(
+                        "📥 Exporter les statistiques mensuelles",
+                        data=analytics_csv,
+                        file_name="zami_monthly_leads.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
             else:
                 st.info("Pas assez de données pour afficher les finances.")
         except:
