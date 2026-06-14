@@ -263,6 +263,45 @@ def show():
         data = st.session_state.report_data
         st.success(f"### 📄 Rapport pour : {data['address']}")
 
+        if data.get('savings_percentage', 0) >= 45:
+            potential_text = "un fort potentiel de rénovation énergétique"
+        elif data.get('savings_percentage', 0) >= 25:
+            potential_text = "un potentiel intéressant de rénovation énergétique"
+        else:
+            potential_text = "un potentiel à confirmer avec une visite technique"
+
+        if data.get('roi', 0) >= 70:
+            financial_text = "Le projet présente un équilibre financier attractif grâce aux économies, aux aides estimées et à la valorisation potentielle du bien."
+        elif data.get('roi', 0) >= 40:
+            financial_text = "Le projet mérite une étude plus approfondie, notamment avec plusieurs devis artisans."
+        else:
+            financial_text = "Le projet doit être qualifié avec un professionnel afin de confirmer sa rentabilité réelle."
+
+        if data.get('subsidy', 0) > 0:
+            subsidy_text = f"Les aides estimées peuvent réduire le coût initial d'environ {data.get('subsidy', 0):,.0f} €."
+        else:
+            subsidy_text = "Les aides disponibles devront être vérifiées selon votre situation."
+
+        st.markdown(f"""
+        <div class="luxury-card" style="border:1px solid rgba(52,211,153,0.35);">
+            <h2 style="color:#34d399;">🤖 Analyse ZAMI</h2>
+            <p style="color:#ccc; font-size:1.05rem; line-height:1.8;">
+                Votre logement présente <strong>{potential_text}</strong>.
+                Le passage de <strong>DPE {data.get('current_dpe')}</strong> à <strong>DPE {data.get('target_dpe')}</strong>
+                pourrait réduire la consommation énergétique d'environ <strong>{data.get('savings_percentage')}%</strong>.
+            </p>
+            <p style="color:#ccc; line-height:1.8;">
+                {financial_text}
+            </p>
+            <p style="color:#D4AF37; line-height:1.8;">
+                {subsidy_text}
+            </p>
+            <p style="color:#888; font-size:0.85rem;">
+                Cette analyse est indicative et doit être confirmée par une visite technique et des devis professionnels.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.markdown(f"""
         <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
             <h2 style="color:#D4AF37; margin-bottom:0.5rem;">🏠 Synthèse du bien</h2>
