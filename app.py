@@ -247,6 +247,19 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
+    <div class="luxury-card" style="text-align:center;">
+        <h3 style="color:#D4AF37;">🤝 Réseau d'artisans en construction</h3>
+        <p style="color:#ccc;">
+            ZAMI est actuellement en phase bêta en Île-de-France.
+            Nous intégrons progressivement des artisans partenaires pour traiter les demandes de rénovation énergétique.
+        </p>
+        <p style="color:#34d399; font-weight:600;">
+            ✓ Artisans locaux &nbsp; ✓ Projets qualifiés &nbsp; ✓ Devis comparables &nbsp; ✓ Lancement progressif
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
     <div class="luxury-card" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
         <h3 style="color:#D4AF37;">Prêt à connaître le potentiel de votre logement ?</h3>
         <p style="color:#ccc;">
