@@ -327,6 +327,30 @@ def show():
             premium_ui.premium_metric("📈 Valeur après travaux", f"{data['future_value']:,.0f} €", delta=f"+{data['added_value']:,.0f} €")
         
         st.markdown("---")
+        st.markdown(f"""
+        <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
+            <h2 style="color:#D4AF37; text-align:center;">💼 Tableau de bord investissement</h2>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem; text-align:center;">
+                <div>
+                    <p style="color:#888;">Coût travaux</p>
+                    <h3 style="color:#fff;">{data.get('renovation_cost', 0):,.0f} €</h3>
+                </div>
+                <div>
+                    <p style="color:#888;">Aides estimées</p>
+                    <h3 style="color:#34d399;">-{data.get('subsidy', 0):,.0f} €</h3>
+                </div>
+                <div>
+                    <p style="color:#888;">Reste à charge</p>
+                    <h3 style="color:#D4AF37;">{data.get('net_investment', 0):,.0f} €</h3>
+                </div>
+                <div>
+                    <p style="color:#888;">Valeur créée</p>
+                    <h3 style="color:#34d399;">+{data.get('added_value', 0):,.0f} €</h3>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
         opportunity_score = 0
 
         if data.get('savings_percentage', 0) >= 40:
