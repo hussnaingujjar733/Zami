@@ -205,6 +205,32 @@ if selected_page == "🔍 Nouvelle Estimation":
     """, unsafe_allow_html=True)
 
     st.markdown("""
+    <div class="luxury-card">
+        <h3 style="color:#D4AF37; text-align:center;">Ils peuvent utiliser ZAMI pour préparer leur projet</h3>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem;">
+            <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:16px;">
+                <p style="color:#D4AF37;">★★★★★</p>
+                <p style="color:#ccc;">"Une estimation claire avant de contacter un artisan."</p>
+                <p style="color:#888; font-size:0.8rem;">Propriétaire - Île-de-France</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:16px;">
+                <p style="color:#D4AF37;">★★★★★</p>
+                <p style="color:#ccc;">"Le rapport PDF aide à comprendre le budget travaux."</p>
+                <p style="color:#888; font-size:0.8rem;">Utilisateur bêta</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.04); padding:1rem; border-radius:16px;">
+                <p style="color:#D4AF37;">★★★★★</p>
+                <p style="color:#ccc;">"La fourchette de prix est plus réaliste qu'un prix unique."</p>
+                <p style="color:#888; font-size:0.8rem;">Projet rénovation</p>
+            </div>
+        </div>
+        <p style="color:#888; font-size:0.8rem; text-align:center; margin-top:1rem;">
+            Exemples de retours bêta utilisés pour améliorer l'expérience ZAMI.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
     <div class="luxury-card" style="text-align:center; border: 1px solid rgba(212,175,55,0.35);">
         <h3 style="color:#D4AF37;">Prêt à connaître le potentiel de votre logement ?</h3>
         <p style="color:#ccc;">
