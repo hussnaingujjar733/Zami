@@ -134,6 +134,7 @@ def show():
     # ==================== STEP 1: ADDRESS ====================
     if st.session_state.estimation_step == "address":
         st.success("🔒 Adresse privée • Aucune inscription • Gratuit • Sans engagement")
+
         if st.button("🏠 Essayer une démonstration", use_container_width=True):
             st.session_state.demo_address = "39 Rue du Sergent Bobillot, 93700 Drancy"
 
@@ -142,7 +143,7 @@ def show():
             value=st.session_state.get("demo_address", ""),
             placeholder="Ex: 39 Rue du Sergent Bobillot, 93100 Montreuil"
         )
-        
+
         search_clicked = st.button("🔍 Rechercher cette adresse", type="primary", use_container_width=True)
 
         if search_clicked and search_query and len(search_query) >= 3:
@@ -155,39 +156,44 @@ def show():
         if features:
             st.success("✅ Adresse trouvée. Sélectionnez l’adresse exacte ci-dessous.")
             labels = [f["properties"].get("label", "") for f in features]
-                    selected_label = st.selectbox("Sélectionnez l'adresse exacte", labels)
-                    if st.button("⚡ Obtenir mon estimation gratuite", type="primary", use_container_width=True):
-                        for f in features:
-                            if f["properties"].get("label") == selected_label:
-                                with st.spinner("🔍 Recherche des données DPE ADEME..."):
-                                    ademe_result = get_dpe_by_address(selected_label)
-                                if ademe_result.get('success'):
-                                    st.session_state.property_data = {
-                                        "address": selected_label,
-                                        "lat": f["geometry"]["coordinates"][1],
-                                        "lon": f["geometry"]["coordinates"][0],
-                                        "postcode": f["properties"].get("postcode", "93100"),
-                                        "city": f["properties"].get("city", ""),
-                                        "dpe": ademe_result['dpe'],
-                                        "consumption": ademe_result['consumption'],
-                                        "surface": ademe_result['surface'],
-                                        "year": ademe_result['year'],
-                                        "has_real_dpe": True
-                                    }
-                                    st.success(f"✅ Données ADEME: DPE {ademe_result['dpe']}")
-                                else:
-                                    st.session_state.property_data = {
-                                        "address": selected_label,
-                                        "lat": f["geometry"]["coordinates"][1],
-                                        "lon": f["geometry"]["coordinates"][0],
-                                        "postcode": f["properties"].get("postcode", "93100"),
-                                        "city": f["properties"].get("city", ""),
-                                        "has_real_dpe": False
-                                    }
-                                    st.info("ℹ️ Données ADEME non disponibles")
-                                st.session_state.estimation_step = "details"
-                                st.rerun()
-    
+            selected_label = st.selectbox("Sélectionnez l'adresse exacte", labels)
+
+            if st.button("⚡ Obtenir mon estimation gratuite", type="primary", use_container_width=True):
+                for f in features:
+                    if f["properties"].get("label") == selected_label:
+                        with st.spinner("🔍 Recherche des données DPE ADEME..."):
+                            ademe_result = get_dpe_by_address(selected_label)
+
+                        if ademe_result.get('success'):
+                            st.session_state.property_data = {
+                                "address": selected_label,
+                                "lat": f["geometry"]["coordinates"][1],
+                                "lon": f["geometry"]["coordinates"][0],
+                                "postcode": f["properties"].get("postcode", "93100"),
+                                "city": f["properties"].get("city", ""),
+                                "dpe": ademe_result['dpe'],
+                                "consumption": ademe_result['consumption'],
+                                "surface": ademe_result['surface'],
+                                "year": ademe_result['year'],
+                                "has_real_dpe": True
+                            }
+                            st.success(f"✅ Données ADEME: DPE {ademe_result['dpe']}")
+                        else:
+                            st.session_state.property_data = {
+                                "address": selected_label,
+                                "lat": f["geometry"]["coordinates"][1],
+                                "lon": f["geometry"]["coordinates"][0],
+                                "postcode": f["properties"].get("postcode", "93100"),
+                                "city": f["properties"].get("city", ""),
+                                "has_real_dpe": False
+                            }
+                            st.info("ℹ️ Données ADEME non disponibles")
+
+                        st.session_state.estimation_step = "details"
+                        st.rerun()
+        elif search_clicked:
+            st.warning("Veuillez saisir au moins 3 caractères pour rechercher une adresse.")
+
     # ==================== STEP 2: DETAILS ====================
     elif st.session_state.estimation_step == "details":
         prop = st.session_state.property_data
