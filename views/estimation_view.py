@@ -574,39 +574,37 @@ def show():
 
 
         st.markdown("---")
-        st.markdown("### 🤖 Conseiller ZAMI")
+        with st.expander("🤖 Conseiller ZAMI", expanded=False):
+            current_dpe = data.get("current_dpe", "E")
 
-        current_dpe = data.get("current_dpe", "E")
+            if current_dpe in ["F", "G"]:
+                priority = "🔴 Priorité élevée"
+                advice = [
+                    "Commencer par l’isolation avant les autres travaux.",
+                    "Vérifier les aides MaPrimeRénov disponibles.",
+                    "Comparer au moins 3 devis d’artisans."
+                ]
+            elif current_dpe in ["D", "E"]:
+                priority = "🟠 Priorité moyenne"
+                advice = [
+                    "Identifier les principales pertes énergétiques.",
+                    "Optimiser le chauffage avant les travaux secondaires.",
+                    "Comparer plusieurs scénarios de rénovation."
+                ]
+            else:
+                priority = "🟢 Priorité modérée"
+                advice = [
+                    "Conserver les performances actuelles.",
+                    "Suivre la consommation énergétique.",
+                    "Planifier les améliorations futures progressivement."
+                ]
 
-        if current_dpe in ["F", "G"]:
-            priority = "🔴 Priorité élevée"
-            advice = [
-                "Commencer par l’isolation avant les autres travaux.",
-                "Vérifier les aides MaPrimeRénov disponibles.",
-                "Comparer au moins 3 devis d’artisans."
-            ]
-        elif current_dpe in ["D", "E"]:
-            priority = "🟠 Priorité moyenne"
-            advice = [
-                "Identifier les principales pertes énergétiques.",
-                "Optimiser le chauffage avant les travaux secondaires.",
-                "Comparer plusieurs scénarios de rénovation."
-            ]
-        else:
-            priority = "🟢 Priorité modérée"
-            advice = [
-                "Conserver les performances actuelles.",
-                "Suivre la consommation énergétique.",
-                "Planifier les améliorations futures progressivement."
-            ]
+            st.success(priority)
 
-        st.success(priority)
+            for item in advice:
+                st.write(f"✓ {item}")
 
-        for item in advice:
-            st.write(f"✓ {item}")
-
-        st.caption("Conseil généré automatiquement à partir des caractéristiques estimées du logement.")
-
+            st.caption("Conseil généré automatiquement à partir des caractéristiques estimées du logement.")
 
         st.markdown("---")
         st.markdown("### 🏠 Impact potentiel sur la valeur du bien")
