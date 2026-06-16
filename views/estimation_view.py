@@ -520,25 +520,25 @@ def show():
                 ("3️⃣ Suivi de consommation", "Impact moyen", "Contrôler les usages pour maintenir la performance."),
             ]
 
-        st.markdown(f"""
-        <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
-            <h2 style="color:#D4AF37; text-align:center;">🛠️ Plan de rénovation recommandé</h2>
-            <p style="color:#ccc; text-align:center;">
-                Objectif estimé : <strong>DPE {current_dpe}</strong> → <strong>DPE {target_dpe}</strong>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        for title, impact, reason in roadmap:
+        with st.expander("🛠️ Plan de rénovation recommandé", expanded=False):
             st.markdown(f"""
-            <div style="border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:1rem; margin:0.7rem 0; background:rgba(255,255,255,0.03);">
-                <h4 style="color:#D4AF37; margin-bottom:0.3rem;">{title}</h4>
-                <p style="color:#34d399; margin:0;"><strong>{impact}</strong></p>
-                <p style="color:#ccc; margin-top:0.4rem;">{reason}</p>
+            <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
+                <p style="color:#ccc; text-align:center;">
+                    Objectif estimé : <strong>DPE {current_dpe}</strong> → <strong>DPE {target_dpe}</strong>
+                </p>
             </div>
             """, unsafe_allow_html=True)
 
-        st.caption("Ce plan est indicatif. L’ordre final des travaux doit être validé par un audit ou un artisan qualifié.")
+            for title, impact, reason in roadmap:
+                st.markdown(f"""
+                <div style="border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:1rem; margin:0.7rem 0; background:rgba(255,255,255,0.03);">
+                    <h4 style="color:#D4AF37; margin-bottom:0.3rem;">{title}</h4>
+                    <p style="color:#34d399; margin:0;"><strong>{impact}</strong></p>
+                    <p style="color:#ccc; margin-top:0.4rem;">{reason}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.caption("Ce plan est indicatif. L’ordre final des travaux doit être validé par un audit ou un artisan qualifié.")
 
         st.markdown("---")
         st.markdown("### 🧪 Simulateur de scénario budget")
