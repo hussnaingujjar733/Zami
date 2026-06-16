@@ -547,6 +547,38 @@ def show():
         st.caption("Ce plan est indicatif. L’ordre final des travaux doit être validé par un audit ou un artisan qualifié.")
 
         st.markdown("---")
+        st.markdown("### 🧪 Simulateur de scénario budget")
+
+        scenario_budget = st.select_slider(
+            "💰 Quel budget souhaitez-vous tester ?",
+            options=[5000, 10000, 15000, 20000, 25000, 30000, 40000],
+            value=15000,
+            key="scenario_budget_slider"
+        )
+
+        if scenario_budget < 10000:
+            scenario_plan = "Priorité : isolation simple et petits travaux à fort impact."
+            scenario_gain = "Gain probable : amélioration partielle du confort énergétique."
+        elif scenario_budget < 20000:
+            scenario_plan = "Priorité : isolation ciblée + optimisation du chauffage."
+            scenario_gain = "Gain probable : amélioration significative, souvent DPE +1 classe."
+        elif scenario_budget < 30000:
+            scenario_plan = "Projet plus complet : isolation + chauffage performant + ventilation."
+            scenario_gain = "Gain probable : objectif DPE supérieur plus réaliste."
+        else:
+            scenario_plan = "Projet global envisageable : rénovation énergétique plus complète."
+            scenario_gain = "Gain probable : forte amélioration DPE et meilleure valorisation du bien."
+
+        st.info(f"""
+        Avec un budget de **{scenario_budget:,.0f} €** :
+
+        {scenario_plan}
+
+        {scenario_gain}
+        """)
+
+        st.caption("Ce simulateur est indicatif. Les priorités réelles dépendent de l'audit, du bâti et des devis artisans.")
+
         st.markdown("### 🧠 Pourquoi cette estimation ?")
 
         source_label = "Données ADEME trouvées" if data.get('dpe_source') == 'ADEME_API' else "Estimation basée sur l'année de construction"
