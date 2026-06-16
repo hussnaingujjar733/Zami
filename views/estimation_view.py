@@ -148,9 +148,13 @@ def show():
         if search_clicked and search_query and len(search_query) >= 3:
             with st.spinner("Recherche de l’adresse..."):
                 features = search_address(search_query)
-                if features:
-                    st.success("✅ Adresse trouvée. Sélectionnez l’adresse exacte ci-dessous.")
-                    labels = [f["properties"].get("label", "") for f in features]
+                st.session_state.address_features = features if features else []
+
+        features = st.session_state.get("address_features", [])
+
+        if features:
+            st.success("✅ Adresse trouvée. Sélectionnez l’adresse exacte ci-dessous.")
+            labels = [f["properties"].get("label", "") for f in features]
                     selected_label = st.selectbox("Sélectionnez l'adresse exacte", labels)
                     if st.button("⚡ Obtenir mon estimation gratuite", type="primary", use_container_width=True):
                         for f in features:
