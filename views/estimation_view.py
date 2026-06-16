@@ -546,51 +546,6 @@ def show():
 
         st.caption("Ce plan est indicatif. L’ordre final des travaux doit être validé par un audit ou un artisan qualifié.")
 
-        # Renovation roadmap
-        current_dpe = data.get("current_dpe", "E")
-        target_dpe = data.get("target_dpe", "C")
-        renovation_cost = data.get("renovation_cost", 0)
-
-        if current_dpe in ["F", "G"]:
-            roadmap = [
-                ("1️⃣ Isolation thermique prioritaire", "Impact très élevé", "Réduire les pertes de chaleur avant de changer le système énergétique."),
-                ("2️⃣ Chauffage performant", "Impact élevé", "Pompe à chaleur ou système plus efficace selon le logement."),
-                ("3️⃣ Ventilation contrôlée", "Impact moyen", "Améliorer la qualité de l’air et limiter les pertes énergétiques."),
-            ]
-        elif current_dpe in ["D", "E"]:
-            roadmap = [
-                ("1️⃣ Isolation ciblée", "Impact élevé", "Traiter les murs, combles ou planchers selon les faiblesses du logement."),
-                ("2️⃣ Chauffage / régulation", "Impact élevé", "Optimiser le système de chauffage et la régulation."),
-                ("3️⃣ Menuiseries performantes", "Impact moyen", "Remplacer les fenêtres anciennes si nécessaire."),
-            ]
-        else:
-            roadmap = [
-                ("1️⃣ Optimisation énergétique", "Impact moyen", "Identifier les petits travaux à fort rendement."),
-                ("2️⃣ Ventilation", "Impact moyen", "Améliorer le confort et la qualité de l’air."),
-                ("3️⃣ Suivi de consommation", "Impact moyen", "Contrôler les usages pour maintenir la performance."),
-            ]
-
-        st.markdown(f"""
-        <div class="luxury-card" style="border:1px solid rgba(212,175,55,0.35);">
-            <h2 style="color:#D4AF37; text-align:center;">🛠️ Plan de rénovation recommandé</h2>
-            <p style="color:#ccc; text-align:center;">
-                Objectif estimé : <strong>DPE {current_dpe}</strong> → <strong>DPE {target_dpe}</strong>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        for title, impact, reason in roadmap:
-            st.markdown(f"""
-            <div style="border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:1rem; margin:0.7rem 0; background:rgba(255,255,255,0.03);">
-                <h4 style="color:#D4AF37; margin-bottom:0.3rem;">{title}</h4>
-                <p style="color:#34d399; margin:0;"><strong>{impact}</strong></p>
-                <p style="color:#ccc; margin-top:0.4rem;">{reason}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.caption("Ce plan est indicatif. L’ordre final des travaux doit être validé par un audit ou un artisan qualifié.")
-
-
         st.markdown("---")
         st.markdown("### 🧠 Pourquoi cette estimation ?")
 
