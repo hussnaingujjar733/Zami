@@ -483,19 +483,14 @@ def show():
         target_total_kwh = int(data.get('target_consumption', 0) * data.get('surface', 0))
         reduction_kwh = max(current_total_kwh - target_total_kwh, 0)
 
-        st.markdown("""
-        <div class="luxury-card">
-            <h2 style="color:#D4AF37;">⚡ Consommation énergétique estimée</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.expander("⚡ Consommation énergétique estimée", expanded=False):
+            col_energy1, col_energy2, col_energy3 = st.columns(3)
+            col_energy1.metric("Aujourd'hui", f"{current_total_kwh:,} kWh/an")
+            col_energy2.metric("Après travaux", f"{target_total_kwh:,} kWh/an")
+            col_energy3.metric("Réduction", f"-{reduction_kwh:,} kWh/an")
 
-        col_energy1, col_energy2, col_energy3 = st.columns(3)
-        col_energy1.metric("Aujourd'hui", f"{current_total_kwh:,} kWh/an")
-        col_energy2.metric("Après travaux", f"{target_total_kwh:,} kWh/an")
-        col_energy3.metric("Réduction", f"-{reduction_kwh:,} kWh/an")
-
-        st.progress(min(int(data.get('savings_percentage', 0)), 100))
-        st.caption(f"Gain énergétique estimé : {data.get('savings_percentage')}%")
+            st.progress(min(int(data.get('savings_percentage', 0)), 100))
+            st.caption(f"Gain énergétique estimé : {data.get('savings_percentage')}%")
 
         col_a, col_b, col_c = st.columns(3)
         with col_a: premium_ui.premium_metric("📊 ROI", f"{data['roi']}%")
