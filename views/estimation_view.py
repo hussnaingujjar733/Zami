@@ -133,6 +133,7 @@ def show():
     
     # ==================== STEP 1: ADDRESS ====================
     if st.session_state.estimation_step == "address":
+st.success("🔒 Adresse privée • Aucune inscription • Gratuit • Sans engagement")
         search_query = st.text_input("Saisissez votre adresse", placeholder="Ex: 39 Rue du Sergent Bobillot, 93100 Montreuil")
         
         if search_query and len(search_query) >= 3:
