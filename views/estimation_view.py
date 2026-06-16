@@ -133,7 +133,7 @@ def show():
     
     # ==================== STEP 1: ADDRESS ====================
     if st.session_state.estimation_step == "address":
-    st.success("🔒 Adresse privée • Aucune inscription • Gratuit • Sans engagement")
+        st.success("🔒 Adresse privée • Aucune inscription • Gratuit • Sans engagement")
         if st.button("🏠 Essayer une démonstration", use_container_width=True):
             st.session_state.demo_address = "39 Rue du Sergent Bobillot, 93700 Drancy"
 
