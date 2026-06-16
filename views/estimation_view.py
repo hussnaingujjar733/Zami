@@ -134,7 +134,14 @@ def show():
     # ==================== STEP 1: ADDRESS ====================
     if st.session_state.estimation_step == "address":
 st.success("🔒 Adresse privée • Aucune inscription • Gratuit • Sans engagement")
-        search_query = st.text_input("Saisissez votre adresse", placeholder="Ex: 39 Rue du Sergent Bobillot, 93100 Montreuil")
+        if st.button("🏠 Essayer une démonstration", use_container_width=True):
+            st.session_state.demo_address = "39 Rue du Sergent Bobillot, 93700 Drancy"
+
+        search_query = st.text_input(
+            "Saisissez votre adresse",
+            value=st.session_state.get("demo_address", ""),
+            placeholder="Ex: 39 Rue du Sergent Bobillot, 93100 Montreuil"
+        )
         
         if search_query and len(search_query) >= 3:
             with st.spinner("Recherche BAN API..."):
