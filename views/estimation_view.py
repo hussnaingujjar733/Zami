@@ -614,6 +614,21 @@ def show():
 
         st.caption("Conseil généré automatiquement à partir des caractéristiques estimées du logement.")
 
+
+        st.markdown("---")
+        st.markdown("### 🏠 Impact potentiel sur la valeur du bien")
+
+        current_value = data.get("current_value", 0)
+        future_value = data.get("future_value", 0)
+        added_value = data.get("added_value", future_value - current_value)
+
+        col_v1, col_v2, col_v3 = st.columns(3)
+        col_v1.metric("Valeur actuelle estimée", f"{current_value:,.0f} €")
+        col_v2.metric("Valeur après rénovation", f"{future_value:,.0f} €")
+        col_v3.metric("Gain potentiel", f"+{added_value:,.0f} €")
+
+        st.caption("Cette valorisation est indicative et dépend du marché immobilier local, de la qualité des travaux et des devis réalisés.")
+
         st.markdown("### 🧠 Pourquoi cette estimation ?")
 
         source_label = "Données ADEME trouvées" if data.get('dpe_source') == 'ADEME_API' else "Estimation basée sur l'année de construction"
